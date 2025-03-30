@@ -275,6 +275,7 @@ public:
 		return pieces;
 	}
 
+	// Simplify later
 	static void calculateCastlingPossibilities(std::vector<std::unique_ptr<Piece>>& pieces) {
 		for (auto& piece : pieces) {
 			if (piece->name == "King") {
@@ -296,7 +297,7 @@ public:
 														for (auto& square : piece3->availablePositions) {
 															if (square == convertChessNotationtoPosition("f1") || square == convertChessNotationtoPosition("g1")) {
 																king->canCastleK = false;
-																goto queenside;
+																goto Wqueenside;
 															}
 														}
 													}
@@ -307,13 +308,86 @@ public:
 									}
 								}
 							}
-						queenside:
-							int r = 0;
-							// Queenside
+						Wqueenside:
+							if (!king->canNeverCastleQ) {
+								if (noPiece("b1", pieces) && noPiece("c1", pieces) && noPiece("d1", pieces)) {
+									for (auto& piece2 : pieces) {
+										if (piece2->name == "Rook" && piece2->color == color) {
+											Rook* rook = dynamic_cast<Rook*>(piece2.get());
+											if (rook != nullptr && !rook->hasMoved && rook->position == convertChessNotationtoPosition("a1")) {
+												for (auto& piece3 : pieces) {
+													if (piece3->color != color) {
+														for (auto& square : piece3->availablePositions) {
+															if (square == convertChessNotationtoPosition("b1") || square == convertChessNotationtoPosition("c1") || square == convertChessNotationtoPosition("d1")) {
+																king->canCastleQ = false;
+																goto end;
+															}
+														}
+													}
+												}
+												king->canCastleQ = true;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					// BLACK
+					else if (!king->hasMoved && !king->inCheck && king->isBlack()) {
+						if (king->position == convertChessNotationtoPosition("e8")) {
+							// Kingside
+							if (!king->canNeverCastleK) {
+								if (noPiece("f8", pieces) && noPiece("g8", pieces)) {
+									for (auto& piece2 : pieces) {
+										if (piece2->name == "Rook" && piece2->color == color) {
+											Rook* rook = dynamic_cast<Rook*>(piece2.get());
+											if (rook != nullptr && !rook->hasMoved && rook->position == convertChessNotationtoPosition("h8")) {
+												for (auto& piece3 : pieces) {
+													if (piece3->color != color) {
+														for (auto& square : piece3->availablePositions) {
+															if (square == convertChessNotationtoPosition("f8") || square == convertChessNotationtoPosition("g8")) {
+																king->canCastleK = false;
+																goto Bqueenside;
+															}
+														}
+													}
+												}
+												king->canCastleK = true;
+											}
+										}
+									}
+								}
+							}
+						Bqueenside:
+							if (!king->canNeverCastleQ) {
+								if (noPiece("b8", pieces) && noPiece("c8", pieces) && noPiece("d8", pieces)) {
+									for (auto& piece2 : pieces) {
+										if (piece2->name == "Rook" && piece2->color == color) {
+											Rook* rook = dynamic_cast<Rook*>(piece2.get());
+											if (rook != nullptr && !rook->hasMoved && rook->position == convertChessNotationtoPosition("a8")) {
+												for (auto& piece3 : pieces) {
+													if (piece3->color != color) {
+														for (auto& square : piece3->availablePositions) {
+															if (square == convertChessNotationtoPosition("b8") || square == convertChessNotationtoPosition("c8") || square == convertChessNotationtoPosition("d8")) {
+																king->canCastleQ = false;
+																goto end;
+															}
+														}
+													}
+												}
+												king->canCastleQ = true;
+											}
+										}
+									}
+								}
+							}
 						}
 					}
 				}
 			}
+			end:
+			continue;
 		}
 	}
 };
