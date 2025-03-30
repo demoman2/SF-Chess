@@ -1,7 +1,7 @@
 #include "Piece.h"
 
-Piece::Piece(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture, std::vector<std::unique_ptr<Piece>>& pieces)
-	: sprite(texture), position(x, y), pieces(pieces)
+Piece::Piece(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture)
+	: sprite(texture), position(x, y), color(color), x(x), y(y), scale(scale), xOffset(xOffset), boardMultiplier(boardMultiplier), texture(texture)
 {
 	sprite.setPosition(sf::Vector2f{ xOffset + (x * boardMultiplier), y * boardMultiplier });
 	sprite.setScale(sf::Vector2f(scale, scale));
@@ -27,16 +27,6 @@ std::string Piece::getIdentifier() const
 		return whiteIdentifier;
 	}
 	return blackIdentifier;
-}
-
-std::optional<Piece> Piece::getPieceFromPosition(sf::Vector2i position)
-{
-	for (auto& piece : pieces) {
-		if (piece->position == position) {
-			return *piece;
-		}
-	}
-	return {};
 }
 
 

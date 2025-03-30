@@ -11,7 +11,6 @@ public:
 		Black
 	};
 	std::string name;
-	float boardMultiplier, scale, xOffset;
 	int x, y;
 	int pointValue;
 	sf::Vector2i position;
@@ -20,9 +19,8 @@ public:
 	sf::Sprite sprite;
 	std::string whiteIdentifier, blackIdentifier;
 	std::vector<sf::Vector2i> availablePositions, availableCapturePositions;
-	std::vector<std::unique_ptr<Piece>>& pieces;
 	// std::unique_ptr<Piece> instead of Piece* 
-	Piece(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture, std::vector<std::unique_ptr<Piece>>& pieces);
+	Piece(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture);
 	~Piece();
 
 	void move(int newX, int newY);
@@ -39,10 +37,9 @@ public:
 	bool operator>=(const Piece& other) const { return pointValue >= other.pointValue; }
 	bool operator+(const Piece& other) const { return pointValue + other.pointValue; }
 	bool operator-(const Piece& other) const { return pointValue - other.pointValue; }
-	virtual void calculatePositions();
-	std::optional<Piece> getPieceFromPosition(sf::Vector2i position);
+	virtual void calculatePositions() = 0;
 
 private:
-	std::vector<Piece>::iterator it;
+	float boardMultiplier, scale, xOffset;
 
 };

@@ -7,6 +7,10 @@
 #include "Piece.h"
 #include "Bishop.h"
 #include "King.h"
+#include "Knight.h"
+#include "Rook.h"
+#include "Queen.h"
+#include "Pawn.h"
 
 class Main {
 
@@ -65,5 +69,213 @@ public:
 		int x = boardNumber % 4;
 		boardTexture.loadFromImage(spriteSheet, false, sf::IntRect({ x * boardSize, y * boardSize }, { boardSize, boardSize }));
 		board.setTexture(boardTexture);
+	}
+
+	static Piece* getPieceFromPosition(sf::Vector2i position, std::vector<std::unique_ptr<Piece>>& pieces)
+	{
+		for (auto& piece : pieces) {
+			if (piece->position == position) {
+				return piece.get();
+			}
+		}
+		return nullptr;
+	}
+
+	static std::vector<std::string> split(std::string str, char del) {
+		std::vector<std::string> res;
+		std::string temp;
+		for (int i = 0; i < str.size(); i++) {
+			if (str.at(i) == del) {
+				res.push_back(temp);
+				temp = "";
+			}
+			else {
+				temp += str.at(i);
+			}
+		}
+		res.push_back(temp);
+		return res;
+	}
+
+	static sf::Vector2i convertChessNotationtoPosition(std::string notation) {
+		int x = notation.at(0) - 'a';
+		int y = (notation.at(1) - '0') - 1;
+		y = std::abs(y - 7);
+		return { x, y };
+	}
+
+	static bool noPiece(std::string notation, std::vector<std::unique_ptr<Piece>>& pieces) {
+		return getPieceFromPosition(convertChessNotationtoPosition(notation), pieces) == nullptr;
+	}
+
+	// Bishop, King, Knight, Pawn, Queen, Rook
+	// Black --> White
+	static std::vector<std::unique_ptr<Piece>> generatePositionFromFENID(std::string code, std::vector<std::reference_wrapper<sf::Texture>>& pieceTextures, float pieceScale, float boardOffset, float boardSquareOffset, bool& whiteToPlay, int& halfMoves, int& fullMoves) {
+		std::vector<std::unique_ptr<Piece>> pieces;
+		std::vector<std::string> splitString = split(code, ' ');
+		// ========= MODIFIERS =========
+		bool whiteCanNeverCastleK = true, whiteCanNeverCastleQ = true;
+		bool blackCanNeverCastleK = true, blackCanNeverCastleQ = true;
+		std::optional<sf::Vector2i> enPassantTarget{ };
+		std::vector<std::string> modifiers{ splitString.begin() + 1, splitString.end() };
+		for (int i = 0; i < modifiers.size(); i++) {
+			std::string modifier = modifiers.at(i);
+			
+			switch (i) {
+			// Side to Play
+			case 0:
+				if (modifier.at(0) == 'w') {
+					whiteToPlay = true;
+				}
+				else if (modifier.at(0) == 'b') {
+					whiteToPlay = false;
+				}
+				break;
+			// Castling Rights
+			case 1:;
+				for (int j = 0; j < modifier.size(); j++) {
+					if (modifier.at(j) == 'K') {
+						whiteCanNeverCastleK = false;
+					}
+					else if (modifier.at(j) == 'Q') {
+						whiteCanNeverCastleQ = false;
+					}
+					else if (modifier.at(j) == 'k') {
+						blackCanNeverCastleK = false;
+					}
+					else if (modifier.at(j) == 'q') {
+						blackCanNeverCastleQ = false;
+					}
+				}
+				break;
+			// En Passant Target
+			case 2:
+				if (modifier.at(0) != '-') {
+					enPassantTarget = convertChessNotationtoPosition(modifier);
+				}
+				else {
+					enPassantTarget = {};
+				}
+				break;
+			// Half Moves
+			case 3:
+				halfMoves = std::stoi(modifier);
+				break;
+			// Full Moves
+			case 4:
+				fullMoves = std::stoi(modifier);
+				break;
+			}
+		}
+		// ========= RANKS =============
+		std::vector<std::string> ranks = split(splitString.at(0), '/');
+		for (int i = 0; i < ranks.size(); i++) {
+			int x = 0;
+			int y = i;
+			std::string rank = ranks.at(i);
+			for (int j = 0; j < rank.size(); j++) {
+				char letter = rank.at(j);
+				if (std::isdigit(letter)) {
+					x += letter - '0';
+				}
+				else {
+					switch (letter) {
+					// BLACK
+					case 'b':
+					{
+						Bishop bishop{ x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::Black, pieceTextures.at(0) };
+						pieces.push_back(std::make_unique<Bishop>(bishop));
+						break;
+					}
+					case 'k':
+					{
+						King king{ blackCanNeverCastleK, blackCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::Black, pieceTextures.at(1) };
+						pieces.push_back(std::make_unique<King>(king));
+						break;
+					}
+					case 'n':
+					{
+						Knight knight{ x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::Black, pieceTextures.at(2) };
+						pieces.push_back(std::make_unique<Knight>(knight));
+						break;
+					}
+					case 'p':
+					{
+						if (enPassantTarget.has_value() && enPassantTarget.value() == sf::Vector2i{x, y - 1}) {
+							Pawn pawn{ true, x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::Black, pieceTextures.at(3) };
+							pieces.push_back(std::make_unique<Pawn>(pawn));
+						}
+						else {
+							Pawn pawn{ false, x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::Black, pieceTextures.at(3) };
+							pieces.push_back(std::make_unique<Pawn>(pawn));
+						}
+						break;
+					}
+					case 'q':
+					{
+						Queen queen{ x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::Black, pieceTextures.at(4) };
+						pieces.push_back(std::make_unique<Queen>(queen));
+						break;
+					}
+					case 'r':
+					{
+						Rook rook{ x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::Black, pieceTextures.at(5) };
+						pieces.push_back(std::make_unique<Rook>(rook));
+						break;
+					}
+					// WHITE
+					case 'B':
+					{
+						Bishop bishop{ x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::White, pieceTextures.at(6) };
+						pieces.push_back(std::make_unique<Bishop>(bishop));
+						break;
+					}
+					case 'K':
+					{
+						King king{ whiteCanNeverCastleK, whiteCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::White, pieceTextures.at(7) };
+						pieces.push_back(std::make_unique<King>(king));
+						break;
+					}
+					case 'N':
+					{
+						Knight knight{ x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::White, pieceTextures.at(8) };
+						pieces.push_back(std::make_unique<Knight>(knight));
+						break;
+					}
+					case 'P':
+					{
+						if (enPassantTarget.has_value() && enPassantTarget.value() == sf::Vector2i{ x, y + 1 }) {
+							Pawn pawn{ true, x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::White, pieceTextures.at(9) };
+							pieces.push_back(std::make_unique<Pawn>(pawn));
+						}
+						else {
+							Pawn pawn{ false, x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::White, pieceTextures.at(9) };
+							pieces.push_back(std::make_unique<Pawn>(pawn));
+						}
+						break;
+					}
+					case 'Q':
+					{
+						Queen queen{ x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::White, pieceTextures.at(10) };
+						pieces.push_back(std::make_unique<Queen>(queen));
+						break;
+					}
+					case 'R':
+					{
+						Rook rook{ x, y, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::White, pieceTextures.at(11) };
+						pieces.push_back(std::make_unique<Rook>(rook));
+						break;
+					}
+					}
+					x++;
+				}
+			}
+
+		}
+		return pieces;
+	}
+
+	static void calculateCastlingPossibilities(std::vector<std::unique_ptr<Piece>> pieces) {
+
 	}
 };

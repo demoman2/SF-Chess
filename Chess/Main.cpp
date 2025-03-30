@@ -25,7 +25,9 @@ int main()
     board.setPosition({ windowSizeX / 2.0f, windowSizeY / 2.0f });
 
     // Pieces
-    int pieceSize = 320;
+    int halfMoves = 0, fullMoves = 0;
+    bool whiteToPlay = true;
+    float pieceSize = 320;
     float pieceScale = (std::min(ScaleX, ScaleY) * 128.0f) / (float)pieceSize;
     float boardOffset = (windowSizeX / 2.0f) - ((boardTexture.getSize().x * board.getScale().x) / 2);
     float boardSquareOffset = ((boardTexture.getSize().x * board.getScale().x) / 8);
@@ -40,20 +42,8 @@ int main()
     std::vector<std::reference_wrapper<sf::Texture>> pieceTextures{ blackBishopT, blackKingT, blackKnightT, blackPawnT, blackQueenT, blackRookT, 
     whiteBishopT, whiteKingT, whiteKnightT, whitePawnT, whiteQueenT, whiteRookT };
     Main::loadPieceSet(pieceStyle, pieceTextures, pieceSize);
-    std::vector<std::unique_ptr<Piece>> pieceList;
-    Bishop blackBishop{ 1, 1, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::Black, blackBishopT, pieceList };
-    King blackKing{ 4, 7, pieceScale, boardOffset, boardSquareOffset, Piece::PColor::Black, blackKingT, pieceList };
-    pieceList.push_back(std::make_unique<Piece>(blackBishop));
-    pieceList.push_back(std::make_unique<Piece>(blackKing));
-    std::optional<Piece> p = blackKing.getPieceFromPosition(blackKing.position);
-    if (p.has_value()) {
-        std::cout << p->name;
-        std::cout << "hs";
-    }
-    else {
-        std::cout << "a";
-    }
-
+    std::vector<std::unique_ptr<Piece>> pieceList = Main::generatePositionFromFENID("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2",
+        pieceTextures, pieceScale, boardOffset, boardSquareOffset, whiteToPlay, halfMoves, fullMoves);
     // ==== MAIN ====
 
     while (window.isOpen())
