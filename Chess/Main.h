@@ -275,7 +275,45 @@ public:
 		return pieces;
 	}
 
-	static void calculateCastlingPossibilities(std::vector<std::unique_ptr<Piece>> pieces) {
-
+	static void calculateCastlingPossibilities(std::vector<std::unique_ptr<Piece>>& pieces) {
+		for (auto& piece : pieces) {
+			if (piece->name == "King") {
+				King* king = dynamic_cast<King*>(piece.get());
+				if (king != nullptr) {
+					// WHITE
+					Piece::PColor color = king->color;
+					if (!king->hasMoved && !king->inCheck && king->isWhite()) {
+						if (king->position == convertChessNotationtoPosition("e1")) {
+							// Kingside
+							if (!king->canNeverCastleK) {
+								if (noPiece("f1", pieces) && noPiece("g1", pieces)) {
+									for (auto& piece2 : pieces) {
+										if (piece2->name == "Rook" && piece2->color == color) {
+											Rook* rook = dynamic_cast<Rook*>(piece2.get());
+											if (rook != nullptr && !rook->hasMoved && rook->position == convertChessNotationtoPosition("h1")) {
+												for (auto& piece3 : pieces) {
+													if (piece3->color != color) {
+														for (auto& square : piece3->availablePositions) {
+															if (square == convertChessNotationtoPosition("f1") || square == convertChessNotationtoPosition("g1")) {
+																king->canCastleK = false;
+																goto queenside;
+															}
+														}
+													}
+												}
+												king->canCastleK = true;
+											}
+										}
+									}
+								}
+							}
+						queenside:
+							int r = 0;
+							// Queenside
+						}
+					}
+				}
+			}
+		}
 	}
 };
