@@ -42,9 +42,10 @@ int main()
     std::vector<std::reference_wrapper<sf::Texture>> pieceTextures{ blackBishopT, blackKingT, blackKnightT, blackPawnT, blackQueenT, blackRookT, 
     whiteBishopT, whiteKingT, whiteKnightT, whitePawnT, whiteQueenT, whiteRookT };
     Main::loadPieceSet(pieceStyle, pieceTextures, pieceSize);
-    std::vector<std::unique_ptr<Piece>> pieceList = Main::generatePositionFromFENID("r2bk2r/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/R2BK2R w KQkq c6 0 2",
+    std::vector<std::unique_ptr<Piece>> pieceList = Main::generatePositionFromFENID("rnbqkbnr/8/8/2p5/4P3/8/8/RNBQK2R w KQkq c6 0 2",
         pieceTextures, pieceScale, boardOffset, boardSquareOffset, whiteToPlay, halfMoves, fullMoves);
     Main::calculateCastlingPossibilities(pieceList);
+    Main::isValidPosition(pieceList);
 
     // ==== MAIN ====
 

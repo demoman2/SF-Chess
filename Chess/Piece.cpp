@@ -3,7 +3,7 @@
 Piece::Piece(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture)
 	: sprite(texture), position(x, y), color(color), x(x), y(y), scale(scale), xOffset(xOffset), boardMultiplier(boardMultiplier), texture(texture)
 {
-	sprite.setPosition(sf::Vector2f{ xOffset + (x * boardMultiplier), y * boardMultiplier });
+	sprite.setPosition(sf::Vector2f{ xOffset + ((x - 1) * boardMultiplier), (reverseY(y) - 1) * boardMultiplier});
 	sprite.setScale(sf::Vector2f(scale, scale));
 
 }
@@ -27,10 +27,4 @@ std::string Piece::getIdentifier() const
 		return whiteIdentifier;
 	}
 	return blackIdentifier;
-}
-
-
-void Piece::calculatePositions()
-{
-
 }

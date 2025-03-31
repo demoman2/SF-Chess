@@ -10,7 +10,7 @@ Bishop::Bishop(int x, int y, float scale, float xOffset, float boardMultiplier, 
     calculatePositions();
 }
 
-void Bishop::calculatePositions()
+void Bishop::calculatePositions() 
 {
 
 }

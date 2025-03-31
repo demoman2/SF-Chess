@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <SFML/Graphics.hpp>
 #include <SFML/Main.hpp>
 #include <SFML/Audio.hpp>
@@ -98,14 +99,26 @@ public:
 	}
 
 	static sf::Vector2i convertChessNotationtoPosition(std::string notation) {
-		int x = notation.at(0) - 'a';
-		int y = (notation.at(1) - '0') - 1;
-		y = std::abs(y - 7);
+		int x = (notation.at(0) - 'a') + 1;
+		int y = (notation.at(1) - '0');
 		return { x, y };
+	}
+	
+	static std::string convertPositiontoNotation(sf::Vector2i position) {
+		std::string notation;
+		int x = position.x;
+		int y = position.y;
+		notation += (x + 'a') - 1;
+		notation += (y + '0');
+		return notation;
 	}
 
 	static bool noPiece(std::string notation, std::vector<std::unique_ptr<Piece>>& pieces) {
 		return getPieceFromPosition(convertChessNotationtoPosition(notation), pieces) == nullptr;
+	}
+
+	static int reverseY(int y) {
+		return 9 - y;
 	}
 
 	// Bishop, King, Knight, Pawn, Queen, Rook
@@ -170,8 +183,8 @@ public:
 		// ========= RANKS =============
 		std::vector<std::string> ranks = split(splitString.at(0), '/');
 		for (int i = 0; i < ranks.size(); i++) {
-			int x = 0;
-			int y = i;
+			int x = 1;
+			int y = reverseY(i + 1);
 			std::string rank = ranks.at(i);
 			for (int j = 0; j < rank.size(); j++) {
 				char letter = rank.at(j);
@@ -389,5 +402,36 @@ public:
 			end:
 			continue;
 		}
+	}
+
+
+	static bool isValidPosition(std::vector<std::unique_ptr<Piece>>& position) {
+		for (auto& piece : position) {
+			// Bishop
+			if (piece->name == "Bishop") {
+				std::cout << "New: " << piece->x << " " << piece->y << " " << convertPositiontoNotation({piece->x, piece->y}) << std::endl;
+				// Top Right Diag
+				int positions = 8 - (std::max(piece->x, piece->y));
+				for (int i = 1; i < positions; i++) {
+					sf::Vector2i newPos = { piece->x + i, piece->y + i };
+					if (getPieceFromPosition(newPos, position) != nullptr) {
+						Piece* p = getPieceFromPosition(newPos, position);
+						if (p->name == "King" && p->color != piece->color) {
+							return false;
+						}
+						else {
+							break;
+						}
+					}
+					else {
+						std::cout << newPos.x << " " << newPos.y << std::endl;
+					}
+				}
+			}
+		}
+		for (auto& piece : position) {
+			piece->tempPositions.clear();
+		}
+		return true;
 	}
 };

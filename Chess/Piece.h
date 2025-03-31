@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Main.hpp>
 #include <SFML/Graphics.hpp>
-#include "PieceColor.cpp"
+
 
 class Piece
 {
@@ -18,7 +18,7 @@ public:
 	sf::Texture texture;
 	sf::Sprite sprite;
 	std::string whiteIdentifier, blackIdentifier;
-	std::vector<sf::Vector2i> availablePositions, availableCapturePositions;
+	std::vector<sf::Vector2i> availablePositions, availableCapturePositions, tempPositions;
 	// std::unique_ptr<Piece> instead of Piece* 
 	Piece(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture);
 	~Piece();
@@ -37,6 +37,7 @@ public:
 	bool operator>=(const Piece& other) const { return pointValue >= other.pointValue; }
 	bool operator+(const Piece& other) const { return pointValue + other.pointValue; }
 	bool operator-(const Piece& other) const { return pointValue - other.pointValue; }
+	int reverseY(int y) { return 9 - y; }
 	virtual void calculatePositions() = 0;
 
 private:
