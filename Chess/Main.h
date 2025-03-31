@@ -404,33 +404,253 @@ public:
 		}
 	}
 
+	static bool isValidSquare(sf::Vector2i square) {
+		return (square.x <= 8 && square.x >= 1 && square.y <= 8 && square.y >= 1);
+	}
 
-	static bool isValidPosition(std::vector<std::unique_ptr<Piece>>& position) {
+	static bool isValidPosition(std::vector<std::unique_ptr<Piece>>& position, Piece::PColor color) {
 		for (auto& piece : position) {
-			// Bishop
-			if (piece->name == "Bishop") {
-				std::cout << "New: " << piece->x << " " << piece->y << " " << convertPositiontoNotation({piece->x, piece->y}) << std::endl;
-				// Top Right Diag
-				int positions = 8 - (std::max(piece->x, piece->y));
-				for (int i = 1; i < positions; i++) {
-					sf::Vector2i newPos = { piece->x + i, piece->y + i };
-					if (getPieceFromPosition(newPos, position) != nullptr) {
-						Piece* p = getPieceFromPosition(newPos, position);
-						if (p->name == "King" && p->color != piece->color) {
-							return false;
-						}
-						else {
-							break;
+			// Bishop + Queen
+			if (piece->color != color) {
+				if (piece->name == "Bishop" || piece->name == "Queen") {
+					// Top Right Diag
+					for (int i = 1; i < 8; i++) {
+						int newX = piece->x + i, newY = piece->y + i;
+						if (std::max(newX, newY) > 8) { break; }
+						sf::Vector2i newPos = { newX, newY };
+						if (getPieceFromPosition(newPos, position) != nullptr) {
+							Piece* p = getPieceFromPosition(newPos, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+							else {
+								break;
+							}
 						}
 					}
-					else {
-						std::cout << newPos.x << " " << newPos.y << std::endl;
+					// Top Left Diag
+					for (int i = 1; i < 8; i++) {
+						int newX = piece->x - i, newY = piece->y + i;
+						if (std::max(newX, newY) > 8 || std::min(newX, newY) < 1) { break; }
+						sf::Vector2i newPos = { newX, newY };
+						if (getPieceFromPosition(newPos, position) != nullptr) {
+							Piece* p = getPieceFromPosition(newPos, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+							else {
+								break;
+							}
+						}
+					}
+					// Bottom Right Diag
+					for (int i = 1; i < 8; i++) {
+						int newX = piece->x + i, newY = piece->y - i;
+						if (std::max(newX, newY) > 8 || std::min(newX, newY) < 1) { break; }
+						sf::Vector2i newPos = { newX, newY };
+						if (getPieceFromPosition(newPos, position) != nullptr) {
+							Piece* p = getPieceFromPosition(newPos, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+							else {
+								break;
+							}
+						}
+					}
+					// Bottom Left Diag
+					for (int i = 1; i < 8; i++) {
+						int newX = piece->x - i, newY = piece->y - i;
+						if (std::min(newX, newY) < 1) { break; }
+						sf::Vector2i newPos = { newX, newY };
+						if (getPieceFromPosition(newPos, position) != nullptr) {
+							Piece* p = getPieceFromPosition(newPos, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+							else {
+								break;
+							}
+						}
+					}
+					if (piece->name == "Queen") {
+						// Up
+						for (int i = 1; i < 8; i++) {
+							int newX = piece->x, newY = piece->y + i;
+							if (newY > 8) { break; }
+							sf::Vector2i newPos = { newX, newY };
+							if (getPieceFromPosition(newPos, position) != nullptr) {
+								Piece* p = getPieceFromPosition(newPos, position);
+								if (p->name == "King" && p->color != piece->color) {
+									return false;
+								}
+								else {
+									break;
+								}
+							}
+						}
+						// Down
+						for (int i = 1; i < 8; i++) {
+							int newX = piece->x, newY = piece->y - i;
+							if (newY < 1) { break; }
+							sf::Vector2i newPos = { newX, newY };
+							if (getPieceFromPosition(newPos, position) != nullptr) {
+								Piece* p = getPieceFromPosition(newPos, position);
+								if (p->name == "King" && p->color != piece->color) {
+									return false;
+								}
+								else {
+									break;
+								}
+							}
+						}
+						// Right
+						for (int i = 1; i < 8; i++) {
+							int newX = piece->x + i, newY = piece->y;
+							if (newX > 8) { break; }
+							sf::Vector2i newPos = { newX, newY };
+							if (getPieceFromPosition(newPos, position) != nullptr) {
+								Piece* p = getPieceFromPosition(newPos, position);
+								if (p->name == "King" && p->color != piece->color) {
+									return false;
+								}
+								else {
+									break;
+								}
+							}
+						}
+						// Left
+						for (int i = 1; i < 8; i++) {
+							int newX = piece->x - i, newY = piece->y;
+							if (newX < 1) { break; }
+							sf::Vector2i newPos = { newX, newY };
+							if (getPieceFromPosition(newPos, position) != nullptr) {
+								Piece* p = getPieceFromPosition(newPos, position);
+								if (p->name == "King" && p->color != piece->color) {
+									return false;
+								}
+								else {
+									break;
+								}
+							}
+						}
+					}
+				}
+				// Rook
+				else if (piece->name == "Rook") {
+					// Up
+					for (int i = 1; i < 8; i++) {
+						int newX = piece->x, newY = piece->y + i;
+						if (newY > 8) { break; }
+						sf::Vector2i newPos = { newX, newY };
+						if (getPieceFromPosition(newPos, position) != nullptr) {
+							Piece* p = getPieceFromPosition(newPos, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+							else {
+								break;
+							}
+						}
+					}
+					// Down
+					for (int i = 1; i < 8; i++) {
+						int newX = piece->x, newY = piece->y - i;
+						if (newY < 1) { break; }
+						sf::Vector2i newPos = { newX, newY };
+						if (getPieceFromPosition(newPos, position) != nullptr) {
+							Piece* p = getPieceFromPosition(newPos, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+							else {
+								break;
+							}
+						}
+					}
+					// Right
+					for (int i = 1; i < 8; i++) {
+						int newX = piece->x + i, newY = piece->y;
+						if (newX > 8) { break; }
+						sf::Vector2i newPos = { newX, newY };
+						if (getPieceFromPosition(newPos, position) != nullptr) {
+							Piece* p = getPieceFromPosition(newPos, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+							else {
+								break;
+							}
+						}
+					}
+					// Left
+					for (int i = 1; i < 8; i++) {
+						int newX = piece->x - i, newY = piece->y;
+						if (newX < 1) { break; }
+						sf::Vector2i newPos = { newX, newY };
+						if (getPieceFromPosition(newPos, position) != nullptr) {
+							Piece* p = getPieceFromPosition(newPos, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+							else {
+								break;
+							}
+						}
+					}
+				}
+				// Knight
+				else if (piece->name == "Knight") {
+					sf::Vector2i offsets[8] = { {-2, -1 }, {-2, 1 }, { 2, -1 }, { 2, 1 }, { -1, -2 }, { -1, 2 }, { 1, -2 }, { 1, 2 } };
+					for (int i = 0; i < 8; i++) {
+						sf::Vector2i newPos = { piece->x + offsets[i].x, piece->y + offsets[i].y };
+						if (isValidSquare(newPos)) {
+							if (getPieceFromPosition(newPos, position) != nullptr) {
+								Piece* p = getPieceFromPosition(newPos, position);
+								if (p->name == "King" && p->color != piece->color) {
+									return false;
+								}
+							}
+						}
+					}
+				}
+				// Pawn
+				else if (piece->name == "Pawn") {
+					sf::Vector2i pos = { piece->x - 1, piece->y + 1 }, pos2 = { piece->x + 1, piece->y + 1 };
+					if (isValidSquare(pos)) {
+						if (getPieceFromPosition(pos, position) != nullptr) {
+							Piece* p = getPieceFromPosition(pos, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+						}
+					}
+					if (isValidSquare(pos2)) {
+						if (getPieceFromPosition(pos2, position) != nullptr) {
+							Piece* p = getPieceFromPosition(pos2, position);
+							if (p->name == "King" && p->color != piece->color) {
+								return false;
+							}
+						}
+					}
+				}
+				// King
+				else if (piece->name == "King") {
+					for (int x = -1; x <= 1; x++) {
+						for (int y = -1; y <= 1; y++) {
+							if (x != 0 || y != 0) {
+								sf::Vector2i newPos = { piece->x + x, piece->y + y };
+								if (getPieceFromPosition(newPos, position) != nullptr) {
+									Piece* p = getPieceFromPosition(newPos, position);
+									if (p->name == "King" && p->color != piece->color) {
+										return false;
+									}
+								}
+							}
+						}
 					}
 				}
 			}
-		}
-		for (auto& piece : position) {
-			piece->tempPositions.clear();
 		}
 		return true;
 	}

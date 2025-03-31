@@ -18,8 +18,7 @@ public:
 	sf::Texture texture;
 	sf::Sprite sprite;
 	std::string whiteIdentifier, blackIdentifier;
-	std::vector<sf::Vector2i> availablePositions, availableCapturePositions, tempPositions;
-	// std::unique_ptr<Piece> instead of Piece* 
+	std::vector<sf::Vector2i> availablePositions, availableCapturePositions;
 	Piece(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture);
 	~Piece();
 
