@@ -5,7 +5,8 @@ class Knight : public virtual Piece
 {
 
 public:
-	Knight(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture);
-	void calculatePositions() override;
+	Knight(int x, int y, float scale, float xOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
+	~Knight();
+	void a();
 };
 

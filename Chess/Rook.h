@@ -5,7 +5,8 @@ class Rook : public virtual Piece
 {
 public:
 	bool hasMoved;
-	Rook(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture);
-	void calculatePositions() override;
+	Rook(int x, int y, float scale, float xOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
+	~Rook();
+	void a();
 };
 

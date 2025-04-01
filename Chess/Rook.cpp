@@ -1,7 +1,7 @@
 ﻿#include "Rook.h"
 
-Rook::Rook(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture)
-    : Piece(x, y, scale, xOffset, boardMultiplier, color, texture), hasMoved(false)
+Rook::Rook(int x, int y, float scale, float xOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
+    : Piece(x, y, scale, xOffset, boardMultiplier, index, color, texture), hasMoved(false)
 {
     name = "Rook";
     whiteIdentifier = "♖";
@@ -9,7 +9,10 @@ Rook::Rook(int x, int y, float scale, float xOffset, float boardMultiplier, PCol
     pointValue = 5;
 }
 
-void Rook::calculatePositions()
+Rook::~Rook()
 {
+}
 
+void Rook::a()
+{
 }

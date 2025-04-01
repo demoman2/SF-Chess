@@ -106,7 +106,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>\Documents\SFML-3.0.0\include</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>6031</DisableSpecificWarnings>
+      <DisableSpecificWarnings>6031; 4275; 4566; 4834</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -125,7 +125,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>\Documents\SFML-3.0.0\include</AdditionalIncludeDirectories>
-      <DisableSpecificWarnings>6031</DisableSpecificWarnings>
+      <DisableSpecificWarnings>6031; 4275; 4566; 4834</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

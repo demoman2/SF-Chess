@@ -11,7 +11,7 @@ public:
 		Black
 	};
 	std::string name;
-	int x, y;
+	int x, y, index;
 	int pointValue;
 	sf::Vector2i position;
 	PColor color;
@@ -19,8 +19,8 @@ public:
 	sf::Sprite sprite;
 	std::string whiteIdentifier, blackIdentifier;
 	std::vector<sf::Vector2i> availablePositions, availableCapturePositions;
-	Piece(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture);
-	~Piece();
+	Piece(int x, int y, float scale, float xOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
+	virtual ~Piece();
 
 	void move(int newX, int newY);
 	void draw(sf::RenderWindow& window) { window.draw(sprite); }
@@ -37,7 +37,8 @@ public:
 	bool operator+(const Piece& other) const { return pointValue + other.pointValue; }
 	bool operator-(const Piece& other) const { return pointValue - other.pointValue; }
 	int reverseY(int y) { return 9 - y; }
-	virtual void calculatePositions() = 0;
+	void setPosition(int x, int y) { this->x = x; this->y = y; }
+	virtual void a() = 0;
 
 private:
 	float boardMultiplier, scale, xOffset;

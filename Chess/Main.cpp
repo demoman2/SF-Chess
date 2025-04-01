@@ -46,7 +46,7 @@ int main()
         pieceTextures, pieceScale, boardOffset, boardSquareOffset, whiteToPlay, halfMoves, fullMoves);
     Main::calculateCastlingPossibilities(pieceList);
     std::cout << std::boolalpha;
-    std::cout << Main::isValidPosition(pieceList, Piece::PColor::Black);
+    Main::calculatePositions(pieceList.at(0), pieceList);
 
     // ==== MAIN ====
 

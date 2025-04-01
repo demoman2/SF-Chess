@@ -1,7 +1,7 @@
 ﻿#include "King.h"
 
-King::King(int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture)
-    : Piece(x, y, scale, xOffset, boardMultiplier, color, texture), hasMoved(false)
+King::King(int x, int y, float scale, float xOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
+    : Piece(x, y, scale, xOffset, boardMultiplier, index, color, texture), hasMoved(false)
 {
     name = "King";
     canCastleK = false;
@@ -9,11 +9,10 @@ King::King(int x, int y, float scale, float xOffset, float boardMultiplier, PCol
     whiteIdentifier = "♔";
     blackIdentifier = "♚";
     pointValue = 10000;
-    calculatePositions();
 }
 
-King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float xOffset, float boardMultiplier, PColor color, sf::Texture& texture)
-    : Piece(x, y, scale, xOffset, boardMultiplier, color, texture), hasMoved(false)
+King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float xOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
+    : Piece(x, y, scale, xOffset, boardMultiplier, index, color, texture), hasMoved(false)
 {
     name = "King";
     this->canNeverCastleK = canNeverCastleK;
@@ -21,10 +20,12 @@ King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale
     whiteIdentifier = "♔";
     blackIdentifier = "♚";
     pointValue = 10000;
-    calculatePositions();
 }
 
-void King::calculatePositions()
+King::~King()
 {
+}
 
+void King::a()
+{
 }
