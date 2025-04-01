@@ -26,7 +26,7 @@ int main()
 
     // Pieces
     int halfMoves = 0, fullMoves = 0;
-    bool whiteToPlay = true;
+    bool whiteToPlay = true, calculatingPos = false;
     float pieceSize = 320;
     float pieceScale = (std::min(ScaleX, ScaleY) * 128.0f) / (float)pieceSize;
     float boardOffset = (windowSizeX / 2.0f) - ((boardTexture.getSize().x * board.getScale().x) / 2);
@@ -42,11 +42,15 @@ int main()
     std::vector<std::reference_wrapper<sf::Texture>> pieceTextures{ blackBishopT, blackKingT, blackKnightT, blackPawnT, blackQueenT, blackRookT, 
     whiteBishopT, whiteKingT, whiteKnightT, whitePawnT, whiteQueenT, whiteRookT };
     Main::loadPieceSet(pieceStyle, pieceTextures, pieceSize);
-    std::vector<std::unique_ptr<Piece>> pieceList = Main::generatePositionFromFENID("rn1qkbnr/ppp2ppp/3pb3/4p3/P1B1P3/5N2/1PPP1PPP/RNBQK2R b KQkq - 0 4",
+    std::vector<std::shared_ptr<Piece>> pieceList = Main::generatePositionFromFENID("2R5/8/8/1p5P/pP6/3Kp3/P7/6n1 b - - 0 51",
         pieceTextures, pieceScale, boardOffset, boardSquareOffset, whiteToPlay, halfMoves, fullMoves);
-    Main::calculateCastlingPossibilities(pieceList);
-    std::cout << std::boolalpha;
-    Main::calculatePositions(pieceList.at(0), pieceList);
+    std::shared_ptr<Piece> selectedPiece = nullptr;
+    sf::Vector2f selectedPos{ 0.0f, 0.0f };
+    sf::Vector2i mousePos;
+    for (auto& p : pieceList) {
+        Main::calculatePositions(p, pieceList);
+        Main::calculateCastlingPossibilities(pieceList);
+    }
 
     // ==== MAIN ====
 
@@ -55,9 +59,30 @@ int main()
         while (const std::optional event = window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
+            {
                 window.close();
+            }
+            else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
+            {
+                if (keyPressed->scancode == sf::Keyboard::Scancode::G) {
+                    for (auto& piece : pieceList) {
+                        if (piece->position == (sf::Vector2i)selectedPos) {
+                            selectedPiece = std::make_shared<Piece>(*piece);
+                        }
+                    }
+                }
+                if (keyPressed->scancode == sf::Keyboard::Scancode::H) {
+                    selectedPiece.reset();
+                }
+            }
+        }   
+        mousePos = sf::Mouse::getPosition();
+        selectedPos = {std::ceil(((float)mousePos.x - boardOffset) / boardSquareOffset),  7 - (std::ceil(((float)mousePos.y - boardOffset) / boardSquareOffset)) - 1 };
+        if (selectedPiece != nullptr) {
+            for (auto& square : selectedPiece->availablePositions) {
+                std::cout << Main::convertPositiontoNotation(square) << std::endl;
+            }
         }
-
         window.clear();
         window.draw(board);
         for (auto& piece : pieceList) {

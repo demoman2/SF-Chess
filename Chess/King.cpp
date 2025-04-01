@@ -25,7 +25,3 @@ King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale
 King::~King()
 {
 }
-
-void King::a()
-{
-}

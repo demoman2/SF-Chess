@@ -18,7 +18,7 @@ public:
 	sf::Texture texture;
 	sf::Sprite sprite;
 	std::string whiteIdentifier, blackIdentifier;
-	std::vector<sf::Vector2i> availablePositions, availableCapturePositions;
+	std::vector<sf::Vector2i> availablePositions, availableCapturePositions, allPositions;
 	Piece(int x, int y, float scale, float xOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
 	virtual ~Piece();
 
@@ -37,8 +37,8 @@ public:
 	bool operator+(const Piece& other) const { return pointValue + other.pointValue; }
 	bool operator-(const Piece& other) const { return pointValue - other.pointValue; }
 	int reverseY(int y) { return 9 - y; }
+	void setPosition(sf::Vector2i pos) { this->x = pos.x; this->y = pos.y; }
 	void setPosition(int x, int y) { this->x = x; this->y = y; }
-	virtual void a() = 0;
 
 private:
 	float boardMultiplier, scale, xOffset;

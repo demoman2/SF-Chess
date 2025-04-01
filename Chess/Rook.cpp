@@ -12,7 +12,3 @@ Rook::Rook(int x, int y, float scale, float xOffset, float boardMultiplier, int 
 Rook::~Rook()
 {
 }
-
-void Rook::a()
-{
-}

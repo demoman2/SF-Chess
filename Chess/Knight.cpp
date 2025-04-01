@@ -13,7 +13,3 @@ Knight::Knight(int x, int y, float scale, float xOffset, float boardMultiplier, 
 Knight::~Knight()
 {
 }
-
-void Knight::a()
-{
-}

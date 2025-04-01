@@ -12,7 +12,3 @@ Bishop::Bishop(int x, int y, float scale, float xOffset, float boardMultiplier, 
 Bishop::~Bishop()
 {
 }
-
-void Bishop::a()
-{
-}

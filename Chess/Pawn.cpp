@@ -23,7 +23,3 @@ Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float xOffset, float
 Pawn::~Pawn()
 {
 }
-
-void Pawn::a()
-{
-}

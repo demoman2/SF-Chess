@@ -12,7 +12,3 @@ Queen::Queen(int x, int y, float scale, float xOffset, float boardMultiplier, in
 Queen::~Queen()
 {
 }
-
-void Queen::a()
-{
-}
