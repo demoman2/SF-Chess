@@ -5,7 +5,7 @@ class Knight : public virtual Piece
 {
 
 public:
-	Knight(int x, int y, float scale, float xOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
+	Knight(int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
 	~Knight();
 };
 

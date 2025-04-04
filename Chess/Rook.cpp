@@ -1,7 +1,7 @@
 ﻿#include "Rook.h"
 
-Rook::Rook(int x, int y, float scale, float xOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
-    : Piece(x, y, scale, xOffset, boardMultiplier, index, color, texture), hasMoved(false)
+Rook::Rook(int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
+    : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture), hasMoved(false)
 {
     name = "Rook";
     whiteIdentifier = "♖";
