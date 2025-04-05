@@ -1,9 +1,11 @@
 #include "Piece.h"
 
 Piece::Piece(int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
-	: sprite(texture), position(x, y), color(color), x(x), y(y), scale(scale), boardOffset(boardOffset), boardMultiplier(boardMultiplier), texture(texture), index(index)
+	: sprite(texture), position(x, y), color(color), x(x), y(y), scale(scale), boardOffset(boardOffset), boardMultiplier(boardMultiplier), texture(texture),
+	index(index), moving(false)
 {
-	sprite.setPosition(sf::Vector2f{ boardOffset + ((x - 1) * boardMultiplier), (reverseY(y) - 1) * boardMultiplier});
+	sprite.setOrigin(sprite.getLocalBounds().getCenter());
+	sprite.setPosition(sf::Vector2f{ boardOffset + ((x - 0.5f) * boardMultiplier), (reverseY(y) - 0.5f) * boardMultiplier});
 	sprite.setScale(sf::Vector2f(scale, scale));
 	allSquares.push_back(selectionSquares);
 	allSquares.push_back(captureSquares);

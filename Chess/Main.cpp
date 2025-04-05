@@ -17,7 +17,7 @@ int main()
     sf::Image boardSpriteSheet;
     boardSpriteSheet.loadFromFile("assets/board/board_matrix.jpg");
     sf::Texture boardTexture;
-    boardTexture.loadFromImage(boardSpriteSheet, false, sf::IntRect({0, 0}, {boardSize, boardSize}));
+    boardTexture.loadFromImage(boardSpriteSheet, false, sf::IntRect({ 0, 0 }, { boardSize, boardSize }));
     sf::Sprite board{ boardTexture };
     Main::loadBoard(boardSpriteSheet, board, boardTexture, 0, boardSize);
     float ScaleX = windowSizeX / boardTexture.getSize().x;
@@ -41,7 +41,7 @@ int main()
     sf::Image pieceStyle = pieceSpriteSheetCburnett;
     sf::Texture blackBishopT, blackKingT, blackKnightT, blackPawnT, blackQueenT, blackRookT;
     sf::Texture whiteBishopT, whiteKingT, whiteKnightT, whitePawnT, whiteQueenT, whiteRookT;
-    std::vector<std::reference_wrapper<sf::Texture>> pieceTextures{ blackBishopT, blackKingT, blackKnightT, blackPawnT, blackQueenT, blackRookT, 
+    std::vector<std::reference_wrapper<sf::Texture>> pieceTextures{ blackBishopT, blackKingT, blackKnightT, blackPawnT, blackQueenT, blackRookT,
     whiteBishopT, whiteKingT, whiteKnightT, whitePawnT, whiteQueenT, whiteRookT };
     Piece* selectedPiece = nullptr;
     sf::Vector2f selectedPos{ 0.0f, 0.0f };
@@ -64,7 +64,12 @@ int main()
     // Selection, Capture, Check, Last Move, Selection Hover
     std::vector<std::reference_wrapper<sf::Texture>> extraTextures{ selectionTexture, captureTexture, checkTexture, lastMoveTexture, selectionHoverTexture };
     sf::Sprite selectedPieceBackground{ selectedPieceTexture };
+    selectedPieceBackground.setOrigin(selectedPieceBackground.getLocalBounds().getCenter());
     selectedPieceBackground.setScale(sf::Vector2f{ (pieceScale * 320.0f) / 128.0f, (pieceScale * 320.0f) / 128.0f });
+
+    // Vars
+    float xAccl = 1.0f, yAccl = 1.0f;
+    sf::Clock clock;
 
     // Setup
     Main::loadPieceSet(pieceStyle, pieceTextures, pieceSize);
@@ -86,7 +91,7 @@ int main()
 
     while (window.isOpen())
     {
-        mousePos = sf::Mouse::getPosition();
+        mousePos = sf::Mouse::getPosition(window);
         selectedPos = { std::ceil(((float)mousePos.x - boardOffset) / boardMultiplier),  9 - std::ceil((float)mousePos.y / boardMultiplier) };
         while (const std::optional event = window.pollEvent())
         {
@@ -102,9 +107,10 @@ int main()
                     if (p != nullptr) {
                         // Side to Play == Color
                         if (whiteToPlay == (p->color == Piece::PColor::White)) {
-                            if (selectedPiece != nullptr && selectedPiece->name == "King") {
+                            if (selectedPiece != nullptr && selectedPiece->name == "King")  {
                                 King* king = dynamic_cast<King*>(selectedPiece);
                                 if (std::any_of(king->captureCastlePositions.cbegin(), king->captureCastlePositions.cend(), [selectedPos](sf::Vector2i pos) { return pos == (sf::Vector2i)selectedPos; })) {
+                                    
                                     selectedPiece = nullptr;
                                 }
                                 else {
@@ -115,15 +121,21 @@ int main()
                                 selectedPiece = p;
                             }
                         }
-                        else {
-                            selectedPiece = nullptr;
-                        }
-                    } else {
-                        selectedPiece = nullptr;
                     }
                 }
             }
-        }   
+        }
+
+        for (auto& piece : pieceList) {
+            if (piece->targetPos.has_value()) {
+                if (piece->getPosition() == piece->targetPos.value()) {
+                    std::cout << "done";
+                }
+                else {
+                    piece->sprite.setPosition(Main::Interpolate(piece->getPosition(), piece->targetPos.value(), 0.005f));
+                }
+            }
+        }
 
         // Draw
         window.clear();
@@ -132,9 +144,16 @@ int main()
             for (auto& sprite : selectedPiece->selectionSquares) {
                 if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
                     sprite.setTexture(extraTextures.at(4));
-                } else { sprite.setTexture(extraTextures.at(0)); }
+                    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                        selectedPiece->setTarget(sprite.getPosition());
+                        selectedPiece = nullptr;
+                    }
+                }
+                else { sprite.setTexture(extraTextures.at(0)); }
                 window.draw(sprite);
             }
+        }
+        if (selectedPiece != nullptr) {
             for (auto& sprite : selectedPiece->captureSquares) {
                 if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
                     sprite.setTexture(extraTextures.at(4));
@@ -142,6 +161,8 @@ int main()
                 else { sprite.setTexture(extraTextures.at(1)); }
                 window.draw(sprite);
             }
+        }
+        if (selectedPiece != nullptr) {
             if (selectedPiece->name == "King") {
                 King* king = dynamic_cast<King*>(selectedPiece);
                 for (auto& sprite : king->castleSquares) {
@@ -159,6 +180,8 @@ int main()
                     window.draw(sprite);
                 }
             }
+        }
+        if (selectedPiece != nullptr) {
             if (selectedPiece->name == "Pawn") {
                 Pawn* pawn = dynamic_cast<Pawn*>(selectedPiece);
                 for (auto& sprite : pawn->enPassantSquares) {

@@ -16,6 +16,15 @@
 class Main {
 
 public:
+
+	static sf::Vector2f Interpolate(const sf::Vector2f& pointA, const sf::Vector2f& pointB, float factor) {
+		factor = std::clamp(factor, 0.0f, 1.0f);
+		if (std::fmax(std::abs((pointB - pointA).x), std::abs((pointB - pointA).y)) < 0.1f) {
+			return pointB;
+		}
+		return pointA + (pointB - pointA) * factor;
+	}
+
 	// Bishop, King, Knight, Pawn, Queen, Rook
 	static void loadPieceSet(sf::Image spriteSheet, std::vector<std::reference_wrapper<sf::Texture>>& pieceTextures, int pieceSize) {
 		for (size_t i = 0; i < pieceTextures.size(); i++) {
@@ -101,7 +110,7 @@ public:
 	}
 
 	static sf::Vector2f getAbsolutePosition(sf::Vector2i position, float boardOffset, float boardMultiplier) {
-		return sf::Vector2f{ boardOffset + ((position.x - 1) * boardMultiplier), (reverseY(position.y) - 1) * boardMultiplier };
+		return sf::Vector2f{ boardOffset + ((position.x - 0.5f) * boardMultiplier), (reverseY(position.y) - 0.5f) * boardMultiplier };
 	}
 
 	static sf::Vector2i getRelativePosition(sf::Vector2f position, float boardOffset, float boardMultiplier) {
@@ -677,6 +686,7 @@ public:
 			for (auto& square : piece->availablePositions) {
 				sf::Sprite newSquare{ extraTextures.at(0)};
 				float scale = (pieceScale * 320.0f) / 128.0f;
+				newSquare.setOrigin(newSquare.getLocalBounds().getCenter());
 				newSquare.setScale(sf::Vector2f(scale, scale));
 				newSquare.setPosition(getAbsolutePosition(square, boardOffset, boardMultiplier));
 				piece->selectionSquares.push_back(newSquare);
@@ -685,6 +695,7 @@ public:
 			for (auto& square : piece->availableCapturePositions) {
 				sf::Sprite newSquare{ extraTextures.at(1) };
 				float scale = (pieceScale * 320.0f) / 128.0f;
+				newSquare.setOrigin(newSquare.getLocalBounds().getCenter());
 				newSquare.setScale(sf::Vector2f(scale, scale));
 				newSquare.setPosition(getAbsolutePosition(square, boardOffset, boardMultiplier));
 				piece->captureSquares.push_back(newSquare);
@@ -695,6 +706,7 @@ public:
 				for (auto& square : pawn->enPassantPositions) {
 					sf::Sprite newSquare{ extraTextures.at(0) };
 					float scale = (pieceScale * 320.0f) / 128.0f;
+					newSquare.setOrigin(newSquare.getLocalBounds().getCenter());
 					newSquare.setScale(sf::Vector2f(scale, scale));
 					newSquare.setPosition(getAbsolutePosition(square, boardOffset, boardMultiplier));
 					pawn->enPassantSquares.push_back(newSquare);
@@ -707,6 +719,7 @@ public:
 				for (auto& square : king->castlePositions) {
 					sf::Sprite newSquare{ extraTextures.at(0) };
 					float scale = (pieceScale * 320.0f) / 128.0f;
+					newSquare.setOrigin(newSquare.getLocalBounds().getCenter());
 					newSquare.setScale(sf::Vector2f(scale, scale));
 					newSquare.setPosition(getAbsolutePosition(square, boardOffset, boardMultiplier));
 					king->castleSquares.push_back(newSquare);
@@ -714,6 +727,7 @@ public:
 				for (auto& square : king->captureCastlePositions) {
 					sf::Sprite newSquare{ extraTextures.at(1) };
 					float scale = (pieceScale * 320.0f) / 128.0f;
+					newSquare.setOrigin(newSquare.getLocalBounds().getCenter());
 					newSquare.setScale(sf::Vector2f(scale, scale));
 					newSquare.setPosition(getAbsolutePosition(square, boardOffset, boardMultiplier));
 					king->castleCaptureSquares.push_back(newSquare);

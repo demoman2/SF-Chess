@@ -1,38 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Header Files\Pieces">
-      <UniqueIdentifier>{1d7918df-9934-4ca8-8af6-c78ec979028c}</UniqueIdentifier>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Source Files\Pieces">
       <UniqueIdentifier>{8949052d-709b-4e90-9063-2d1354e7fa57}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Misc">
-      <UniqueIdentifier>{50bc7166-4c25-4c3e-96e5-c01ea4ed7b11}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Misc">
-      <UniqueIdentifier>{d674f620-3985-424a-8b72-7242d1c0f16e}</UniqueIdentifier>
+    <Filter Include="Header Files\Pieces">
+      <UniqueIdentifier>{1d7918df-9934-4ca8-8af6-c78ec979028c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Piece.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Bishop.cpp">
       <Filter>Source Files\Pieces</Filter>
     </ClCompile>
@@ -51,8 +35,17 @@
     <ClCompile Include="Rook.cpp">
       <Filter>Source Files\Pieces</Filter>
     </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Piece.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Piece.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -62,20 +55,17 @@
     <ClInclude Include="King.h">
       <Filter>Header Files\Pieces</Filter>
     </ClInclude>
-    <ClInclude Include="Queen.h">
-      <Filter>Header Files\Pieces</Filter>
-    </ClInclude>
     <ClInclude Include="Knight.h">
       <Filter>Header Files\Pieces</Filter>
     </ClInclude>
     <ClInclude Include="Pawn.h">
       <Filter>Header Files\Pieces</Filter>
     </ClInclude>
-    <ClInclude Include="Rook.h">
+    <ClInclude Include="Queen.h">
       <Filter>Header Files\Pieces</Filter>
     </ClInclude>
-    <ClInclude Include="Main.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Rook.h">
+      <Filter>Header Files\Pieces</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

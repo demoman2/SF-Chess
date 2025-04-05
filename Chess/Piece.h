@@ -11,9 +11,11 @@ public:
 		Black
 	};
 	std::string name;
+	bool moving;
 	int x, y, index;
 	int pointValue;
 	sf::Vector2i position;
+	std::optional<sf::Vector2f> targetPos = {};
 	PColor color;
 	sf::Sprite sprite;
 	std::string whiteIdentifier, blackIdentifier;
@@ -29,6 +31,7 @@ public:
 	bool isWhite() const { return color == White; }
 	bool isBlack() const { return color == Black; }
 	std::string getIdentifier() const;
+	sf::Vector2f getPosition() { return sprite.getPosition(); }
 	std::vector<sf::Vector2i> getAvailablePositions() { return availablePositions; }
 	std::vector<sf::Vector2i> getAvailableCapturePositions() { return availableCapturePositions; }
 	float getBoardMultiplier() const { return boardMultiplier; }
@@ -44,6 +47,9 @@ public:
 	int reverseY(int y) { return 9 - y; }
 	void setPosition(sf::Vector2i pos) { this->x = pos.x; this->y = pos.y; position = { x, y }; }
 	void setPosition(int x, int y) { this->x = x; this->y = y; }
+	void setTarget(std::optional<sf::Vector2f> target) {
+		targetPos = target;
+	};
 
 private:
 	float boardMultiplier, scale, boardOffset;
