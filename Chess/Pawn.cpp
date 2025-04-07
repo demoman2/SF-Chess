@@ -1,6 +1,6 @@
 ﻿#include "Pawn.h"
 
-Pawn::Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
+Pawn::Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture)
     : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture), hasMoved(true)
 {
     name = "Pawn";
@@ -22,7 +22,7 @@ Pawn::Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, 
     allPositions.push_back(enPassantPositions);
 }
 
-Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture) :
+Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture) :
     Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture), hasMoved(true)
 {
     name = "Pawn";
@@ -46,4 +46,9 @@ Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, f
 
 Pawn::~Pawn()
 {
+}
+
+std::shared_ptr<Piece> Pawn::clone() const
+{
+    return std::make_shared<Pawn>(*this);
 }

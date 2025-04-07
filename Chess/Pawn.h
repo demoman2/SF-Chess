@@ -8,8 +8,9 @@ public:
 	bool enPassantTarget, hasMoved;
 	std::vector<sf::Vector2i> enPassantPositions;
 	std::vector<sf::Sprite> enPassantSquares;
-	Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
-	Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
+	Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture);
+	Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture);
 	~Pawn();
+	virtual std::shared_ptr<Piece> clone() const override;
 };
 

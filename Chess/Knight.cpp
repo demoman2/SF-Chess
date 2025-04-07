@@ -1,6 +1,6 @@
 ﻿#include "Knight.h"
 
-Knight::Knight(int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
+Knight::Knight(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture)
     : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture)
 {
     name = "Knight";
@@ -12,4 +12,9 @@ Knight::Knight(int x, int y, float scale, float boardOffset, float boardMultipli
 
 Knight::~Knight()
 {
+}
+
+std::shared_ptr<Piece> Knight::clone() const
+{
+    return std::make_shared<Knight>(*this);
 }

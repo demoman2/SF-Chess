@@ -1,6 +1,6 @@
 ﻿#include "Queen.h"
 
-Queen::Queen(int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
+Queen::Queen(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture)
     : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture)
 {
     name = "Queen";
@@ -11,4 +11,9 @@ Queen::Queen(int x, int y, float scale, float boardOffset, float boardMultiplier
 
 Queen::~Queen()
 {
+}
+
+std::shared_ptr<Piece> Queen::clone() const
+{
+    return std::make_shared<Queen>(*this);
 }

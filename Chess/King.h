@@ -8,8 +8,9 @@ public:
 	bool canNeverCastleK, canNeverCastleQ;
 	std::vector<sf::Vector2i> castlePositions, captureCastlePositions;
 	std::vector<sf::Sprite> castleSquares, castleCaptureSquares;
-	King(int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
-	King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture);
+	King(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture);
+	King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture);
 	~King();
+	virtual std::shared_ptr<Piece> clone() const override;
 };
 

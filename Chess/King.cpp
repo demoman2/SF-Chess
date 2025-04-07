@@ -1,6 +1,6 @@
 ﻿#include "King.h"
 
-King::King(int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
+King::King(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture)
     : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture), hasMoved(false), canCastleK(false), canCastleQ(false)
 {
     name = "King";
@@ -15,7 +15,7 @@ King::King(int x, int y, float scale, float boardOffset, float boardMultiplier, 
     allPositions.push_back(captureCastlePositions);
 }
 
-King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float boardOffset, float boardMultiplier, int index, PColor color, sf::Texture& texture)
+King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture)
     : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture), hasMoved(false), canCastleK(false), canCastleQ(false)
 {
     name = "King";
@@ -33,3 +33,9 @@ King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale
 King::~King()
 {
 }
+
+std::shared_ptr<Piece> King::clone() const
+{
+    return std::make_shared<King>(*this);
+}
+
