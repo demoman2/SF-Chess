@@ -5,7 +5,7 @@ class Queen : public virtual Piece
 {
 
 public:
-	Queen(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture);
+	Queen(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated);
 	~Queen();
 	virtual std::shared_ptr<Piece> clone() const override;
 };

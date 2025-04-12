@@ -1,20 +1,23 @@
 #include "Piece.h"
+#include "Main.h"
 
-Piece::Piece(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture)
+Piece::Piece(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated)
 	: sprite(texture), position(x, y), color(color), x(x), y(y), scale(scale), boardOffset(boardOffset), boardMultiplier(boardMultiplier), texture(texture), ghostSprite(texture),
-	index(index), moving(false), captured(false)
+	index(index), hasMoved(false), canMove(false)
 {
+	if (animated) {
+		sprite.setPosition(sf::Vector2f{ boardOffset + ((4.5f - 0.5f) * boardMultiplier), (reverseY(4.5f) - 0.5f) * boardMultiplier });
+		animationTarget = sf::Vector2f{ boardOffset + ((x - 0.5f) * boardMultiplier), (reverseY(y) - 0.5f) * boardMultiplier };
+	}
+	else {
+		sprite.setPosition(sf::Vector2f{ boardOffset + ((x - 0.5f) * boardMultiplier), (reverseY(y) - 0.5f) * boardMultiplier });
+	}
 	sprite.setOrigin(sprite.getLocalBounds().getCenter());
-	sprite.setPosition(sf::Vector2f{ boardOffset + ((x - 0.5f) * boardMultiplier), (reverseY(y) - 0.5f) * boardMultiplier});
 	sprite.setScale(sf::Vector2f(scale, scale));
 	ghostSprite.setOrigin(sprite.getLocalBounds().getCenter());
-	ghostSprite.setPosition(sf::Vector2f{ boardOffset + ((x - 0.5f) * boardMultiplier), (reverseY(y) - 0.5f) * boardMultiplier });
+	ghostSprite.setPosition(sprite.getPosition());
 	ghostSprite.setScale(sf::Vector2f(scale, scale));
-	ghostSprite.setColor(sf::Color(0, 0, 0, 0));
-	allSquares.push_back(selectionSquares);
-	allSquares.push_back(captureSquares);
-	allPositions.push_back(availablePositions);
-	allPositions.push_back(availableCapturePositions);
+	ghostSprite.setColor(sf::Color(255, 255, 255, 0));
 }
 
 Piece::~Piece()
@@ -51,10 +54,8 @@ void Piece::setLocalPosition(sf::Vector2i pos)
 	position = { pos };
 }
 
-void Piece::setGlobalPosition(sf::Vector2f pos, bool ghost)
+void Piece::setGlobalPosition(sf::Vector2f pos)
 {
-	if (ghost) {
-		ghostSprite.setPosition(pos);
-	}
+	ghostSprite.setPosition(Main::getGlobalPosition(getLocalPosition(), boardOffset, boardMultiplier));
 	sprite.setPosition(pos);
 }

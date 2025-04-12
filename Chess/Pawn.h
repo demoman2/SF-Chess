@@ -5,11 +5,11 @@ class Pawn : public virtual Piece
 {
 
 public:
-	bool enPassantTarget, hasMoved;
+	bool enPassantTarget, capturingEnPassant;
 	std::vector<sf::Vector2i> enPassantPositions;
 	std::vector<sf::Sprite> enPassantSquares;
-	Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture);
-	Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture);
+	Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated);
+	Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated);
 	~Pawn();
 	virtual std::shared_ptr<Piece> clone() const override;
 };

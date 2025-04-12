@@ -1,14 +1,15 @@
 ﻿#include "Pawn.h"
 
-Pawn::Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture)
-    : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture), hasMoved(true)
+Pawn::Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated)
+    : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture, animated)
 {
     name = "Pawn";
     enPassantTarget = false;
+    capturingEnPassant = false;
     whiteIdentifier = "♙";
     blackIdentifier = "♟";
     pointValue = 1;
-    if (color == Piece::PColor::White) {
+    if (color == PColor::White) {
         if (y == 2) {
             hasMoved = false;
         }
@@ -18,19 +19,18 @@ Pawn::Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, 
             hasMoved = false;
         }
     }
-    allSquares.push_back(enPassantSquares);
-    allPositions.push_back(enPassantPositions);
 }
 
-Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture) :
-    Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture), hasMoved(true)
+Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated) :
+    Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture, animated)
 {
     name = "Pawn";
     this->enPassantTarget = enPassantTarget;
+    capturingEnPassant = false;
     whiteIdentifier = "♙";
     blackIdentifier = "♟";
     pointValue = 1;
-    if (color == Piece::PColor::White) {
+    if (color == PColor::White) {
         if (y == 2) {
             hasMoved = false;
         }
@@ -40,8 +40,6 @@ Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, f
             hasMoved = false;
         }
     }
-    allSquares.push_back(enPassantSquares);
-    allPositions.push_back(enPassantPositions);
 }
 
 Pawn::~Pawn()

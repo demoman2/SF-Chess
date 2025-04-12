@@ -1,22 +1,16 @@
 ﻿#include "King.h"
 
-King::King(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture)
-    : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture), hasMoved(false), canCastleK(false), canCastleQ(false)
+King::King(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated)
+    : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture, animated), canCastleK(false), canCastleQ(false), canNeverCastleK(false), canNeverCastleQ(false), inCheck(false)
 {
     name = "King";
-    canCastleK = false;
-    canCastleQ = false;
     whiteIdentifier = "♔";
     blackIdentifier = "♚";
     pointValue = 10000;
-    allSquares.push_back(castleSquares);
-    allSquares.push_back(castleCaptureSquares);
-    allPositions.push_back(castlePositions);
-    allPositions.push_back(captureCastlePositions);
 }
 
-King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture)
-    : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture), hasMoved(false), canCastleK(false), canCastleQ(false)
+King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated)
+    : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture, animated), canCastleK(false), canCastleQ(false), inCheck(false)
 {
     name = "King";
     this->canNeverCastleK = canNeverCastleK;
@@ -24,10 +18,6 @@ King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale
     whiteIdentifier = "♔";
     blackIdentifier = "♚";
     pointValue = 10000;
-    allSquares.push_back(castleSquares);
-    allSquares.push_back(castleCaptureSquares);
-    allPositions.push_back(castlePositions);
-    allPositions.push_back(captureCastlePositions);
 }
 
 King::~King()

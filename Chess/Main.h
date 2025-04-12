@@ -13,13 +13,21 @@
 #include "Queen.h"
 #include "Pawn.h"
 
+using namespace Chess;
 class Main {
 
 public:
-
 	static sf::Vector2f Interpolate(const sf::Vector2f& pointA, const sf::Vector2f& pointB, float factor) {
 		factor = std::clamp(factor, 0.0f, 1.0f);
-		if (std::fmax(std::abs((pointB - pointA).x), std::abs((pointB - pointA).y)) < 0.1f) {
+		if (std::fmax(std::abs((pointB - pointA).x), std::abs((pointB - pointA).y)) < 1.0f) {
+			return pointB;
+		}
+		return pointA + (pointB - pointA) * factor;
+	}
+
+	static sf::Vector2f Interpolate(const sf::Vector2f& pointA, const sf::Vector2f& pointB, float factor, float threshold) {
+		factor = std::clamp(factor, 0.0f, 1.0f);
+		if (std::fmax(std::abs((pointB - pointA).x), std::abs((pointB - pointA).y)) < threshold) {
 			return pointB;
 		}
 		return pointA + (pointB - pointA) * factor;
@@ -133,7 +141,7 @@ public:
 		return notation;
 	}
 
-	static bool noPiece(std::string notation, std::vector<std::shared_ptr<Piece>>& pieces) {
+	static bool noPieceAt(std::string notation, std::vector<std::shared_ptr<Piece>>& pieces) {
 		return getPieceFromPosition(convertChessNotationtoPosition(notation), pieces) == nullptr;
 	}
 
@@ -143,7 +151,8 @@ public:
 
 	// Bishop, King, Knight, Pawn, Queen, Rook
 	// Black --> White
-	static std::vector<std::shared_ptr<Piece>> generatePositionFromFENID(std::string code, std::vector<std::reference_wrapper<sf::Texture>>& pieceTextures, float pieceScale, float boardOffset, float boardSquareOffset, bool& whiteToPlay, int& halfMoves, int& fullMoves) {
+	static std::vector<std::shared_ptr<Piece>> generatePositionFromFENID(std::string code, std::vector<std::reference_wrapper<sf::Texture>>& pieceTextures
+		, float pieceScale, float boardOffset, float boardSquareOffset, bool& whiteToPlay, int& halfMoves, int& fullMoves, std::shared_ptr<Pawn>& enPassantPiece, bool animated) {
 		std::vector<std::shared_ptr<Piece>> pieces;
 		std::vector<std::string> splitString = split(code, ' ');
 		// ========= MODIFIERS =========
@@ -216,73 +225,77 @@ public:
 						// BLACK
 					case 'b':
 					{
-						pieces.push_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::Black, pieceTextures.at(0)));
+						pieces.push_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(0), animated));
 						break;
 					}
 					case 'k':
 					{
-						pieces.push_back(std::make_shared<King>(blackCanNeverCastleK, blackCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::Black, pieceTextures.at(1)));
+						pieces.push_back(std::make_shared<King>(blackCanNeverCastleK, blackCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(1), animated));
 						break;
 					}
 					case 'n':
 					{
-						pieces.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::Black, pieceTextures.at(2)));
+						pieces.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(2), animated));
 						break;
 					}
 					case 'p':
 					{
 						if (enPassantTarget.has_value() && enPassantTarget.value() == sf::Vector2i{ x, y - 1 }) {
-							pieces.push_back(std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::Black, pieceTextures.at(3)));
+							std::shared_ptr<Pawn> p = std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(3), animated);
+							enPassantPiece = p;
+							pieces.push_back(p);
 						}
 						else {
-							pieces.push_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::Black, pieceTextures.at(3)));
+							pieces.push_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(3), animated));
 						}
 						break;
 					}
 					case 'q':
 					{
-						pieces.push_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::Black, pieceTextures.at(4)));
+						pieces.push_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(4), animated));
 						break;
 					}
 					case 'r':
 					{
-						pieces.push_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::Black, pieceTextures.at(5)));
+						pieces.push_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(5), animated));
 						break;
 					}
 					// WHITE
 					case 'B':
 					{
-						pieces.push_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::White, pieceTextures.at(6)));
+						pieces.push_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(6), animated));
 						break;
 					}
 					case 'K':
 					{
-						pieces.push_back(std::make_shared<King>(whiteCanNeverCastleK, whiteCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::White, pieceTextures.at(7)));
+						pieces.push_back(std::make_shared<King>(whiteCanNeverCastleK, whiteCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(7), animated));
 						break;
 					}
 					case 'N':
 					{
-						pieces.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::White, pieceTextures.at(8)));
+						pieces.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(8), animated));
 						break;
 					}
 					case 'P':
 					{
 						if (enPassantTarget.has_value() && enPassantTarget.value() == sf::Vector2i{ x, y + 1 }) {
-							pieces.push_back(std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::White, pieceTextures.at(9)));
+							std::shared_ptr<Pawn> p = std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(9), animated);
+							enPassantPiece = p;
+							pieces.push_back(p);
 						}
 						else {
-							pieces.push_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::White, pieceTextures.at(9)));
+							pieces.push_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(9), animated));
 						}
 						break;
 					}
 					case 'Q':
 					{
-						pieces.push_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::White, pieceTextures.at(10)));
+						pieces.push_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(10), animated));
 						break;
 					}
 					case 'R':
 					{
-						pieces.push_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), Piece::PColor::White, pieceTextures.at(11)));
+						pieces.push_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(11), animated));
 						break;
 					}
 					}
@@ -295,21 +308,20 @@ public:
 	}
 
 	// Simplify later
-	static void calculateCastlingPossibilities(std::shared_ptr<King> const& king, std::vector<std::shared_ptr<Piece>>& pieces) {
+	static void calculateCastlingPossibilities(std::shared_ptr<King> king, std::vector<std::shared_ptr<Piece>>& pieces) {
 		if (king != nullptr) {
 			king->canCastleK = false;
 			king->canCastleQ = false;
 			// WHITE
-			Piece::PColor color = king->color;
+			PColor color = king->color;
 			if (!king->hasMoved && !king->inCheck && king->isWhite()) {
 				if (king->position == convertChessNotationtoPosition("e1")) {
 					// Kingside
 					if (!king->canNeverCastleK) {
-						if (noPiece("f1", pieces) && noPiece("g1", pieces)) {
+						if (noPieceAt("f1", pieces) && noPieceAt("g1", pieces)) {
 							for (auto& piece2 : pieces) {
 								if (piece2->name == "Rook" && piece2->color == color && piece2 != nullptr) {
-									std::shared_ptr<Rook> rook = std::dynamic_pointer_cast<Rook>(piece2);
-									if (!rook->hasMoved && rook->position == convertChessNotationtoPosition("h1")) {
+									if (!piece2->hasMoved && piece2->position == convertChessNotationtoPosition("h1")) {
 										for (auto& piece3 : pieces) {
 											if (piece3->color != color) {
 												for (auto& square : piece3->availablePositions) {
@@ -327,11 +339,10 @@ public:
 					}
 				Wqueenside:
 					if (!king->canNeverCastleQ) {
-						if (noPiece("b1", pieces) && noPiece("c1", pieces) && noPiece("d1", pieces)) {
+						if (noPieceAt("b1", pieces) && noPieceAt("c1", pieces) && noPieceAt("d1", pieces)) {
 							for (auto& piece2 : pieces) {
 								if (piece2->name == "Rook" && piece2->color == color && piece2 != nullptr) {
-									std::shared_ptr<Rook> rook = std::dynamic_pointer_cast<Rook>(piece2);
-									if (!rook->hasMoved && rook->position == convertChessNotationtoPosition("a1")) {
+									if (!piece2->hasMoved && piece2->position == convertChessNotationtoPosition("a1")) {
 										for (auto& piece3 : pieces) {
 											if (piece3->color != color) {
 												for (auto& square : piece3->availablePositions) {
@@ -354,11 +365,10 @@ public:
 				if (king->position == convertChessNotationtoPosition("e8")) {
 					// Kingside
 					if (!king->canNeverCastleK) {
-						if (noPiece("f8", pieces) && noPiece("g8", pieces)) {
+						if (noPieceAt("f8", pieces) && noPieceAt("g8", pieces)) {
 							for (auto& piece2 : pieces) {
 								if (piece2->name == "Rook" && piece2->color == color && piece2 != nullptr) {
-									std::shared_ptr<Rook> rook = std::dynamic_pointer_cast<Rook>(piece2);
-									if (!rook->hasMoved && rook->position == convertChessNotationtoPosition("h8")) {
+									if (!piece2->hasMoved && piece2->position == convertChessNotationtoPosition("h8")) {
 										for (auto& piece3 : pieces) {
 											if (piece3->color != color) {
 												for (auto& square : piece3->availablePositions) {
@@ -376,11 +386,10 @@ public:
 					}
 				Bqueenside:
 					if (!king->canNeverCastleQ) {
-						if (noPiece("b8", pieces) && noPiece("c8", pieces) && noPiece("d8", pieces)) {
+						if (noPieceAt("b8", pieces) && noPieceAt("c8", pieces) && noPieceAt("d8", pieces)) {
 							for (auto& piece2 : pieces) {
 								if (piece2->name == "Rook" && piece2->color == color && piece2 != nullptr) {
-									std::shared_ptr<Rook> rook = std::dynamic_pointer_cast<Rook>(piece2);
-									if (!rook->hasMoved && rook->position == convertChessNotationtoPosition("a8")) {
+									if (!piece2->hasMoved && piece2->position == convertChessNotationtoPosition("a8")) {
 										for (auto& piece3 : pieces) {
 											if (piece3->color != color) {
 												for (auto& square : piece3->availablePositions) {
@@ -407,7 +416,7 @@ public:
 		return (square.x <= 8 && square.x >= 1 && square.y <= 8 && square.y >= 1);
 	}
 
-	static bool isValidPosition(std::vector<std::shared_ptr<Piece>>& position, Piece::PColor color) {
+	static bool isValidPosition(std::vector<std::shared_ptr<Piece>>& position, PColor color) {
 		for (auto& piece : position) {
 			// Bishop + Queen
 			if (piece->color != color) {
@@ -616,7 +625,7 @@ public:
 				// Pawn
 				else if (piece->name == "Pawn") {
 					sf::Vector2i pos, pos2;
-					if (piece->color == Piece::PColor::White) {
+					if (piece->color == PColor::White) {
 						pos = { piece->x - 1, piece->y + 1 }, pos2 = { piece->x + 1, piece->y + 1 };
 					}
 					else {
@@ -723,7 +732,8 @@ public:
 		}
 	}
 
-	static void calculatePositions(std::shared_ptr<Piece> const& piece, std::vector<std::shared_ptr<Piece>>& position) {
+	static void calculatePositions(std::shared_ptr<Piece> piece, std::vector<std::shared_ptr<Piece>>& position) {
+		piece->canMove = false;
 		// Clear all Position Vectors
 		piece->availablePositions.clear();
 		piece->availableCapturePositions.clear();
@@ -779,11 +789,13 @@ public:
 					if (getPieceFromPosition(newPos, position) != nullptr) {
 						if (getPieceFromPosition(newPos, position)->color != piece->color) {
 							piece->availableCapturePositions.push_back(newPos);
+
 						}
 						break;
 					}
 					else {
 						piece->availablePositions.push_back(newPos);
+
 					}
 				}
 				// Bottom Left Diag
@@ -794,11 +806,13 @@ public:
 					if (getPieceFromPosition(newPos, position) != nullptr) {
 						if (getPieceFromPosition(newPos, position)->color != piece->color) {
 							piece->availableCapturePositions.push_back(newPos);
+
 						}
 						break;
 					}
 					else {
 						piece->availablePositions.push_back(newPos);
+
 					}
 				}
 				if (piece->name == "Queen") {
@@ -810,11 +824,13 @@ public:
 						if (getPieceFromPosition(newPos, position) != nullptr) {
 							if (getPieceFromPosition(newPos, position)->color != piece->color) {
 								piece->availableCapturePositions.push_back(newPos);
+
 							}
 							break;
 						}
 						else {
 							piece->availablePositions.push_back(newPos);
+
 						}
 					}
 					// Down
@@ -825,11 +841,13 @@ public:
 						if (getPieceFromPosition(newPos, position) != nullptr) {
 							if (getPieceFromPosition(newPos, position)->color != piece->color) {
 								piece->availableCapturePositions.push_back(newPos);
+
 							}
 							break;
 						}
 						else {
 							piece->availablePositions.push_back(newPos);
+
 						}
 					}
 					// Right
@@ -840,11 +858,13 @@ public:
 						if (getPieceFromPosition(newPos, position) != nullptr) {
 							if (getPieceFromPosition(newPos, position)->color != piece->color) {
 								piece->availableCapturePositions.push_back(newPos);
+
 							}
 							break;
 						}
 						else {
 							piece->availablePositions.push_back(newPos);
+
 						}
 					}
 					// Left
@@ -855,11 +875,13 @@ public:
 						if (getPieceFromPosition(newPos, position) != nullptr) {
 							if (getPieceFromPosition(newPos, position)->color != piece->color) {
 								piece->availableCapturePositions.push_back(newPos);
+
 							}
 							break;
 						}
 						else {
 							piece->availablePositions.push_back(newPos);
+
 						}
 					}
 				}
@@ -874,11 +896,13 @@ public:
 					if (getPieceFromPosition(newPos, position) != nullptr) {
 						if (getPieceFromPosition(newPos, position)->color != piece->color) {
 							piece->availableCapturePositions.push_back(newPos);
+
 						}
 						break;
 					}
 					else {
 						piece->availablePositions.push_back(newPos);
+
 					}
 				}
 				// Down
@@ -889,11 +913,13 @@ public:
 					if (getPieceFromPosition(newPos, position) != nullptr) {
 						if (getPieceFromPosition(newPos, position)->color != piece->color) {
 							piece->availableCapturePositions.push_back(newPos);
+
 						}
 						break;
 					}
 					else {
 						piece->availablePositions.push_back(newPos);
+
 					}
 				}
 				// Right
@@ -904,11 +930,13 @@ public:
 					if (getPieceFromPosition(newPos, position) != nullptr) {
 						if (getPieceFromPosition(newPos, position)->color != piece->color) {
 							piece->availableCapturePositions.push_back(newPos);
+
 						}
 						break;
 					}
 					else {
 						piece->availablePositions.push_back(newPos);
+
 					}
 				}
 				// Left
@@ -919,11 +947,13 @@ public:
 					if (getPieceFromPosition(newPos, position) != nullptr) {
 						if (getPieceFromPosition(newPos, position)->color != piece->color) {
 							piece->availableCapturePositions.push_back(newPos);
+
 						}
 						break;
 					}
 					else {
 						piece->availablePositions.push_back(newPos);
+
 					}
 				}
 			}
@@ -936,10 +966,12 @@ public:
 						if (getPieceFromPosition(newPos, position) != nullptr) {
 							if (getPieceFromPosition(newPos, position)->color != piece->color) {
 								piece->availableCapturePositions.push_back(newPos);
+
 							}
 						}
 						else {
 							piece->availablePositions.push_back(newPos);
+
 						}
 					}
 				}
@@ -948,7 +980,7 @@ public:
 			else if (piece->name == "Pawn") {
 				std::shared_ptr<Pawn> pawnPiece = std::dynamic_pointer_cast<Pawn>(piece);
 				sf::Vector2i pos, pos2, pos3, pos4;
-				if (piece->color == Piece::PColor::White) {
+				if (piece->color == PColor::White) {
 					pos = { pawnPiece->x, pawnPiece->y + 1 }, pos2 = { pawnPiece->x, pawnPiece->y + 2 };
 					pos3 = { piece->x - 1, piece->y + 1 }, pos4 = { piece->x + 1, piece->y + 1 };
 				}
@@ -959,6 +991,7 @@ public:
 
 				if (isValidSquare(pos) && getPieceFromPosition(pos, position) == nullptr) {
 					pawnPiece->availablePositions.push_back(pos);
+
 					if (!pawnPiece->hasMoved) {
 						if (isValidSquare(pos2) && getPieceFromPosition(pos2, position) == nullptr) {
 							pawnPiece->availablePositions.push_back(pos2);
@@ -979,14 +1012,14 @@ public:
 						}
 					}
 				}
-
+				// En Passant
 				if (getPieceFromPosition(sf::Vector2i{ pawnPiece->x + 1, pawnPiece->y }, position) != nullptr) {
-					std::shared_ptr<Piece> p = getPieceFromPosition(sf::Vector2i{ pawnPiece->x + 1, pawnPiece->y }, position);
-					if (p != nullptr) {
-						if (p->color != pawnPiece->color && p->name == "Pawn") {
-							std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
+					std::shared_ptr<Piece> temp = getPieceFromPosition(sf::Vector2i{ pawnPiece->x + 1, pawnPiece->y }, position);
+					if (temp != nullptr) {
+						if (temp->color != pawnPiece->color && temp->name == "Pawn") {
+							std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(temp);
 							if (pawn->enPassantTarget) {
-								if (pawn->color == Piece::PColor::White) {
+								if (pawn->color == PColor::White) {
 									pawnPiece->enPassantPositions.push_back(sf::Vector2i{ pawn->x, pawn->y - 1 });
 								}
 								else {
@@ -997,12 +1030,12 @@ public:
 					}
 				}
 				if (getPieceFromPosition(sf::Vector2i{ pawnPiece->x - 1, pawnPiece->y }, position) != nullptr) {
-					std::shared_ptr<Piece> p = getPieceFromPosition(sf::Vector2i{ pawnPiece->x + 1, pawnPiece->y }, position);
-					if (p != nullptr) {
-						if (p->color != pawnPiece->color && p->name == "Pawn") {
-							std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
+					std::shared_ptr<Piece> temp = getPieceFromPosition(sf::Vector2i{ pawnPiece->x - 1, pawnPiece->y }, position);
+					if (temp != nullptr) {
+						if (temp->color != pawnPiece->color && temp->name == "Pawn") {
+							std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(temp);
 							if (pawn->enPassantTarget) {
-								if (pawn->color == Piece::PColor::White) {
+								if (pawn->color == PColor::White) {
 									pawnPiece->enPassantPositions.push_back(sf::Vector2i{ pawn->x, pawn->y - 1 });
 								}
 								else {
@@ -1024,11 +1057,11 @@ public:
 							if (isValidSquare(newPos)) {
 								if (getPieceFromPosition(newPos, position) != nullptr) {
 									if (getPieceFromPosition(newPos, position)->color != king->color) {
-										king->addCaptureSquare(newPos);
+										king->availableCapturePositions.push_back(newPos);
 									}
 								}
 								else {
-
+									king->availablePositions.push_back(newPos);
 								}
 							}
 						}
@@ -1036,17 +1069,14 @@ public:
 				}
 			}
 
-
-
 			{
 				for (int i = 0; i < piece->availablePositions.size();) {
-					std::vector<std::shared_ptr<Piece>> newV{};
+					std::vector<std::shared_ptr<Piece>> newV;
 					newV.resize(position.size());
-					std::cout << "Deep copy:";
-					for (size_t j = 0; j < position.size(); ++j)
+					for (size_t j = 0; j < position.size(); j++)
 					{
 						newV[j] = position[j]->clone();
-						if (j == piece->index) {
+						if (newV[j]->getLocalPosition() == piece->getLocalPosition()) {
 							newV[j]->setLocalPosition(piece->availablePositions.at(i));
 						}
 					}
@@ -1060,20 +1090,21 @@ public:
 				}
 
 				for (int i = 0; i < piece->availableCapturePositions.size();) {
-					std::vector<std::shared_ptr<Piece>> newV{};
+					std::vector<std::shared_ptr<Piece>> newV;
 					newV.resize(position.size());
-					for (size_t j = 0; j < position.size(); ++j)
+					for (size_t j = 0; j < position.size(); j++)
 					{
 						newV[j] = position[j]->clone();
-						if (j == piece->index) {
-							newV[j]->setLocalPosition(piece->availableCapturePositions.at(i));
-						}
 					}
 					for (int j = 0; j < newV.size(); j++) {
-						if (newV.at(j)->position == piece->availableCapturePositions.at(i)) {
-							newV.at(j).reset();
+						if (newV.at(j)->getLocalPosition() == piece->availableCapturePositions.at(i)) {
 							newV.erase(newV.begin() + j);
 							break;
+						}
+					}
+					for (auto& v : newV) {
+						if (v->getLocalPosition() == piece->getLocalPosition()) {
+							v->setLocalPosition(piece->availableCapturePositions.at(i));
 						}
 					}
 					if (!isValidPosition(newV, piece->color)) {
@@ -1082,40 +1113,45 @@ public:
 					else {
 						i++;
 					}
+					if (!piece->availableCapturePositions.empty()) {
+					}
 					newV.clear();
 				}
-
-
 				if (piece->name == "Pawn") {
 					std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
 					for (int i = 0; i < pawn->enPassantPositions.size();) {
-						std::vector<std::shared_ptr<Piece>> newV{ position.begin(), position.end() };
-						newV.erase(newV.begin() + pawn->index);
-						sf::Vector2i pos{ 0, 0 };
-						if (pawn->color == Piece::PColor::White) {
-							pos = { pawn->enPassantPositions.at(i).x, pawn->enPassantPositions.at(i).y - 1 };
+						std::vector<std::shared_ptr<Piece>> newV{};
+						newV.resize(position.size());
+						for (size_t j = 0; j < position.size(); ++j)
+						{
+							newV[j] = position[j]->clone();
+						}
+						sf::Vector2i enPassantPos{ 0, 0 };
+						if (pawn->color == PColor::White) {
+							enPassantPos = { pawn->enPassantPositions.at(i).x, pawn->enPassantPositions.at(i).y - 1 };
 						}
 						else {
-							pos = { pawn->enPassantPositions.at(i).x, pawn->enPassantPositions.at(i).y + 1 };
+							enPassantPos = { pawn->enPassantPositions.at(i).x, pawn->enPassantPositions.at(i).y + 1 };
 						}
-						if (getPieceFromPosition(pos, position) != nullptr) {
-							for (int j = 0; j < newV.size(); j++) {
-								if (newV.at(j)->position == piece->availableCapturePositions.at(i)) {
-									newV.at(j).reset();
-									newV.erase(newV.begin() + j);
-									break;
-								}
+						for (int j = 0; j < newV.size(); j++) {
+							if (newV.at(j)->getLocalPosition() == enPassantPos) {
+								newV.erase(newV.begin() + j);
+								break;
 							}
 						}
-						piece->setLocalPosition(pawn->enPassantPositions.at(i));
-						newV.push_back(piece);
+						for (auto& v : newV) {
+							if (v->getLocalPosition() == piece->getLocalPosition()) {
+								v->setLocalPosition(pawn->enPassantPositions.at(i));
+							}
+						}
 						if (!isValidPosition(newV, piece->color)) {
 							pawn->enPassantPositions.erase(pawn->enPassantPositions.begin() + i);
 						}
 						else {
 							i++;
 						}
-						piece->setLocalPosition(pos);
+						if (!pawn->enPassantPositions.empty()) {
+						}
 						newV.clear();
 					}
 				}
@@ -1125,7 +1161,7 @@ public:
 					calculateCastlingPossibilities(king, position);
 					sf::Vector2i castlePos, capturePos;
 					if (king->canCastleK) {
-						if (king->color == Piece::PColor::White) {
+						if (king->color == PColor::White) {
 							castlePos = convertChessNotationtoPosition("g1");
 							capturePos = convertChessNotationtoPosition("h1");
 							king->castlePositions.push_back(castlePos);
@@ -1137,9 +1173,10 @@ public:
 							king->castlePositions.push_back(castlePos);
 							king->captureCastlePositions.push_back(capturePos);
 						}
+						king->canMove = true;
 					}
 					if (king->canCastleQ) {
-						if (king->color == Piece::PColor::White) {
+						if (king->color == PColor::White) {
 							castlePos = convertChessNotationtoPosition("c1");
 							capturePos = convertChessNotationtoPosition("a1");
 							king->castlePositions.push_back(castlePos);
@@ -1151,9 +1188,383 @@ public:
 							king->castlePositions.push_back(castlePos);
 							king->captureCastlePositions.push_back(capturePos);
 						}
+						king->canMove = true;
+					}
+				}
+				// Can Move
+				if (!piece->availablePositions.empty()) {
+					piece->canMove = true;
+				}
+				if (!piece->availableCapturePositions.empty()) {
+					piece->canMove = true;
+				}
+				if (piece->name == "Pawn") {
+					std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
+					if (!pawn->enPassantPositions.empty()) {
+						pawn->canMove = true;
 					}
 				}
 			}
 		}
+	}
+
+	static int determineEnd(std::vector<std::shared_ptr<Piece>>& position, bool whiteToPlay) {
+		// Neither 0, Stalemate 1, Checkmate 2, Insufficient Material 3
+		if (std::none_of(position.begin(), position.end(), [whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; })) {
+			for (auto& piece : position) {
+				if (whiteToPlay == (piece->color == PColor::White) && piece->name == "King") {
+					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
+					if (king->inCheck) {
+						return 2;
+					}
+					else {
+						return 1;
+					}
+				}
+			}
+		}
+		else {
+			if (position.size() == 2) {
+				return 3;
+			}
+			if (position.size() == 3) {
+				if (std::none_of(position.begin(), position.end(), [](std::shared_ptr<Piece>& piece) { return piece->name == "Rook" || piece->name == "Queen" || piece->name == "Pawn"; })) {
+					return 3;
+				}
+			}
+			else if (position.size() == 4) {
+				for (auto& piece : position) {
+					if (piece->name == "Pawn") {
+						return 3;
+					}
+				}
+				int whiteCount = 0, blackCount = 0;
+				for (auto& piece : position) {
+					if (piece->isWhite()) {
+						whiteCount++;
+					}
+					else { blackCount++; }
+				}
+				if (whiteCount != blackCount) {
+					if (std::none_of(position.begin(), position.end(), [](std::shared_ptr<Piece>& piece) { return piece->name == "Rook" || piece->name == "Queen"; })) {
+						if (!std::all_of(position.begin(), position.end(), [](std::shared_ptr<Piece>& piece) { return piece->name == "Bishop"; })) {
+							return 3;
+						}
+					}
+				}
+				else {
+					if (std::none_of(position.begin(), position.end(), [](std::shared_ptr<Piece>& piece) { return piece->name == "Rook" || piece->name == "Queen"; })) {
+						return 3;
+					}
+				}
+			}
+		}
+		return 0;
+	}
+
+	static std::pair<std::array<std::array<int, 8>, 8>, bool> savePosition(std::vector<std::shared_ptr<Piece>>& position, bool whiteToPlay) {
+		std::array<std::array<int, 8>, 8> array{ 0 };
+		for (auto& piece : position) {
+			if (piece->isWhite()) {
+				if (piece->name == "Bishop") {
+					array.at(piece->x - 1).at(piece->y - 1) = 1;
+				}
+				else if (piece->name == "Knight") {
+					array.at(piece->x - 1).at(piece->y - 1) = 2;
+				}
+				else if (piece->name == "King") {
+					array.at(piece->x - 1).at(piece->y - 1) = 3;
+				}
+				else if (piece->name == "Queen") {
+					array.at(piece->x - 1).at(piece->y - 1) = 4;
+				}
+				else if (piece->name == "Rook") {
+					array.at(piece->x - 1).at(piece->y - 1) = 5;
+				}
+				else if (piece->name == "Pawn") {
+					array.at(piece->x - 1).at(piece->y - 1) = 6;
+				}
+			}
+			else {
+				if (piece->name == "Bishop") {
+					array.at(piece->x - 1).at(piece->y - 1) = 7;
+				}
+				else if (piece->name == "Knight") {
+					array.at(piece->x - 1).at(piece->y - 1) = 8;
+				}
+				else if (piece->name == "King") {
+					array.at(piece->x - 1).at(piece->y - 1) = 9;
+				}
+				else if (piece->name == "Queen") {
+					array.at(piece->x - 1).at(piece->y - 1) = 10;
+				}
+				else if (piece->name == "Rook") {
+					array.at(piece->x - 1).at(piece->y - 1) = 11;
+				}
+				else if (piece->name == "Pawn") {
+					array.at(piece->x - 1).at(piece->y - 1) = 12;
+				}
+			}
+		}
+		return std::make_pair(array, whiteToPlay);
+	}
+
+	static int postMove(std::shared_ptr<Piece> piece, std::vector<std::shared_ptr<Piece>>& pieceList, std::vector<std::shared_ptr<Piece>>::iterator& it,
+		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, sf::Sprite& checkSprite,
+		std::vector<std::reference_wrapper<sf::Texture>> extraTextures, std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed,
+		std::shared_ptr<Piece>& selectedPiece, std::shared_ptr<Piece>& capturePiece, sf::RenderWindow& window, sf::Sprite& board, sf::Sprite& lastMoveStart, sf::Sprite& lastMoveDest) {
+
+		bool endCheck = false;
+		if (capturePiece != nullptr) {
+			for (int i = 0; i < pieceList.size(); i++) {
+				if (pieceList.at(i) != nullptr && pieceList.at(i) == capturePiece) {
+					it = pieceList.erase(pieceList.begin() + i);
+					if (it == pieceList.end()) {
+						endCheck = true;
+					}
+					break;
+				}
+			}
+		}
+		piece->setTarget({});
+		piece->setLocalPosition(Main::getLocalPosition(piece->getGlobalPosition(), boardOffset, boardMultiplier));
+		piece->setGlobalPosition(piece->getGlobalPosition());
+		// Smooth Effect
+		window.clear();
+		window.draw(board);
+		window.draw(lastMoveStart);
+		window.draw(lastMoveDest);
+		for (auto& p : pieceList) {
+			p->draw(window);
+		}
+		window.display();
+		if (!piece->hasMoved) { piece->hasMoved = true; }
+		if (piece->name == "Pawn") {
+			std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
+			pawn->capturingEnPassant = false;
+		}
+
+		for (int i = 0; i < pieceList.size(); i++) {
+			if (whiteToPlay == pieceList.at(i)->isWhite()) {
+				if (pieceList.at(i)->name != "King") {
+					Main::calculatePositions(pieceList.at(i), pieceList);
+				}
+			}
+		}
+		check = false;
+		for (auto& p : pieceList) {
+			if (p->name == "King" && whiteToPlay != (p->color == PColor::White)) {
+				for (auto& p2 : pieceList) {
+					if (p2->color != p->color) {
+						std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
+						for (auto& pos : p2->getAvailableCapturePositions()) {
+							if (pos == k->getLocalPosition()) {
+								k->inCheck = true;
+								checkSprite.setPosition(k->getGlobalPosition());
+								check = true;
+							}
+						}
+						if (!check) {
+							k->inCheck = false;
+						}
+					}
+				}
+			}
+		}
+		if (check) {
+			window.clear();
+			window.draw(board);
+			window.draw(lastMoveStart);
+			window.draw(lastMoveDest);
+			window.draw(checkSprite);
+			for (auto& p : pieceList) {
+				p->draw(window);
+			}
+			window.display();
+		}
+		for (int i = 0; i < pieceList.size(); i++) {
+			if (whiteToPlay != pieceList.at(i)->isWhite()) {
+				if (pieceList.at(i)->name != "King") {
+					Main::calculatePositions(pieceList.at(i), pieceList);
+				}
+			}
+		}
+		for (int i = 0; i < pieceList.size(); i++) {
+			if (pieceList.at(i)->name == "King") {
+				Main::calculatePositions(pieceList.at(i), pieceList);
+			}
+		}
+		Main::setExtraSprites(pieceList, extraTextures);
+		whiteToPlay = !whiteToPlay;
+		std::cout << Main::determineEnd(pieceList, whiteToPlay) << std::endl;
+		moving = false;
+		auto pos = Main::savePosition(pieceList, whiteToPlay);
+		int count = 1;
+		for (auto& position : allPositionsPlayed) {
+			if (position == pos) {
+				count++;
+			}
+		}
+		if (count == 3) {
+			// Threefold Repetition
+			return 2;
+		}
+		allPositionsPlayed.push_back(pos);
+		selectedPiece.reset();
+		if (endCheck) { return 1; }
+		return 0;
+	}
+
+	static int postMove(std::shared_ptr<Piece> piece, std::vector<std::shared_ptr<Piece>>& pieceList,
+		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, sf::Sprite& checkSprite,
+		std::vector<std::reference_wrapper<sf::Texture>> extraTextures, std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed,
+		std::shared_ptr<Piece>& selectedPiece, std::shared_ptr<Piece>& capturePiece, sf::RenderWindow& window, sf::Sprite& board, sf::Sprite& lastMoveStart, sf::Sprite& lastMoveDest) {
+
+		if (capturePiece != nullptr) {
+			for (int i = 0; i < pieceList.size(); i++) {
+				if (pieceList.at(i) != nullptr && pieceList.at(i) == capturePiece) {
+					pieceList.erase(pieceList.begin() + i);
+					break;
+				}
+			}
+		}
+		piece->setTarget({});
+		piece->setLocalPosition(Main::getLocalPosition(piece->getGlobalPosition(), boardOffset, boardMultiplier));
+		piece->setGlobalPosition(piece->getGlobalPosition());
+		// Smooth Effect
+		window.clear();
+		window.draw(board);
+		window.draw(lastMoveStart);
+		window.draw(lastMoveDest);
+		for (auto& p : pieceList) {
+			p->draw(window);
+		}
+		window.display();
+		if (!piece->hasMoved) { piece->hasMoved = true; }
+		if (piece->name == "Pawn") {
+			std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
+			pawn->capturingEnPassant = false;
+		}
+
+		for (int i = 0; i < pieceList.size(); i++) {
+			if (whiteToPlay == pieceList.at(i)->isWhite()) {
+				if (pieceList.at(i)->name != "King") {
+					Main::calculatePositions(pieceList.at(i), pieceList);
+				}
+			}
+		}
+		check = false;
+		for (auto& p : pieceList) {
+			if (p->name == "King" && whiteToPlay != (p->color == PColor::White)) {
+				for (auto& p2 : pieceList) {
+					if (p2->color != p->color) {
+						std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
+						for (auto& pos : p2->getAvailableCapturePositions()) {
+							if (pos == k->getLocalPosition()) {
+								k->inCheck = true;
+								checkSprite.setPosition(k->getGlobalPosition());
+								check = true;
+							}
+						}
+						if (!check) {
+							k->inCheck = false;
+						}
+					}
+				}
+			}
+		}
+		if (check) {
+			window.clear();
+			window.draw(board);
+			window.draw(lastMoveStart);
+			window.draw(lastMoveDest);
+			window.draw(checkSprite);
+			for (auto& p : pieceList) {
+				p->draw(window);
+			}
+			window.display();
+		}
+		for (int i = 0; i < pieceList.size(); i++) {
+			if (whiteToPlay != pieceList.at(i)->isWhite()) {
+				if (pieceList.at(i)->name != "King") {
+					Main::calculatePositions(pieceList.at(i), pieceList);
+				}
+			}
+		}
+		for (int i = 0; i < pieceList.size(); i++) {
+			if (pieceList.at(i)->name == "King") {
+				Main::calculatePositions(pieceList.at(i), pieceList);
+			}
+		}
+		Main::setExtraSprites(pieceList, extraTextures);
+		whiteToPlay = !whiteToPlay;
+		std::cout << Main::determineEnd(pieceList, whiteToPlay) << std::endl;
+		moving = false;
+		auto pos = Main::savePosition(pieceList, whiteToPlay);
+		int count = 1;
+		for (auto& position : allPositionsPlayed) {
+			if (position == pos) {
+				count++;
+			}
+		}
+		if (count == 3) {
+			// Threefold Repetition
+			return 2;
+		}
+		allPositionsPlayed.push_back(pos);
+		selectedPiece.reset();
+		return 0;
+	}
+
+	static int postCastle(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> piece2, std::vector<std::shared_ptr<Piece>>& pieceList,
+		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, sf::Sprite& checkSprite,
+		std::vector<std::reference_wrapper<sf::Texture>> extraTextures, std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed,
+		std::shared_ptr<Piece>& selectedPiece, sf::RenderWindow& window, sf::Sprite& board, sf::Sprite& lastMoveStart, sf::Sprite& lastMoveDest) {
+		piece->setTarget({});
+		piece->setLocalPosition(Main::getLocalPosition(piece->getGlobalPosition(), boardOffset, boardMultiplier));
+		piece->setGlobalPosition(piece->getGlobalPosition());
+		piece2->setTarget({});
+		piece2->setLocalPosition(Main::getLocalPosition(piece2->getGlobalPosition(), boardOffset, boardMultiplier));
+		piece2->setGlobalPosition(piece2->getGlobalPosition());
+		// Smooth Effect
+		window.clear();
+		window.draw(board);
+		window.draw(lastMoveStart);
+		window.draw(lastMoveDest);
+		for (auto& p : pieceList) {
+			p->draw(window);
+		}
+		window.display();
+		if (!piece->hasMoved) { piece->hasMoved = true; }
+		if (!piece2->hasMoved) { piece->hasMoved = true; }
+
+		for (int i = 0; i < pieceList.size(); i++) {
+			if (pieceList.at(i)->name != "King") {
+				Main::calculatePositions(pieceList.at(i), pieceList);
+			}
+		}
+		for (int i = 0; i < pieceList.size(); i++) {
+			if (pieceList.at(i)->name == "King") {
+				Main::calculatePositions(pieceList.at(i), pieceList);
+			}
+		}
+		Main::setExtraSprites(pieceList, extraTextures);
+		whiteToPlay = !whiteToPlay;
+		std::cout << Main::determineEnd(pieceList, whiteToPlay) << std::endl;
+		moving = false;
+		auto pos = Main::savePosition(pieceList, whiteToPlay);
+		int count = 1;
+		for (auto& position : allPositionsPlayed) {
+			if (position == pos) {
+				count++;
+			}
+		}
+		if (count == 3) {
+			// Threefold Repetition
+			return 2;
+		}
+		allPositionsPlayed.push_back(pos);
+		selectedPiece.reset();
+		return 0;
 	}
 };
