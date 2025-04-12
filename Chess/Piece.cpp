@@ -1,9 +1,9 @@
 #include "Piece.h"
 #include "Main.h"
 
-Piece::Piece(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated)
+Piece::Piece(int x, int y, float scale, float boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
 	: sprite(texture), position(x, y), color(color), x(x), y(y), scale(scale), boardOffset(boardOffset), boardMultiplier(boardMultiplier), texture(texture), ghostSprite(texture),
-	index(index), hasMoved(false), canMove(false)
+	hasMoved(false), canMove(false)
 {
 	if (animated) {
 		sprite.setPosition(sf::Vector2f{ boardOffset + ((4.5f - 0.5f) * boardMultiplier), (reverseY(4.5f) - 0.5f) * boardMultiplier });

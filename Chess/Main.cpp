@@ -85,11 +85,11 @@ int main()
 
 	// Audio
 	sf::SoundBuffer moveBuffer, captureBuffer, checkBuffer, gameEndBuffer, explosionBuffer;
-	moveBuffer.loadFromFile("assets/audio/Move.mp3");
-	captureBuffer.loadFromFile("assets/audio/Capture.mp3");
-	checkBuffer.loadFromFile("assets/audio/Check.mp3");
-	gameEndBuffer.loadFromFile("assets/audio/End.mp3");
-	explosionBuffer.loadFromFile("assets/audio/Explosion.mp3");
+	moveBuffer.loadFromFile("assets/sound/Move.mp3");
+	captureBuffer.loadFromFile("assets/sound/Capture.mp3");
+	checkBuffer.loadFromFile("assets/sound/Check.mp3");
+	gameEndBuffer.loadFromFile("assets/sound/End.mp3");
+	explosionBuffer.loadFromFile("assets/sound/Explosion.mp3");
 	sf::Sound moveSound(moveBuffer);
 	sf::Sound captureSound(captureBuffer);
 	sf::Sound checkSound(checkBuffer);
@@ -102,20 +102,10 @@ int main()
 	explosionSound.setVolume(100);
 
 	// Setup
+	// Todo: Checks & 50 Move Rule
 	Main::loadPieceSet(pieceStyle, pieceTextures, pieceSize);
-	std::vector<std::shared_ptr<Piece>> pieceList = Main::generatePositionFromFENID("7k/8/8/8/8/5Q2/8/4K3 w - - 0 1",
-		pieceTextures, pieceScale, boardOffset, boardMultiplier, whiteToPlay, halfMoves, fullMoves, enPassantPiece, true);
-	for (auto& p : pieceList) {
-		if (p->name != "King") {
-			Main::calculatePositions(p, pieceList);
-		}
-	}
-	for (auto& p : pieceList) {
-		if (p->name == "King") {
-			Main::calculatePositions(p, pieceList);
-		}
-	}
-	Main::setExtraSprites(pieceList, extraTextures);
+	std::vector<std::shared_ptr<Piece>> pieceList = Main::generatePositionFromFENID("4k3/4q3/8/8/8/8/8/R3K3 w Q - 0 1",
+		pieceTextures, pieceScale, boardOffset, boardMultiplier, whiteToPlay, halfMoves, fullMoves, enPassantPiece, checkSprite, check, extraTextures, true);
 
 	// ==== MAIN ====
 	std::cout << std::boolalpha;
@@ -164,18 +154,13 @@ int main()
 					enPassantPiece.reset();
 					pieceList.clear();
 					pieceList = Main::generatePositionFromFENID("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-						pieceTextures, pieceScale, boardOffset, boardMultiplier, whiteToPlay, halfMoves, fullMoves, enPassantPiece, true);
-					for (auto& p : pieceList) {
-						if (p->name != "King") {
-							Main::calculatePositions(p, pieceList);
-						}
-					}
-					for (auto& p : pieceList) {
-						if (p->name == "King") {
-							Main::calculatePositions(p, pieceList);
-						}
-					}
-					Main::setExtraSprites(pieceList, extraTextures);
+						pieceTextures, pieceScale, boardOffset, boardMultiplier, whiteToPlay, halfMoves, fullMoves, enPassantPiece, checkSprite, check, extraTextures, true);
+				}
+				else if (keyPressed->scancode == sf::Keyboard::Scancode::D) {
+					// Debug
+				}
+				else if (keyPressed->scancode == sf::Keyboard::Scancode::Q) {
+					window.close();
 				}
 			}
 		}
@@ -210,7 +195,7 @@ int main()
 							}
 						}
 						selectedPiece->setGlobalPosition(sprite.getPosition());
-						Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, checkSprite,
+						Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
 							extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest);
 					}
 				}
@@ -232,7 +217,7 @@ int main()
 							}
 						};
 						selectedPiece->setGlobalPosition(sprite.getPosition());
-						Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, checkSprite,
+						Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
 							extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest);
 					}
 				}
@@ -255,7 +240,7 @@ int main()
 								if (rook != nullptr) {
 									rook->setGlobalPosition(Main::getGlobalPosition({ 4, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 									king->setGlobalPosition(sprite.getPosition());
-									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
+									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
 								}
 							}
 							else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == 7) {
@@ -263,7 +248,7 @@ int main()
 								if (rook != nullptr) {
 									rook->setGlobalPosition(Main::getGlobalPosition({ 6, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 									king->setGlobalPosition(sprite.getPosition());
-									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
+									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
 								}
 							}
 						}
@@ -284,7 +269,7 @@ int main()
 								if (rook != nullptr) {
 									rook->setGlobalPosition(Main::getGlobalPosition({ 4, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 									king->setGlobalPosition(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, boardOffset, boardMultiplier));
-									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
+									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
 								}
 							}
 							else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == 8) {
@@ -292,7 +277,7 @@ int main()
 								if (rook != nullptr) {
 									rook->setGlobalPosition(Main::getGlobalPosition({ 6, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 									king->setGlobalPosition(Main::getGlobalPosition({ 7, king->getLocalPosition().y }, boardOffset, boardMultiplier));
-									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
+									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
 								}
 							}
 						}
@@ -324,7 +309,7 @@ int main()
 								}
 							};
 							selectedPiece->setGlobalPosition(sprite.getPosition());
-							Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest);
+							Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest);
 						}
 					}
 				}
@@ -357,7 +342,7 @@ int main()
 				castleRook->setGlobalPosition(Main::Interpolate(castleRook->getGlobalPosition(), castleRook->targetPos.value(), 0.005f));
 			}
 			else {
-				Main::postCastle(castleKing, castleRook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
+				Main::postCastle(castleKing, castleRook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest);
 			}
 		}
 		else {
@@ -365,7 +350,7 @@ int main()
 				std::shared_ptr<Piece> piece = *it2;
 				if (piece != nullptr && piece->targetPos.has_value()) {
 					if (piece->getGlobalPosition() == piece->targetPos.value()) {
-						if (Main::postMove(piece, pieceList, it2, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, checkSprite, extraTextures,
+						if (Main::postMove(piece, pieceList, it2, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures,
 							allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest) == 1) {
 							break;
 						}

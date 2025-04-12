@@ -1,7 +1,7 @@
 ﻿#include "Knight.h"
 
-Knight::Knight(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated)
-    : Piece(x, y, scale, boardOffset, boardMultiplier, index, color, texture, animated)
+Knight::Knight(int x, int y, float scale, float boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
+    : Piece(x, y, scale, boardOffset, boardMultiplier, color, texture, animated)
 {
     name = "Knight";
     whiteIdentifier = "♘";

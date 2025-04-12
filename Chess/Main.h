@@ -151,8 +151,9 @@ public:
 
 	// Bishop, King, Knight, Pawn, Queen, Rook
 	// Black --> White
-	static std::vector<std::shared_ptr<Piece>> generatePositionFromFENID(std::string code, std::vector<std::reference_wrapper<sf::Texture>>& pieceTextures
-		, float pieceScale, float boardOffset, float boardSquareOffset, bool& whiteToPlay, int& halfMoves, int& fullMoves, std::shared_ptr<Pawn>& enPassantPiece, bool animated) {
+	static std::vector<std::shared_ptr<Piece>> generatePositionFromFENID(std::string code, std::vector<std::reference_wrapper<sf::Texture>>& pieceTextures,
+		float pieceScale, float boardOffset, float boardSquareOffset, bool& whiteToPlay, int& halfMoves, int& fullMoves, std::shared_ptr<Pawn>& enPassantPiece,
+		sf::Sprite& checkSprite, bool& check, std::vector<std::reference_wrapper<sf::Texture>>& extraTextures, bool animated) {
 		std::vector<std::shared_ptr<Piece>> pieces;
 		std::vector<std::string> splitString = split(code, ' ');
 		// ========= MODIFIERS =========
@@ -225,77 +226,77 @@ public:
 						// BLACK
 					case 'b':
 					{
-						pieces.push_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(0), animated));
+						pieces.push_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSquareOffset, PColor::Black, pieceTextures.at(0), animated));
 						break;
 					}
 					case 'k':
 					{
-						pieces.push_back(std::make_shared<King>(blackCanNeverCastleK, blackCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(1), animated));
+						pieces.push_back(std::make_shared<King>(blackCanNeverCastleK, blackCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, PColor::Black, pieceTextures.at(1), animated));
 						break;
 					}
 					case 'n':
 					{
-						pieces.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(2), animated));
+						pieces.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSquareOffset, PColor::Black, pieceTextures.at(2), animated));
 						break;
 					}
 					case 'p':
 					{
 						if (enPassantTarget.has_value() && enPassantTarget.value() == sf::Vector2i{ x, y - 1 }) {
-							std::shared_ptr<Pawn> p = std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(3), animated);
+							std::shared_ptr<Pawn> p = std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSquareOffset, PColor::Black, pieceTextures.at(3), animated);
 							enPassantPiece = p;
 							pieces.push_back(p);
 						}
 						else {
-							pieces.push_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(3), animated));
+							pieces.push_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSquareOffset, PColor::Black, pieceTextures.at(3), animated));
 						}
 						break;
 					}
 					case 'q':
 					{
-						pieces.push_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(4), animated));
+						pieces.push_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSquareOffset, PColor::Black, pieceTextures.at(4), animated));
 						break;
 					}
 					case 'r':
 					{
-						pieces.push_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::Black, pieceTextures.at(5), animated));
+						pieces.push_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSquareOffset, PColor::Black, pieceTextures.at(5), animated));
 						break;
 					}
 					// WHITE
 					case 'B':
 					{
-						pieces.push_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(6), animated));
+						pieces.push_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSquareOffset, PColor::White, pieceTextures.at(6), animated));
 						break;
 					}
 					case 'K':
 					{
-						pieces.push_back(std::make_shared<King>(whiteCanNeverCastleK, whiteCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(7), animated));
+						pieces.push_back(std::make_shared<King>(whiteCanNeverCastleK, whiteCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSquareOffset, PColor::White, pieceTextures.at(7), animated));
 						break;
 					}
 					case 'N':
 					{
-						pieces.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(8), animated));
+						pieces.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSquareOffset, PColor::White, pieceTextures.at(8), animated));
 						break;
 					}
 					case 'P':
 					{
 						if (enPassantTarget.has_value() && enPassantTarget.value() == sf::Vector2i{ x, y + 1 }) {
-							std::shared_ptr<Pawn> p = std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(9), animated);
+							std::shared_ptr<Pawn> p = std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSquareOffset, PColor::White, pieceTextures.at(9), animated);
 							enPassantPiece = p;
 							pieces.push_back(p);
 						}
 						else {
-							pieces.push_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(9), animated));
+							pieces.push_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSquareOffset, PColor::White, pieceTextures.at(9), animated));
 						}
 						break;
 					}
 					case 'Q':
 					{
-						pieces.push_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(10), animated));
+						pieces.push_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSquareOffset, PColor::White, pieceTextures.at(10), animated));
 						break;
 					}
 					case 'R':
 					{
-						pieces.push_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSquareOffset, pieces.size(), PColor::White, pieceTextures.at(11), animated));
+						pieces.push_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSquareOffset, PColor::White, pieceTextures.at(11), animated));
 						break;
 					}
 					}
@@ -304,11 +305,54 @@ public:
 			}
 
 		}
+		for (auto& p : pieces) {
+			if (p->name != "King") {
+				Main::calculatePositions(p, pieces);
+			}
+		}
+		// Check Detection
+		for (auto& p : pieces) {
+			if (p->name == "King") {
+				std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
+				k->inCheck = false;
+			}
+		}
+		check = false;
+		for (auto& p : pieces) {
+			if (p->name == "King" && whiteToPlay == (p->color == PColor::White)) {
+				for (auto& p2 : pieces) {
+					if (p2->color != p->color) {
+						std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
+						k->inCheck = false;
+						for (auto& pos : p2->getAvailableCapturePositions()) {
+							if (pos == k->getLocalPosition()) {
+								k->inCheck = true;
+								if (animated) {
+									checkSprite.setPosition(k->animationTarget.value());
+								}
+								else {
+									checkSprite.setPosition(k->getGlobalPosition());
+								}
+								check = true;
+								goto next;
+							}
+						}
+					}
+				}
+			}
+		}
+		next:
+		for (auto& p : pieces) {
+			if (p->name == "King") {
+				Main::calculatePositions(p, pieces);
+			}
+		}
+		Main::setExtraSprites(pieces, extraTextures);
 		return pieces;
 	}
 
 	// Simplify later
-	static void calculateCastlingPossibilities(std::shared_ptr<King> king, std::vector<std::shared_ptr<Piece>>& pieces) {
+	static void calculateCastlingRights(std::shared_ptr<King>& king, std::vector<std::shared_ptr<Piece>>& pieces) {
 		if (king != nullptr) {
 			king->canCastleK = false;
 			king->canCastleQ = false;
@@ -858,7 +902,6 @@ public:
 						if (getPieceFromPosition(newPos, position) != nullptr) {
 							if (getPieceFromPosition(newPos, position)->color != piece->color) {
 								piece->availableCapturePositions.push_back(newPos);
-
 							}
 							break;
 						}
@@ -1158,7 +1201,7 @@ public:
 
 				if (piece->name == "King") {
 					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
-					calculateCastlingPossibilities(king, position);
+					calculateCastlingRights(king, position);
 					sf::Vector2i castlePos, capturePos;
 					if (king->canCastleK) {
 						if (king->color == PColor::White) {
@@ -1208,8 +1251,11 @@ public:
 		}
 	}
 
-	static int determineEnd(std::vector<std::shared_ptr<Piece>>& position, bool whiteToPlay) {
-		// Neither 0, Stalemate 1, Checkmate 2, Insufficient Material 3
+	static int determineEnd(std::vector<std::shared_ptr<Piece>>& position, bool whiteToPlay, int halfMoves) {
+		// Neither 0, Stalemate 1, Checkmate 2, Insufficient Material 3, 50 Move Rule 4
+		if (halfMoves >= 100) {
+			return 4;
+		}
 		if (std::none_of(position.begin(), position.end(), [whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; })) {
 			for (auto& piece : position) {
 				if (whiteToPlay == (piece->color == PColor::White) && piece->name == "King") {
@@ -1310,7 +1356,7 @@ public:
 	}
 
 	static int postMove(std::shared_ptr<Piece> piece, std::vector<std::shared_ptr<Piece>>& pieceList, std::vector<std::shared_ptr<Piece>>::iterator& it,
-		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, sf::Sprite& checkSprite,
+		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, int& fullMoves, int& halfMoves, sf::Sprite& checkSprite,
 		std::vector<std::reference_wrapper<sf::Texture>> extraTextures, std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed,
 		std::shared_ptr<Piece>& selectedPiece, std::shared_ptr<Piece>& capturePiece, sf::RenderWindow& window, sf::Sprite& board, sf::Sprite& lastMoveStart, sf::Sprite& lastMoveDest) {
 
@@ -1351,26 +1397,32 @@ public:
 				}
 			}
 		}
+		for (auto& p : pieceList) {
+			if (p->name == "King") {
+				std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
+				k->inCheck = false;
+			}
+		}
 		check = false;
 		for (auto& p : pieceList) {
 			if (p->name == "King" && whiteToPlay != (p->color == PColor::White)) {
 				for (auto& p2 : pieceList) {
 					if (p2->color != p->color) {
 						std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
+						k->inCheck = false;
 						for (auto& pos : p2->getAvailableCapturePositions()) {
 							if (pos == k->getLocalPosition()) {
 								k->inCheck = true;
 								checkSprite.setPosition(k->getGlobalPosition());
 								check = true;
+								goto next;
 							}
-						}
-						if (!check) {
-							k->inCheck = false;
 						}
 					}
 				}
 			}
 		}
+		next:
 		if (check) {
 			window.clear();
 			window.draw(board);
@@ -1396,7 +1448,7 @@ public:
 		}
 		Main::setExtraSprites(pieceList, extraTextures);
 		whiteToPlay = !whiteToPlay;
-		std::cout << Main::determineEnd(pieceList, whiteToPlay) << std::endl;
+		std::cout << Main::determineEnd(pieceList, whiteToPlay, halfMoves) << std::endl;
 		moving = false;
 		auto pos = Main::savePosition(pieceList, whiteToPlay);
 		int count = 1;
@@ -1416,7 +1468,7 @@ public:
 	}
 
 	static int postMove(std::shared_ptr<Piece> piece, std::vector<std::shared_ptr<Piece>>& pieceList,
-		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, sf::Sprite& checkSprite,
+		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, int& fullMoves, int& halfMoves, sf::Sprite& checkSprite,
 		std::vector<std::reference_wrapper<sf::Texture>> extraTextures, std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed,
 		std::shared_ptr<Piece>& selectedPiece, std::shared_ptr<Piece>& capturePiece, sf::RenderWindow& window, sf::Sprite& board, sf::Sprite& lastMoveStart, sf::Sprite& lastMoveDest) {
 
@@ -1453,6 +1505,12 @@ public:
 				}
 			}
 		}
+		for (auto& p : pieceList) {
+			if (p->name == "King") {
+				std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
+				k->inCheck = false;
+			}
+		}
 		check = false;
 		for (auto& p : pieceList) {
 			if (p->name == "King" && whiteToPlay != (p->color == PColor::White)) {
@@ -1464,15 +1522,14 @@ public:
 								k->inCheck = true;
 								checkSprite.setPosition(k->getGlobalPosition());
 								check = true;
+								goto next;
 							}
-						}
-						if (!check) {
-							k->inCheck = false;
 						}
 					}
 				}
 			}
 		}
+		next:
 		if (check) {
 			window.clear();
 			window.draw(board);
@@ -1498,7 +1555,7 @@ public:
 		}
 		Main::setExtraSprites(pieceList, extraTextures);
 		whiteToPlay = !whiteToPlay;
-		std::cout << Main::determineEnd(pieceList, whiteToPlay) << std::endl;
+		std::cout << Main::determineEnd(pieceList, whiteToPlay, halfMoves) << std::endl;
 		moving = false;
 		auto pos = Main::savePosition(pieceList, whiteToPlay);
 		int count = 1;
@@ -1517,7 +1574,7 @@ public:
 	}
 
 	static int postCastle(std::shared_ptr<Piece> piece, std::shared_ptr<Piece> piece2, std::vector<std::shared_ptr<Piece>>& pieceList,
-		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, sf::Sprite& checkSprite,
+		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, int& fullMoves, int& halfMoves, sf::Sprite& checkSprite,
 		std::vector<std::reference_wrapper<sf::Texture>> extraTextures, std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed,
 		std::shared_ptr<Piece>& selectedPiece, sf::RenderWindow& window, sf::Sprite& board, sf::Sprite& lastMoveStart, sf::Sprite& lastMoveDest) {
 		piece->setTarget({});
@@ -1550,7 +1607,7 @@ public:
 		}
 		Main::setExtraSprites(pieceList, extraTextures);
 		whiteToPlay = !whiteToPlay;
-		std::cout << Main::determineEnd(pieceList, whiteToPlay) << std::endl;
+		std::cout << Main::determineEnd(pieceList, whiteToPlay, halfMoves) << std::endl;
 		moving = false;
 		auto pos = Main::savePosition(pieceList, whiteToPlay);
 		int count = 1;

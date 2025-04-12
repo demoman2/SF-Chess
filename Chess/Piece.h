@@ -20,13 +20,13 @@ public:
 	sf::Vector2i position;
 	std::optional<sf::Vector2f> targetPos = {}, animationTarget = {};
 	PColor color;
-	size_t index;
 	std::string whiteIdentifier, blackIdentifier;
 	std::vector<sf::Vector2i> availablePositions, availableCapturePositions;
 	std::vector<sf::Sprite> selectionSquares, captureSquares;
-	Piece(int x, int y, float scale, float boardOffset, float boardMultiplier, size_t index, PColor color, sf::Texture& texture, bool animated);
+	Piece(int x, int y, float scale, float boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated);
 	virtual ~Piece();
 	virtual std::shared_ptr<Piece> clone() const = 0;
+	// virtual std::vector calculatePositions() = 0;
 
 
 	void draw(sf::RenderWindow& window) { window.draw(sprite); }
