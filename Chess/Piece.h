@@ -8,6 +8,10 @@ namespace Chess
 		White,
 		Black
 	};
+	enum Variant {
+		Standard,
+		Chess960
+	};
 }
 using namespace Chess;
 class Piece
