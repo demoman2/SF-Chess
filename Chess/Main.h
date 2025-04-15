@@ -17,7 +17,8 @@ using namespace Chess;
 class Main {
 
 public:
-	static sf::Vector2f Interpolate(const sf::Vector2f& pointA, const sf::Vector2f& pointB, float factor) {
+	
+	static sf::Vector2f Interpolate(const sf::Vector2f pointA, const sf::Vector2f pointB, float factor) {
 		factor = std::clamp(factor, 0.0f, 1.0f);
 		if (std::fmax(std::abs((pointB - pointA).x), std::abs((pointB - pointA).y)) < 1.0f) {
 			return pointB;
@@ -25,7 +26,7 @@ public:
 		return pointA + (pointB - pointA) * factor;
 	}
 
-	static sf::Vector2f Interpolate(const sf::Vector2f& pointA, const sf::Vector2f& pointB, float factor, float threshold) {
+	static sf::Vector2f Interpolate(const sf::Vector2f pointA, const sf::Vector2f pointB, float factor, float threshold) {
 		factor = std::clamp(factor, 0.0f, 1.0f);
 		if (std::fmax(std::abs((pointB - pointA).x), std::abs((pointB - pointA).y)) < threshold) {
 			return pointB;
@@ -1496,7 +1497,7 @@ public:
 							}
 							for (auto& v : newV) {
 								// Rook
-								if (v->getLocalPosition() == sf::Vector2i{wKRook, 1}) {
+								if (v->getLocalPosition() == sf::Vector2i{ wKRook, 1 }) {
 									v->setLocalPosition(convertChessNotationtoPosition("f1"));
 								}
 								// King
@@ -2011,5 +2012,13 @@ public:
 		allPositionsPlayed.push_back(pos);
 		selectedPiece.reset();
 		return 0;
+	}
+
+	static void block_until_gained_focus(sf::Window& window) {
+		while (const std::optional event = window.waitEvent()) {
+			if (event->is<sf::Event::FocusGained>()) {
+				return;
+			}
+		}
 	}
 };
