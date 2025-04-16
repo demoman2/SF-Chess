@@ -4,10 +4,11 @@ using namespace Chess;
 int main()
 {
 	srand(time(0));
-	// Add clock cursor
+	sf::Image hourglassImage;
+	hourglassImage.loadFromFile("assets/other/hourglass.png");
 	const auto handCursor = sf::Cursor::createFromSystem(sf::Cursor::Type::Hand).value();
 	const auto arrowCursor = sf::Cursor::createFromSystem(sf::Cursor::Type::Arrow).value();
-	const auto blockedCursor = sf::Cursor::createFromSystem(sf::Cursor::Type::NotAllowed).value();
+	const auto hourGlassCursor = sf::Cursor::createFromPixels(hourglassImage.getPixelsPtr(), hourglassImage.getSize(), sf::Vector2u{}).value();
 	sf::VideoMode desktopMode = sf::VideoMode::getDesktopMode();
 	sf::RenderWindow window(desktopMode, "SF Chess", sf::Style::None);
 	float windowSizeX = window.getSize().x;
@@ -16,10 +17,30 @@ int main()
 	window.setFramerateLimit(60);
 
 	// Icons
-	sf::Image icon;
-	icon.loadFromFile("assets/icon/centaur.png");
+	sf::Image selectedIcon;
+	sf::Image unicornWhiteIcon, unicornBlackIcon, zebraWhiteIcon, zebraBlackIcon, centaurWhiteIcon, centaurBlackIcon, checkersWhite, checkersBlack;
+	unicornBlackIcon.loadFromFile("assets/icon/1.png");
+	unicornWhiteIcon.loadFromFile("assets/icon/2.png");
+	zebraWhiteIcon.loadFromFile("assets/icon/3.png");
+	zebraBlackIcon.loadFromFile("assets/icon/4.png");
+	centaurWhiteIcon.loadFromFile("assets/icon/5.png");
+	centaurBlackIcon.loadFromFile("assets/icon/6.png");
+	checkersWhite.loadFromFile("assets/icon/checkers_white.png");
+	checkersBlack.loadFromFile("assets/icon/checkers_black.png");
+	std::array<sf::Image, 6> iconTextures{unicornBlackIcon, unicornWhiteIcon, zebraWhiteIcon, zebraBlackIcon, centaurWhiteIcon, centaurBlackIcon };
+	if (std::rand() % 50 == 0) {
+		if (std::rand() % 2 == 0) {
+			selectedIcon = checkersWhite;
+		}
+		else {
+			selectedIcon = checkersBlack;
+		}
+	}
+	else {
+		selectedIcon = iconTextures.at(std::rand() % 6);
+	}
 
-	// Chess Boards
+	// Chess Boards  
 	int boardSize = 1024;
 	sf::Image boardSpriteSheet;
 	boardSpriteSheet.loadFromFile("assets/board/board_matrix.jpg");
@@ -58,7 +79,7 @@ int main()
 	whiteBishopT, whiteKingT, whiteKnightT, whitePawnT, whiteQueenT, whiteRookT };
 
 	// Extras
-	sf::Color promotionSquareColor{ 255, 255, 255 }, promotionSquareSelectedColor{ 255, 95, 0 };
+	sf::Color promotionSquareColor{ 255, 255, 255 }, promotionSquareSelectedColor{ 0, 255, 165 };
 	sf::Texture selectionTexture, captureTexture, checkTexture, lastMoveTexture, selectionHoverTexture, selectedPieceTexture, promoteBackgroundTexture, promoteBackgroundSelectionTexture;
 	selectionTexture.loadFromFile("assets/piece/move_gradient.png");
 	captureTexture.loadFromFile("assets/piece/capture_gradient.png");
@@ -117,8 +138,8 @@ int main()
 	sf::Sound checkSound(checkBuffer);
 	sf::Sound gameEndSound(gameEndBuffer);
 	sf::Sound explosionSound(explosionBuffer);
-	moveSound.setVolume(100);
-	captureSound.setVolume(100);
+	moveSound.setVolume(15);
+	captureSound.setVolume(25);
 	checkSound.setVolume(100);
 	gameEndSound.setVolume(100);
 	explosionSound.setVolume(100);
@@ -128,7 +149,7 @@ int main()
 	std::vector<std::shared_ptr<Piece>> pieceList = Main::generatePositionFromFENID("rnbqkbnr/ppppppp1/8/8/8/8/PPPPPPpP/RNBQKB1R b KQkq - 0 1",
 		pieceTextures, pieceScale, boardOffset, boardMultiplier, whiteToPlay, halfMoves, fullMoves, enPassantPiece, checkSprite, check, extraTextures, true,
 		standardPosition, wKRook, wQRook, bKRook, bQRook);
-	window.setIcon(icon.getSize(), icon.getPixelsPtr());
+	window.setIcon(selectedIcon.getSize(), selectedIcon.getPixelsPtr());
 	// ==== MAIN ====
 	std::cout << std::boolalpha;
 	while (window.isOpen())
@@ -198,8 +219,6 @@ int main()
 			if (selectedPiece != nullptr) {
 				for (auto& sprite : selectedPiece->selectionSquares) {
 					if (sprite.getGlobalBounds().contains((sf::Vector2f)mousePos)) {
-						lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
-						lastMoveDest.setPosition(sprite.getPosition());
 						if (check) { check = false; }
 						// En Passant
 						if (enPassantPiece != nullptr) {
@@ -208,45 +227,76 @@ int main()
 						}
 						if (selectedPiece->name == "Pawn") {
 							if (selectedPiece->color == PColor::White) {
-								if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).y == selectedPiece->getLocalPosition().y + 2) {
+								if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).y == 8) {
+									promotePiece = selectedPiece;
+									promotePiece->setTarget(sprite.getPosition());
+								}
+								else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).y == selectedPiece->getLocalPosition().y + 2) {
 									std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(selectedPiece);
 									pawn->enPassantTarget = true;
 									enPassantPiece = pawn;
 								}
 							}
 							else {
-								if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).y == selectedPiece->getLocalPosition().y - 2) {
+								if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).y == 1) {
+									promotePiece = selectedPiece;
+									promotePiece->setTarget(sprite.getPosition());
+								}
+								else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).y == selectedPiece->getLocalPosition().y - 2) {
 									std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(selectedPiece);
 									pawn->enPassantTarget = true;
 									enPassantPiece = pawn;
 								}
 							}
 						}
-						selectedPiece->setGlobalPosition(sprite.getPosition());
-						Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
-							extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
+						if (promotePiece == nullptr) {
+							moveSound.play();
+							lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
+							lastMoveDest.setPosition(sprite.getPosition());
+							selectedPiece->setGlobalPosition(sprite.getPosition());
+							Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
+								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
+						}
 					}
 				}
 			}
 			if (selectedPiece != nullptr) {
 				for (auto& sprite : selectedPiece->captureSquares) {
 					if (sprite.getGlobalBounds().contains((sf::Vector2f)mousePos)) {
-						lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
-						lastMoveDest.setPosition(sprite.getPosition());
 						if (check) { check = false; }
 						if (enPassantPiece != nullptr) {
 							enPassantPiece->enPassantTarget = false;
 							enPassantPiece.reset();
 						}
+						if (selectedPiece->name == "Pawn") {
+							if (selectedPiece->color == PColor::White) {
+								if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).y == 8) {
+									promotePiece = selectedPiece;
+									promotePiece->setTarget(sprite.getPosition());
+								}
+							}
+							else {
+								if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).y == 1) {
+									promotePiece = selectedPiece;
+									promotePiece->setTarget(sprite.getPosition());
+								}
+							}
+						}
+						
 						for (auto& piece : pieceList) {
 							if (piece->getGlobalPosition() == sprite.getPosition()) {
 								capturePiece = piece;
 								piece->setGhostSpriteVisible(true, false);
 							}
 						};
-						selectedPiece->setGlobalPosition(sprite.getPosition());
-						Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
-							extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
+						if (promotePiece == nullptr) {
+							captureSound.play();
+							lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
+							lastMoveDest.setPosition(sprite.getPosition());
+							selectedPiece->setGlobalPosition(sprite.getPosition());
+							Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
+								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
+						}
 					}
 				}
 			}
@@ -255,6 +305,7 @@ int main()
 					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(selectedPiece);
 					for (auto& sprite : king->castleSquares) {
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+							captureSound.play();
 							lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
 							lastMoveDest.setPosition(sprite.getPosition());
 							if (check) { check = false; }
@@ -284,6 +335,7 @@ int main()
 
 					for (auto& sprite : king->castleCaptureSquares) {
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+							moveSound.play();
 							lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
 							lastMoveDest.setPosition(sprite.getPosition());
 							if (check) { check = false; }
@@ -336,6 +388,7 @@ int main()
 				if (selectedPiece->name == "Pawn") {
 					std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(selectedPiece);
 					for (auto& sprite : pawn->enPassantSquares) {
+						captureSound.play();
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 							lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
 							lastMoveDest.setPosition(sprite.getPosition());
@@ -535,10 +588,12 @@ int main()
 				std::shared_ptr<Piece> piece = *it2;
 				if (piece != nullptr && piece->targetPos.has_value()) {
 					if (piece->getGlobalPosition() == piece->targetPos.value()) {
+						calculatingPos = true;
 						if (Main::postMove(piece, pieceList, it2, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures,
 							allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition) == 1) {
 							break;
 						}
+						calculatingPos = false;
 					}
 					else {
 						pieceMoving = true;
@@ -573,7 +628,7 @@ int main()
 		window.draw(lastMoveDest);
 
 		// Selection Sprites
-		if (!pieceMoving && selectedPiece != nullptr) {
+		if (!pieceMoving && selectedPiece != nullptr && !promoting) {
 			for (auto& sprite : selectedPiece->selectionSquares) {
 				if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 					mouseSelecting = true;
@@ -664,6 +719,7 @@ int main()
 								}
 							}
 							if (promotePiece == nullptr) {
+								moveSound.play();
 								lastMoveStart.setPosition(selectedPiece->getGlobalPosition());
 								lastMoveDest.setPosition(sprite.getPosition());
 							}
@@ -698,6 +754,7 @@ int main()
 								}
 							}
 							if (promotePiece == nullptr) {
+								captureSound.play();
 								lastMoveStart.setPosition(selectedPiece->getGlobalPosition());
 								lastMoveDest.setPosition(sprite.getPosition());
 							}
@@ -719,6 +776,7 @@ int main()
 					for (auto& sprite : king->castleSquares) {
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 							if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+								moveSound.play();
 								lastMoveStart.setPosition(selectedPiece->getGlobalPosition());
 								lastMoveDest.setPosition(sprite.getPosition());
 								if (check) { check = false; }
@@ -754,6 +812,7 @@ int main()
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 							if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 								if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+									moveSound.play();
 									lastMoveStart.setPosition(selectedPiece->getGlobalPosition());
 									lastMoveDest.setPosition(sprite.getPosition());
 									if (check) { check = false; }
@@ -815,6 +874,7 @@ int main()
 					for (auto& sprite : pawn->enPassantSquares) {
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 							if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+								moveSound.play();
 								lastMoveStart.setPosition(selectedPiece->getGlobalPosition());
 								lastMoveDest.setPosition(sprite.getPosition());
 								if (check) { check = false; }
@@ -893,6 +953,12 @@ int main()
 					mouseSelecting = true;
 					promoteSprites.at(i).setScale(Main::Interpolate(promoteSprites.at(i).getScale(), initialPromoteScales.at(i) + sf::Vector2f{0.035f, 0.035f}, 0.5f, 0.01f));
 					if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+						if (capturePiece != nullptr) {
+							captureSound.play();
+						}
+						else {
+							moveSound.play();
+						}
 						sf::Vector2f globalPos = Main::getGlobalPosition(promotePiece->getLocalPosition(), boardOffset, boardMultiplier);
 						sf::Vector2i localPos = Main::getLocalPosition(promotePiece->getGlobalPosition(), boardOffset, boardMultiplier);
 						lastMoveStart.setPosition(globalPos);
@@ -976,10 +1042,15 @@ int main()
 			}
 			promotePiece->setTarget(Main::getGlobalPosition(promotePiece->getLocalPosition(), boardOffset, boardMultiplier));
 		}
-		if (mouseSelecting) {
-			window.setMouseCursor(handCursor);
+		if (animationFinished) {
+			if (mouseSelecting) {
+				window.setMouseCursor(handCursor);
+			}
+			else { window.setMouseCursor(arrowCursor); }
 		}
-		else { window.setMouseCursor(arrowCursor); }
+		else {
+			window.setMouseCursor(hourGlassCursor);
+		}
 		window.display();
 	}
 }

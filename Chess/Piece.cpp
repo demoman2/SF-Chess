@@ -56,6 +56,8 @@ void Piece::setLocalPosition(sf::Vector2i pos)
 
 void Piece::setGlobalPosition(sf::Vector2f pos)
 {
-	ghostSprite.setPosition(Main::getGlobalPosition(getLocalPosition(), boardOffset, boardMultiplier));
-	sprite.setPosition(pos);
+	if (this != nullptr) {
+		ghostSprite.setPosition(Main::getGlobalPosition(getLocalPosition(), boardOffset, boardMultiplier));
+		sprite.setPosition(pos);
+	}
 }
