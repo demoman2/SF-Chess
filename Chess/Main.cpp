@@ -1,6 +1,7 @@
 #include "Main.h"
 
 using namespace Chess;
+
 int main()
 {
 	srand(time(0));
@@ -27,7 +28,7 @@ int main()
 	centaurBlackIcon.loadFromFile("assets/icon/6.png");
 	checkersWhite.loadFromFile("assets/icon/checkers_white.png");
 	checkersBlack.loadFromFile("assets/icon/checkers_black.png");
-	std::array<sf::Image, 6> iconTextures{unicornBlackIcon, unicornWhiteIcon, zebraWhiteIcon, zebraBlackIcon, centaurWhiteIcon, centaurBlackIcon };
+	std::array<sf::Image, 6> iconTextures{ unicornBlackIcon, unicornWhiteIcon, zebraWhiteIcon, zebraBlackIcon, centaurWhiteIcon, centaurBlackIcon };
 	if (std::rand() % 50 == 0) {
 		if (std::rand() % 2 == 0) {
 			selectedIcon = checkersWhite;
@@ -62,7 +63,7 @@ int main()
 
 	// Pieces
 	int halfMoves = 0, fullMoves = 0;
-	bool whiteToPlay = true, calculatingPos = false, unpromoting = false;
+	bool whiteToPlay = true, playerSideWhite = true, calculatingPos = false, unpromoting = false;
 	float pieceSize = 320;
 	float pieceScale = (std::min(ScaleX, ScaleY) * 128.0f) / (float)pieceSize;
 	float boardOffset = (windowSizeX / 2.0f) - ((boardTexture.getSize().x * board.getScale().x) / 2);
@@ -75,7 +76,7 @@ int main()
 	sf::Image pieceStyle = pieceSpriteSheetCburnett;
 	sf::Texture blackBishopT, blackKingT, blackKnightT, blackPawnT, blackQueenT, blackRookT;
 	sf::Texture whiteBishopT, whiteKingT, whiteKnightT, whitePawnT, whiteQueenT, whiteRookT;
-	std::vector<std::reference_wrapper<sf::Texture>> pieceTextures{ blackBishopT, blackKingT, blackKnightT, blackPawnT, blackQueenT, blackRookT,
+	textureVector pieceTextures{ blackBishopT, blackKingT, blackKnightT, blackPawnT, blackQueenT, blackRookT,
 	whiteBishopT, whiteKingT, whiteKnightT, whitePawnT, whiteQueenT, whiteRookT };
 
 	// Extras
@@ -98,18 +99,19 @@ int main()
 	promoteBackgroundTexture.setSmooth(true);
 	std::vector <sf::Vector2f> initialPromoteScales{ {pieceScale * 0.82f, pieceScale * 0.82f}, {pieceScale * 0.775f, pieceScale * 0.775f}, {pieceScale * 0.8f, pieceScale * 0.8f}, {pieceScale * 0.785f, pieceScale * 0.785f} };
 	// Selection, Capture, Check, Last Move, Selection Hover
-	std::vector<std::reference_wrapper<sf::Texture>> extraTextures{ selectionTexture, captureTexture, checkTexture, lastMoveTexture, selectionHoverTexture };
+	textureVector extraTextures{ selectionTexture, captureTexture, checkTexture, lastMoveTexture, selectionHoverTexture };
 
 	// Vars
 	Variant variant = Standard;
 	float xAccl = 1.0f, yAccl = 1.0f;
-	bool mouseSelecting = false, mouseClicked = false, pieceMoving = false, check = false, promoting = false, animationFinished = true, pieceSelectionLock = false, standardPosition = false;
+	bool mouseSelecting = false, mouseClicked = false, pieceMoving = false, check = false, promoting = false, animationFinished = true,
+		pieceSelectionLock = false, standardPosition = false, StockfishEnabled = true;
 	int wKRook = -1, wQRook = -1, bKRook = -1, bQRook = -1;
 	std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed;
 	std::shared_ptr<Piece> selectedPiece = nullptr, capturePiece = nullptr, castleKing = nullptr, castleRook = nullptr, promotePiece = nullptr;
 	std::shared_ptr<Pawn> enPassantPiece = nullptr;
 	std::vector<sf::Sprite> promoteBackgrounds, promoteSprites;
-	std::vector<std::shared_ptr<Piece>>::iterator it;
+	pieceVector::iterator it;
 	sf::Vector2f selectedPos{ 0.0f, 0.0f };
 	sf::Vector2i mousePos{ sf::Mouse::getPosition() };
 	sf::Sprite selectedPieceBackground{ selectedPieceTexture };
@@ -138,17 +140,27 @@ int main()
 	sf::Sound checkSound(checkBuffer);
 	sf::Sound gameEndSound(gameEndBuffer);
 	sf::Sound explosionSound(explosionBuffer);
-	moveSound.setVolume(15);
-	captureSound.setVolume(25);
+	moveSound.setVolume(10);
+	captureSound.setVolume(15);
 	checkSound.setVolume(100);
 	gameEndSound.setVolume(100);
 	explosionSound.setVolume(100);
 
 	// Setup
+	std::string moves = "", currentMove = "";
+	std::string startingFEN = "2r1k3/2p3P1/8/8/8/8/2P3P1/2R1K1R1 w KQq - 0 1";
 	Main::loadPieceSet(pieceStyle, pieceTextures, pieceSize);
-	std::vector<std::shared_ptr<Piece>> pieceList = Main::generatePositionFromFENID("rnbqkbnr/ppppppp1/8/8/8/8/PPPPPPpP/RNBQKB1R b KQkq - 0 1",
+	pieceVector pieceList = Main::generatePositionFromFENID(startingFEN,
 		pieceTextures, pieceScale, boardOffset, boardMultiplier, whiteToPlay, halfMoves, fullMoves, enPassantPiece, checkSprite, check, extraTextures, true,
 		standardPosition, wKRook, wQRook, bKRook, bQRook);
+
+	// Stockfish
+	bp::ipstream is;
+	bp::opstream os;
+
+	bp::child c("assets/other/fairy-stockfish-largeboard_x86-64.exe", bp::std_in < os, bp::std_out > is);
+	Main::startStockfish(startingFEN, c, os, is);
+
 	window.setIcon(selectedIcon.getSize(), selectedIcon.getPixelsPtr());
 	// ==== MAIN ====
 	std::cout << std::boolalpha;
@@ -169,6 +181,11 @@ int main()
 				if (mouseButtonPressed->button == sf::Mouse::Button::Left)
 				{
 					mouseClicked = true;
+					if (StockfishEnabled) {
+						if (whiteToPlay != playerSideWhite) {
+							break;
+						}
+					}
 					std::shared_ptr<Piece> p = Main::getPieceFromPosition(sf::Vector2i(selectedPos), pieceList);
 					if (p != nullptr && promotePiece == nullptr && !pieceMoving && animationFinished) {
 						// Side to Play == Color
@@ -189,6 +206,8 @@ int main()
 			else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>())
 			{
 				if (keyPressed->scancode == sf::Keyboard::Scancode::N) {
+					currentMove = "";
+					moves = "";
 					wKRook = -1; wQRook = -1; bKRook = -1; bQRook = -1;
 					check = false;
 					lastMoveStart.setPosition({ -1000, -1000 });
@@ -197,12 +216,14 @@ int main()
 					capturePiece.reset();
 					enPassantPiece.reset();
 					pieceList.clear();
-					pieceList = Main::generatePositionFromFENID("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1",
+					startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1";
+					pieceList = Main::generatePositionFromFENID(startingFEN,
 						pieceTextures, pieceScale, boardOffset, boardMultiplier, whiteToPlay, halfMoves, fullMoves, enPassantPiece, checkSprite, check, extraTextures, true,
 						standardPosition, wKRook, wQRook, bKRook, bQRook);
+					Main::startStockfish(startingFEN, c, os, is);
 				}
 				else if (keyPressed->scancode == sf::Keyboard::Scancode::D) {
-					// Debug
+
 				}
 				else if (keyPressed->scancode == sf::Keyboard::Scancode::Q) {
 					window.close();
@@ -213,6 +234,14 @@ int main()
 			}
 		}
 
+		if (StockfishEnabled && whiteToPlay != playerSideWhite) {
+			if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& p) { return p != nullptr && p->targetPos.has_value(); })) {
+				std::string t = Main::getBestMove(startingFEN, moves, c, os, is);
+				moves += " ";
+				moves += t;
+				Main::playMove(t, pieceList, capturePiece, castleKing, castleRook, promotePiece, enPassantPiece, lastMoveStart, lastMoveDest, moveSound, captureSound, boardOffset, boardMultiplier, check, wKRook, wQRook, bKRook, bQRook, pieceScale, pieceTextures);
+			}
+		}
 
 		if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && pieceSelectionLock) {
 			pieceSelectionLock = false;
@@ -250,6 +279,10 @@ int main()
 							}
 						}
 						if (promotePiece == nullptr) {
+							currentMove = "";
+							currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+							currentMove += Main::convertPositiontoNotation(Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier));
+							moves += " " + currentMove;
 							moveSound.play();
 							lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
 							lastMoveDest.setPosition(sprite.getPosition());
@@ -282,7 +315,7 @@ int main()
 								}
 							}
 						}
-						
+
 						for (auto& piece : pieceList) {
 							if (piece->getGlobalPosition() == sprite.getPosition()) {
 								capturePiece = piece;
@@ -290,6 +323,10 @@ int main()
 							}
 						};
 						if (promotePiece == nullptr) {
+							currentMove = "";
+							currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+							currentMove += Main::convertPositiontoNotation(Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier));
+							moves += " " + currentMove;
 							captureSound.play();
 							lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
 							lastMoveDest.setPosition(sprite.getPosition());
@@ -305,7 +342,12 @@ int main()
 					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(selectedPiece);
 					for (auto& sprite : king->castleSquares) {
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
-							captureSound.play();
+							currentMove = "";
+							currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+							currentMove += Main::convertPositiontoNotation(Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier));
+							moves += " ";
+							moves += currentMove;
+							moveSound.play();
 							lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
 							lastMoveDest.setPosition(sprite.getPosition());
 							if (check) { check = false; }
@@ -348,6 +390,11 @@ int main()
 								if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == wKRook) {
 									std::shared_ptr<Piece> rook = Main::getPieceFromPosition({ wKRook, king->getLocalPosition().y }, pieceList);
 									if (rook != nullptr) {
+										currentMove = "";
+										currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+										currentMove += Main::convertPositiontoNotation({ 7, king->getLocalPosition().y });
+										moves += " ";
+										moves += currentMove;
 										rook->setGlobalPosition(Main::getGlobalPosition({ 6, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										king->setGlobalPosition(Main::getGlobalPosition({ 7, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
@@ -356,6 +403,11 @@ int main()
 								else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == wQRook) {
 									std::shared_ptr<Piece> rook = Main::getPieceFromPosition({ wQRook, king->getLocalPosition().y }, pieceList);
 									if (rook != nullptr) {
+										currentMove = "";
+										currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+										currentMove += Main::convertPositiontoNotation({ 3, king->getLocalPosition().y });
+										moves += " ";
+										moves += currentMove;
 										rook->setGlobalPosition(Main::getGlobalPosition({ 4, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										king->setGlobalPosition(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
@@ -366,6 +418,11 @@ int main()
 								if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == bKRook) {
 									std::shared_ptr<Piece> rook = Main::getPieceFromPosition({ bKRook, king->getLocalPosition().y }, pieceList);
 									if (rook != nullptr) {
+										currentMove = "";
+										currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+										currentMove += Main::convertPositiontoNotation({ 7, king->getLocalPosition().y });
+										moves += " ";
+										moves += currentMove;
 										rook->setGlobalPosition(Main::getGlobalPosition({ 6, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										king->setGlobalPosition(Main::getGlobalPosition({ 7, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
@@ -374,6 +431,11 @@ int main()
 								else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == bQRook) {
 									std::shared_ptr<Piece> rook = Main::getPieceFromPosition({ bQRook, king->getLocalPosition().y }, pieceList);
 									if (rook != nullptr) {
+										currentMove = "";
+										currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+										currentMove += Main::convertPositiontoNotation({ 3, king->getLocalPosition().y });
+										moves += " ";
+										moves += currentMove;
 										rook->setGlobalPosition(Main::getGlobalPosition({ 4, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										king->setGlobalPosition(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
@@ -388,8 +450,8 @@ int main()
 				if (selectedPiece->name == "Pawn") {
 					std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(selectedPiece);
 					for (auto& sprite : pawn->enPassantSquares) {
-						captureSound.play();
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+							captureSound.play();
 							lastMoveStart.setPosition(Main::getGlobalPosition(selectedPiece->getLocalPosition(), boardOffset, boardMultiplier));
 							lastMoveDest.setPosition(sprite.getPosition());
 							if (check) { check = false; }
@@ -409,6 +471,10 @@ int main()
 									}
 								}
 							};
+							currentMove = "";
+							currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+							currentMove += Main::convertPositiontoNotation(Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier));
+							moves += " " + currentMove;
 							selectedPiece->setGlobalPosition(sprite.getPosition());
 							Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
 						}
@@ -453,123 +519,123 @@ int main()
 				}
 			}
 			else {
-			if (promotePiece->targetPos.has_value()) {
-				if (promotePiece->getGlobalPosition() == promotePiece->targetPos.value()) {
-					promoting = true;
-					int x = Main::getLocalPosition(promotePiece->getGlobalPosition(), boardOffset, boardMultiplier).x;
-					if (promotePiece->isWhite()) {
-						for (int y = 8; y >= 5; y--) {
-							sf::Sprite bg{ promoteBackgroundTexture };
-							bg.setOrigin(bg.getGlobalBounds().getCenter());
-							bg.setScale(sf::Vector2f{ (pieceScale * 320.0f) / 128.0f, (pieceScale * 320.0f) / 128.0f });
-							bg.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-							bg.setColor(promotionSquareColor);
-							promoteBackgrounds.push_back(bg);
-							// Bishop, King, Knight, Pawn, Queen, Rook
-							// Black --> White
-							switch (y) {
-							case 8:
-							{
-								sf::Sprite piece{ pieceTextures.at(10) };
-								piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-								piece.setOrigin(piece.getLocalBounds().getCenter());
-								piece.setScale(sf::Vector2f(pieceScale * 0.82f, pieceScale * 0.82f));
-								promoteSprites.push_back(piece);
-								break;
+				if (promotePiece->targetPos.has_value()) {
+					if (promotePiece->getGlobalPosition() == promotePiece->targetPos.value()) {
+						promoting = true;
+						int x = Main::getLocalPosition(promotePiece->getGlobalPosition(), boardOffset, boardMultiplier).x;
+						if (promotePiece->isWhite()) {
+							for (int y = 8; y >= 5; y--) {
+								sf::Sprite bg{ promoteBackgroundTexture };
+								bg.setOrigin(bg.getGlobalBounds().getCenter());
+								bg.setScale(sf::Vector2f{ (pieceScale * 320.0f) / 128.0f, (pieceScale * 320.0f) / 128.0f });
+								bg.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+								bg.setColor(promotionSquareColor);
+								promoteBackgrounds.push_back(bg);
+								// Bishop, King, Knight, Pawn, Queen, Rook
+								// Black --> White
+								switch (y) {
+								case 8:
+								{
+									sf::Sprite piece{ pieceTextures.at(10) };
+									piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+									piece.setOrigin(piece.getLocalBounds().getCenter());
+									piece.setScale(sf::Vector2f(pieceScale * 0.82f, pieceScale * 0.82f));
+									promoteSprites.push_back(piece);
+									break;
+								}
+								case 7:
+								{
+									sf::Sprite piece{ pieceTextures.at(8) };
+									piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+									piece.setOrigin(piece.getLocalBounds().getCenter());
+									piece.setScale(sf::Vector2f(pieceScale * 0.775f, pieceScale * 0.775f));
+									promoteSprites.push_back(piece);
+									break;
+								}
+								case 6:
+								{
+									sf::Sprite piece{ pieceTextures.at(11) };
+									piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+									piece.setOrigin(piece.getLocalBounds().getCenter());
+									piece.setScale(sf::Vector2f(pieceScale * 0.775f, pieceScale * 0.775f));
+									promoteSprites.push_back(piece);
+									break;
+								}
+								case 5:
+								{
+									sf::Sprite piece{ pieceTextures.at(6) };
+									piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+									piece.setOrigin(piece.getLocalBounds().getCenter());
+									piece.setScale(sf::Vector2f(pieceScale * 0.785f, pieceScale * 0.785f));
+									promoteSprites.push_back(piece);
+									break;
+								}
+								}
 							}
-							case 7:
-							{
-								sf::Sprite piece{ pieceTextures.at(8) };
-								piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-								piece.setOrigin(piece.getLocalBounds().getCenter());
-								piece.setScale(sf::Vector2f(pieceScale * 0.775f, pieceScale * 0.775f));
-								promoteSprites.push_back(piece);
-								break;
-							}
-							case 6:
-							{
-								sf::Sprite piece{ pieceTextures.at(11) };
-								piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-								piece.setOrigin(piece.getLocalBounds().getCenter());
-								piece.setScale(sf::Vector2f(pieceScale * 0.775f, pieceScale * 0.775f));
-								promoteSprites.push_back(piece);
-								break;
-							}
-							case 5:
-							{
-								sf::Sprite piece{ pieceTextures.at(6) };
-								piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-								piece.setOrigin(piece.getLocalBounds().getCenter());
-								piece.setScale(sf::Vector2f(pieceScale * 0.785f, pieceScale * 0.785f));
-								promoteSprites.push_back(piece);
-								break;
-							}
-							}
+							promotePiece->setTarget({});
 						}
-						promotePiece->setTarget({});
+						else {
+							for (int y = 1; y <= 4; y++) {
+								sf::Sprite bg{ promoteBackgroundTexture };
+								bg.setOrigin(bg.getGlobalBounds().getCenter());
+								bg.setScale(sf::Vector2f{ (pieceScale * 320.0f) / 128.0f, (pieceScale * 320.0f) / 128.0f });
+								bg.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+								bg.setColor(promotionSquareColor);
+								promoteBackgrounds.push_back(bg);
+								// Bishop, King, Knight, Pawn, Queen, Rook
+								// Black --> White
+								switch (y) {
+								case 1:
+								{
+									sf::Sprite piece{ pieceTextures.at(4) };
+									piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+									piece.setOrigin(piece.getLocalBounds().getCenter());
+									piece.setScale(sf::Vector2f(pieceScale * 0.82f, pieceScale * 0.82f));
+									promoteSprites.push_back(piece);
+									break;
+								}
+								case 2:
+								{
+									sf::Sprite piece{ pieceTextures.at(2) };
+									piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+									piece.setOrigin(piece.getLocalBounds().getCenter());
+									piece.setScale(sf::Vector2f(pieceScale * 0.775f, pieceScale * 0.775f));
+									promoteSprites.push_back(piece);
+									break;
+								}
+								case 3:
+								{
+									sf::Sprite piece{ pieceTextures.at(5) };
+									piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+									piece.setOrigin(piece.getLocalBounds().getCenter());
+									piece.setScale(sf::Vector2f(pieceScale * 0.775f, pieceScale * 0.775f));
+									promoteSprites.push_back(piece);
+									break;
+								}
+								case 4:
+								{
+									sf::Sprite piece{ pieceTextures.at(0) };
+									piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+									piece.setOrigin(piece.getLocalBounds().getCenter());
+									piece.setScale(sf::Vector2f(pieceScale * 0.785f, pieceScale * 0.785f));
+									promoteSprites.push_back(piece);
+									break;
+								}
+								}
+							}
+							promotePiece->setTarget({});
+						}
 					}
 					else {
-						for (int y = 1; y <= 4; y++) {
-							sf::Sprite bg{ promoteBackgroundTexture };
-							bg.setOrigin(bg.getGlobalBounds().getCenter());
-							bg.setScale(sf::Vector2f{ (pieceScale * 320.0f) / 128.0f, (pieceScale * 320.0f) / 128.0f });
-							bg.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-							bg.setColor(promotionSquareColor);
-							promoteBackgrounds.push_back(bg);
-							// Bishop, King, Knight, Pawn, Queen, Rook
-							// Black --> White
-							switch (y) {
-							case 1:
-							{
-								sf::Sprite piece{ pieceTextures.at(4) };
-								piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-								piece.setOrigin(piece.getLocalBounds().getCenter());
-								piece.setScale(sf::Vector2f(pieceScale * 0.82f, pieceScale * 0.82f));
-								promoteSprites.push_back(piece);
-								break;
-							}
-							case 2:
-							{
-								sf::Sprite piece{ pieceTextures.at(2) };
-								piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-								piece.setOrigin(piece.getLocalBounds().getCenter());
-								piece.setScale(sf::Vector2f(pieceScale * 0.775f, pieceScale * 0.775f));
-								promoteSprites.push_back(piece);
-								break;
-							}
-							case 3:
-							{
-								sf::Sprite piece{ pieceTextures.at(5) };
-								piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-								piece.setOrigin(piece.getLocalBounds().getCenter());
-								piece.setScale(sf::Vector2f(pieceScale * 0.775f, pieceScale * 0.775f));
-								promoteSprites.push_back(piece);
-								break;
-							}
-							case 4:
-							{
-								sf::Sprite piece{ pieceTextures.at(0) };
-								piece.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
-								piece.setOrigin(piece.getLocalBounds().getCenter());
-								piece.setScale(sf::Vector2f(pieceScale * 0.785f, pieceScale * 0.785f));
-								promoteSprites.push_back(piece);
-								break;
-							}
+						if (capturePiece != nullptr) {
+							if (std::fmax(std::abs(promotePiece->getGlobalPosition().x - promotePiece->targetPos.value().x), std::abs(promotePiece->getGlobalPosition().y - promotePiece->targetPos.value().y)) < 5.0f) {
+								capturePiece->setGhostSpriteVisible(false, false);
 							}
 						}
-						promotePiece->setTarget({});
+						promotePiece->setGlobalPosition(Main::Interpolate(promotePiece->getGlobalPosition(), promotePiece->targetPos.value(), 0.25f));
 					}
-				}
-				else {
-					if (capturePiece != nullptr) {
-						if (std::fmax(std::abs(promotePiece->getGlobalPosition().x - promotePiece->targetPos.value().x), std::abs(promotePiece->getGlobalPosition().y - promotePiece->targetPos.value().y)) < 5.0f) {
-							capturePiece->setGhostSpriteVisible(false, false);
-						}
-					}
-					promotePiece->setGlobalPosition(Main::Interpolate(promotePiece->getGlobalPosition(), promotePiece->targetPos.value(), 0.25f));
 				}
 			}
-		}
 		}
 		else if (castleKing != nullptr && castleRook != nullptr) {
 			if (castleKing->targetPos.value() != castleKing->getGlobalPosition() || castleRook->targetPos.value() != castleRook->getGlobalPosition()) {
@@ -590,9 +656,9 @@ int main()
 					if (piece->getGlobalPosition() == piece->targetPos.value()) {
 						calculatingPos = true;
 						if (Main::postMove(piece, pieceList, it2, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures,
-							allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition) == 1) {
-							break;
+							allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition) == 1) {							break;
 						}
+
 						calculatingPos = false;
 					}
 					else {
@@ -719,6 +785,10 @@ int main()
 								}
 							}
 							if (promotePiece == nullptr) {
+								currentMove = "";
+								currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+								currentMove += Main::convertPositiontoNotation(Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier));
+								moves += " " + currentMove;
 								moveSound.play();
 								lastMoveStart.setPosition(selectedPiece->getGlobalPosition());
 								lastMoveDest.setPosition(sprite.getPosition());
@@ -754,6 +824,11 @@ int main()
 								}
 							}
 							if (promotePiece == nullptr) {
+								currentMove = "";
+								currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+								currentMove += Main::convertPositiontoNotation(Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier));
+								moves += " ";
+								moves += currentMove;
 								captureSound.play();
 								lastMoveStart.setPosition(selectedPiece->getGlobalPosition());
 								lastMoveDest.setPosition(sprite.getPosition());
@@ -776,6 +851,11 @@ int main()
 					for (auto& sprite : king->castleSquares) {
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 							if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+								currentMove = "";
+								currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+								currentMove += Main::convertPositiontoNotation(Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier));
+								moves += " ";
+								moves += currentMove;
 								moveSound.play();
 								lastMoveStart.setPosition(selectedPiece->getGlobalPosition());
 								lastMoveDest.setPosition(sprite.getPosition());
@@ -825,6 +905,11 @@ int main()
 										if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == wKRook) {
 											std::shared_ptr<Piece> rook = Main::getPieceFromPosition({ wKRook, king->getLocalPosition().y }, pieceList);
 											if (rook != nullptr) {
+												currentMove = "";
+												currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+												currentMove += Main::convertPositiontoNotation({ 7, king->getLocalPosition().y });
+												moves += " ";
+												moves += currentMove;
 												rook->setTarget(Main::getGlobalPosition({ 6, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 												king->setTarget(Main::getGlobalPosition({ 7, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 												castleKing = king;
@@ -834,6 +919,11 @@ int main()
 										else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == wQRook) {
 											std::shared_ptr<Piece> rook = Main::getPieceFromPosition({ wQRook, king->getLocalPosition().y }, pieceList);
 											if (rook != nullptr) {
+												currentMove = "";
+												currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+												currentMove += Main::convertPositiontoNotation({ 3, king->getLocalPosition().y });
+												moves += " ";
+												moves += currentMove;
 												rook->setTarget(Main::getGlobalPosition({ 4, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 												king->setTarget(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 												castleKing = king;
@@ -845,6 +935,11 @@ int main()
 										if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == bKRook) {
 											std::shared_ptr<Piece> rook = Main::getPieceFromPosition({ bKRook, king->getLocalPosition().y }, pieceList);
 											if (rook != nullptr) {
+												currentMove = "";
+												currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+												currentMove += Main::convertPositiontoNotation({ 7, king->getLocalPosition().y });
+												moves += " ";
+												moves += currentMove;
 												rook->setTarget(Main::getGlobalPosition({ 6, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 												king->setTarget(Main::getGlobalPosition({ 7, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 												castleKing = king;
@@ -854,6 +949,11 @@ int main()
 										else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == bQRook) {
 											std::shared_ptr<Piece> rook = Main::getPieceFromPosition({ bQRook, king->getLocalPosition().y }, pieceList);
 											if (rook != nullptr) {
+												currentMove = "";
+												currentMove += Main::convertPositiontoNotation(selectedPiece->getLocalPosition());
+												currentMove += Main::convertPositiontoNotation({ 3, king->getLocalPosition().y });
+												moves += " ";
+												moves += currentMove;
 												rook->setTarget(Main::getGlobalPosition({ 4, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 												king->setTarget(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 												castleKing = king;
@@ -874,7 +974,7 @@ int main()
 					for (auto& sprite : pawn->enPassantSquares) {
 						if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 							if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-								moveSound.play();
+								captureSound.play();
 								lastMoveStart.setPosition(selectedPiece->getGlobalPosition());
 								lastMoveDest.setPosition(sprite.getPosition());
 								if (check) { check = false; }
@@ -950,8 +1050,10 @@ int main()
 				if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 					sprite.setTexture(promoteBackgroundSelectionTexture);
 					sprite.setColor(promotionSquareSelectedColor);
+					window.draw(sprite);
 					mouseSelecting = true;
-					promoteSprites.at(i).setScale(Main::Interpolate(promoteSprites.at(i).getScale(), initialPromoteScales.at(i) + sf::Vector2f{0.035f, 0.035f}, 0.5f, 0.01f));
+					promoteSprites.at(i).setScale(Main::Interpolate(promoteSprites.at(i).getScale(), initialPromoteScales.at(i) + sf::Vector2f{ 0.035f, 0.035f }, 0.5f, 0.01f));
+					window.draw(promoteSprites.at(i));
 					if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
 						if (capturePiece != nullptr) {
 							captureSound.play();
@@ -961,6 +1063,7 @@ int main()
 						}
 						sf::Vector2f globalPos = Main::getGlobalPosition(promotePiece->getLocalPosition(), boardOffset, boardMultiplier);
 						sf::Vector2i localPos = Main::getLocalPosition(promotePiece->getGlobalPosition(), boardOffset, boardMultiplier);
+						sf::Vector2i localPos2 = promotePiece->getLocalPosition();
 						lastMoveStart.setPosition(globalPos);
 						lastMoveDest.setPosition(promotePiece->getGlobalPosition());
 						for (int j = 0; j < pieceList.size(); j++) {
@@ -971,14 +1074,6 @@ int main()
 						}
 						PColor color = promotePiece->color;
 						promotePiece.reset();
-						window.clear();
-						window.draw(board);
-						window.draw(lastMoveStart);
-						window.draw(lastMoveDest);
-						for (auto& p : pieceList) {
-							p->draw(window);
-						}
-						window.display();
 						// Bishop, King, Knight, Pawn, Queen, Rook
 						// Black --> White
 						switch (i) {
@@ -986,6 +1081,12 @@ int main()
 						{
 							std::shared_ptr<Queen> queen = std::make_shared<Queen>(localPos.x, localPos.y, pieceScale, boardOffset, boardMultiplier, color, pieceTextures.at(10 + offset), false);
 							pieceList.push_back(queen);
+							currentMove = "";
+							currentMove += Main::convertPositiontoNotation(localPos2);
+							currentMove += Main::convertPositiontoNotation(localPos);
+							currentMove += 'q';
+							moves += " ";
+							moves += currentMove;
 							Main::postMove(queen, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
 								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
 							break;
@@ -994,6 +1095,12 @@ int main()
 						{
 							std::shared_ptr<Knight> knight = std::make_shared<Knight>(localPos.x, localPos.y, pieceScale, boardOffset, boardMultiplier, color, pieceTextures.at(8 + offset), false);
 							pieceList.push_back(knight);
+							currentMove = "";
+							currentMove += Main::convertPositiontoNotation(localPos2);
+							currentMove += Main::convertPositiontoNotation(localPos);
+							currentMove += 'n';
+							moves += " ";
+							moves += currentMove;
 							Main::postMove(knight, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
 								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
 							break;
@@ -1002,6 +1109,12 @@ int main()
 						{
 							std::shared_ptr<Rook> rook = std::make_shared<Rook>(localPos.x, localPos.y, pieceScale, boardOffset, boardMultiplier, color, pieceTextures.at(11 + offset), false);
 							pieceList.push_back(rook);
+							currentMove = "";
+							currentMove += Main::convertPositiontoNotation(localPos2);
+							currentMove += Main::convertPositiontoNotation(localPos);
+							currentMove += 'r';
+							moves += " ";
+							moves += currentMove;
 							Main::postMove(rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
 								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
 							break;
@@ -1010,6 +1123,12 @@ int main()
 						{
 							std::shared_ptr<Bishop> bishop = std::make_shared<Bishop>(localPos.x, localPos.y, pieceScale, boardOffset, boardMultiplier, color, pieceTextures.at(6 + offset), false);
 							pieceList.push_back(bishop);
+							currentMove = "";
+							currentMove += Main::convertPositiontoNotation(localPos2);
+							currentMove += Main::convertPositiontoNotation(localPos);
+							currentMove += 'b';
+							moves += " ";
+							moves += currentMove;
 							Main::postMove(bishop, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
 								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition);
 							break;
@@ -1018,17 +1137,23 @@ int main()
 						promoteBackgrounds.clear();
 						promoteSprites.clear();
 						promoting = false;
+						window.clear();
+						window.draw(board);
+						window.draw(lastMoveStart);
+						window.draw(lastMoveDest);
+						for (auto& p : pieceList) {
+							p->draw(window);
+						}
+						window.display();
 					}
 				}
 				else {
 					sprite.setTexture(promoteBackgroundTexture);
 					sprite.setColor(promotionSquareColor);
+					window.draw(sprite);
 					promoteSprites.at(i).setScale(Main::Interpolate(promoteSprites.at(i).getScale(), initialPromoteScales.at(i), 0.5f, 0.01f));
+					window.draw(promoteSprites.at(i));
 				}
-				window.draw(sprite);
-			}
-			for (auto& sprite : promoteSprites) {
-				window.draw(sprite);
 			}
 		}
 		if (promoting && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {

@@ -10,7 +10,14 @@ namespace Chess
 	};
 	enum Variant {
 		Standard,
-		Chess960
+		Chess960,
+		Atomic,
+		Antichess,
+		Horde,
+		ThreeCheck,
+		RacingKings,
+		KOTH,
+		Crazyhouse
 	};
 }
 using namespace Chess;
