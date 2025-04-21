@@ -3,13 +3,14 @@
 Pawn::Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
     : Piece(x, y, scale, boardOffset, boardMultiplier, color, texture, animated)
 {
+    hasMoved = true;
     name = "Pawn";
     enPassantTarget = false;
     capturingEnPassant = false;
     whiteIdentifier = "♙";
     blackIdentifier = "♟";
     pointValue = 1;
-    if (color == PColor::White) {
+    if (isWhite()) {
         if (y == 2) {
             hasMoved = false;
         }
@@ -24,13 +25,14 @@ Pawn::Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, 
 Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated) :
     Piece(x, y, scale, boardOffset, boardMultiplier, color, texture, animated)
 {
+    hasMoved = true;
     name = "Pawn";
     this->enPassantTarget = enPassantTarget;
     capturingEnPassant = false;
     whiteIdentifier = "♙";
     blackIdentifier = "♟";
     pointValue = 1;
-    if (color == PColor::White) {
+    if (isWhite()) {
         if (y == 2) {
             hasMoved = false;
         }

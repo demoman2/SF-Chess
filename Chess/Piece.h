@@ -17,7 +17,7 @@ namespace Chess
 		ThreeCheck,
 		RacingKings,
 		KOTH,
-		Crazyhouse
+		Crazyhouse,
 	};
 }
 using namespace Chess;
