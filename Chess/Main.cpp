@@ -49,7 +49,7 @@ int main()
 	sf::Texture boardTexture;
 	boardTexture.loadFromImage(boardSpriteSheet, false, sf::IntRect({ 0, 0 }, { boardSize, boardSize }));
 	sf::Sprite board{ boardTexture };
-	Main::loadBoard(boardSpriteSheet, board, boardTexture, 0, boardSize);
+	Main::loadBoard(boardSpriteSheet, board, boardTexture, 1, boardSize);
 	sf::RectangleShape promotionOverlay;
 	float ScaleX = windowSizeX / boardTexture.getSize().x;
 	float ScaleY = windowSizeY / boardTexture.getSize().y;
@@ -103,13 +103,14 @@ int main()
 	textureVector extraTextures{ selectionTexture, captureTexture, checkTexture, lastMoveTexture, selectionHoverTexture };
 
 	// Vars
-	Variant variant = Atomic;
+	std::string whiteDropPieces, blackDropPieces;
+	Variant variant = ThreeCheck;
 	float xAccl = 1.0f, yAccl = 1.0f;
 	bool mouseSelecting = false, mouseClicked = false, pieceMoving = false, check = false, promoting = false, animationFinished = false,
 		pieceSelectionLock = false, standardPosition = false, checksEnabled = true, castlingEnabled = true, kingPromotionEnabled = false,
-		endgamePosition = false, Chess960Enabled = false, StockfishEnabled = true;
-	int wKRook = -1, wQRook = -1, bKRook = -1, bQRook = -1;
-	std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed;
+		endgamePosition = false, Chess960Enabled = true, StockfishEnabled = true;
+	int wKRook = -1, wQRook = -1, bKRook = -1, bQRook = -1, blackChecks = 0, whiteChecks = 0;
+	std::vector<basicBitboard> allPositionsPlayed;
 	std::shared_ptr<Piece> selectedPiece = nullptr, capturePiece = nullptr, castleKing = nullptr, castleRook = nullptr, promotePiece = nullptr;
 	std::shared_ptr<Pawn> enPassantPiece = nullptr;
 	std::vector<sf::Sprite> promoteBackgrounds, promoteSprites;
@@ -159,6 +160,7 @@ int main()
 		threshold = 30.0f;
 	}
 	std::string startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+	std::string threeCheckDefault = " +0+0";
 	if (Chess960Enabled) {
 		int id = std::rand() % 960;
 		std::cout << "Loading Chess960 Position #" << id << std::endl;
@@ -168,9 +170,22 @@ int main()
 			std::getline(FRCReadFile, fen);
 		}
 		FRCReadFile.close();
-		if (!fen.empty()) {
-			startingFEN = fen;
+		if (variant == ThreeCheck) {
+			startingFEN = fen.substr(0, fen.size() - 3);
+			startingFEN += "3+3 0 1";
+			std::cout << startingFEN << std::endl;
 		}
+		else if (variant == FiveCheck) {
+			startingFEN = fen.substr(0, fen.size() - 3);
+			startingFEN += "5+5 0 1";
+			std::cout << startingFEN << std::endl;
+		}
+		else {
+			if (!fen.empty()) {
+				startingFEN = fen;
+			}
+		}
+
 	}
 	else if (endgamePosition) {
 		int id = std::rand() % 139;
@@ -180,21 +195,40 @@ int main()
 			std::getline(EndgameReadFile, fen);
 		}
 		EndgameReadFile.close();
-		if (!fen.empty()) {
-			startingFEN = fen;
+		if (variant == ThreeCheck) {
+			startingFEN = fen.substr(0, fen.size() - 3);
+			startingFEN += "3+3 0 1";
 		}
+		else if (variant == FiveCheck) {
+			startingFEN = fen.substr(0, fen.size() - 3);
+			startingFEN += "5+5 0 1";
+		}
+		else {
+			if (!fen.empty()) {
+				startingFEN = fen;
+			}
+		}
+	}
+	else if (variant == Horde) {
+		startingFEN = "rnbqkbnr/pppppppp/8/1PP2PP1/PPPPPPPP/PPPPPPPP/PPPPPPPP/PPPPPPPP w kq - 0 1";
+	}
+	else if (variant == ThreeCheck) {
+		startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 3+3 0 1";
+	}
+	else if (variant == FiveCheck) {
+		startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 5+5 0 1";
 	}
 	std::string moves = "", currentMove = "";
 	Main::loadPieceSet(pieceStyle, pieceTextures, pieceSize);
 	pieceVector pieceList = Main::generatePositionFromFENID(startingFEN,
 		pieceTextures, pieceScale, boardOffset, boardMultiplier, whiteToPlay, halfMoves, fullMoves, enPassantPiece, checkSprite, check, extraTextures, true,
-		standardPosition, wKRook, wQRook, bKRook, bQRook, checksEnabled, castlingEnabled, Chess960Enabled, variant);
+		standardPosition, wKRook, wQRook, bKRook, bQRook, checksEnabled, castlingEnabled, whiteChecks, blackChecks, whiteDropPieces, blackDropPieces, variant);
 
 	// Stockfish
 	bp::ipstream is;
 	bp::opstream os;
-
 	bp::child c("assets/other/fairy-stockfish-largeboard_x86-64.exe", bp::std_in < os, bp::std_out > is);
+
 	Main::startStockfish(startingFEN, c, os, is, variant, Chess960Enabled);
 
 	window.setIcon(selectedIcon.getSize(), selectedIcon.getPixelsPtr());
@@ -244,7 +278,7 @@ int main()
 					if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& p) { return p->animationTarget.has_value() || p->targetPos.has_value(); })) {
 						currentMove = "";
 						moves = "";
-						wKRook = -1; wQRook = -1; bKRook = -1; bQRook = -1;
+						wKRook = -1; wQRook = -1; bKRook = -1; bQRook = -1, whiteChecks = 0, blackChecks = 0;
 						check = false;
 						lastMoveStart.setPosition({ -1000, -1000 });
 						lastMoveDest.setPosition({ -1000, -1000 });
@@ -252,8 +286,12 @@ int main()
 						capturePiece.reset();
 						enPassantPiece.reset();
 						pieceList.clear();
+						allPositionsPlayed.clear();
+						whiteDropPieces.clear();
+						blackDropPieces.clear();
 						if (Chess960Enabled) {
 							int id = std::rand() % 960;
+							std::cout << "Loading Chess960 Position #" << id << std::endl;
 							std::ifstream FRCReadFile("assets/fen/chess960.txt");
 							std::string fen;
 							for (int i = 0; i <= id; i++) {
@@ -281,7 +319,7 @@ int main()
 						}
 						pieceList = Main::generatePositionFromFENID(startingFEN,
 							pieceTextures, pieceScale, boardOffset, boardMultiplier, whiteToPlay, halfMoves, fullMoves, enPassantPiece, checkSprite, check, extraTextures, true,
-							standardPosition, wKRook, wQRook, bKRook, bQRook, checksEnabled, castlingEnabled, Chess960Enabled, variant);
+							standardPosition, wKRook, wQRook, bKRook, bQRook, checksEnabled, castlingEnabled, whiteChecks, blackChecks, whiteDropPieces, blackDropPieces, variant);
 						Main::startStockfish(startingFEN, c, os, is, variant, Chess960Enabled);
 					}
 				}
@@ -351,7 +389,7 @@ int main()
 							lastMoveDest.setPosition(sprite.getPosition());
 							selectedPiece->setGlobalPosition(sprite.getPosition());
 							Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
-								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 						}
 					}
 				}
@@ -395,7 +433,7 @@ int main()
 							lastMoveDest.setPosition(sprite.getPosition());
 							selectedPiece->setGlobalPosition(sprite.getPosition());
 							Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
-								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 						}
 					}
 				}
@@ -424,7 +462,7 @@ int main()
 								if (rook != nullptr) {
 									rook->setGlobalPosition(Main::getGlobalPosition({ 4, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 									king->setGlobalPosition(sprite.getPosition());
-									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 								}
 							}
 							else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == 7) {
@@ -432,7 +470,7 @@ int main()
 								if (rook != nullptr) {
 									rook->setGlobalPosition(Main::getGlobalPosition({ 6, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 									king->setGlobalPosition(sprite.getPosition());
-									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+									Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 								}
 							}
 						}
@@ -472,10 +510,9 @@ int main()
 										}
 										moves += " ";
 										moves += currentMove;
-										std::cout << "Moves " << moves << std::endl;
 										rook->setGlobalPosition(Main::getGlobalPosition({ 6, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										king->setGlobalPosition(Main::getGlobalPosition({ 7, king->getLocalPosition().y }, boardOffset, boardMultiplier));
-										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 									}
 								}
 								else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == wQRook) {
@@ -502,7 +539,7 @@ int main()
 										moves += currentMove;
 										rook->setGlobalPosition(Main::getGlobalPosition({ 4, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										king->setGlobalPosition(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, boardOffset, boardMultiplier));
-										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 									}
 								}
 							}
@@ -531,7 +568,7 @@ int main()
 										moves += currentMove;
 										rook->setGlobalPosition(Main::getGlobalPosition({ 6, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										king->setGlobalPosition(Main::getGlobalPosition({ 7, king->getLocalPosition().y }, boardOffset, boardMultiplier));
-										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 									}
 								}
 								else if (Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier).x == bQRook) {
@@ -558,7 +595,7 @@ int main()
 										moves += currentMove;
 										rook->setGlobalPosition(Main::getGlobalPosition({ 4, king->getLocalPosition().y }, boardOffset, boardMultiplier));
 										king->setGlobalPosition(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, boardOffset, boardMultiplier));
-										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+										Main::postCastle(king, rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 									}
 								}
 							}
@@ -596,7 +633,7 @@ int main()
 							currentMove += Main::convertPositiontoNotation(Main::getLocalPosition(sprite.getPosition(), boardOffset, boardMultiplier));
 							moves += " " + currentMove;
 							selectedPiece->setGlobalPosition(sprite.getPosition());
-							Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+							Main::postMove(selectedPiece, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 						}
 					}
 				}
@@ -790,7 +827,7 @@ int main()
 			}
 			else {
 				std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(castleKing);
-				Main::postCastle(king, castleRook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+				Main::postCastle(king, castleRook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures, allPositionsPlayed, selectedPiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 				castleKing.reset();
 				castleRook.reset();
 			}
@@ -802,7 +839,7 @@ int main()
 					if (piece->getGlobalPosition() == piece->targetPos.value()) {
 						calculatingPos = true;
 						if (Main::postMove(piece, pieceList, it2, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite, extraTextures,
-							allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant) == 1) {
+							allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant) == 1) {
 							break;
 						}
 						calculatingPos = false;
@@ -1295,7 +1332,7 @@ int main()
 							moves += " ";
 							moves += currentMove;
 							Main::postMove(queen, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
-								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 							break;
 						}
 						case 1:
@@ -1309,7 +1346,7 @@ int main()
 							moves += " ";
 							moves += currentMove;
 							Main::postMove(knight, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
-								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 							break;
 						}
 						case 2:
@@ -1323,7 +1360,7 @@ int main()
 							moves += " ";
 							moves += currentMove;
 							Main::postMove(rook, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
-								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 							break;
 						}
 						case 3:
@@ -1337,7 +1374,7 @@ int main()
 							moves += " ";
 							moves += currentMove;
 							Main::postMove(bishop, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
-								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 							break;
 						}
 						case 4:
@@ -1351,7 +1388,7 @@ int main()
 							moves += " ";
 							moves += currentMove;
 							Main::postMove(king, pieceList, boardOffset, boardMultiplier, whiteToPlay, check, pieceMoving, fullMoves, halfMoves, checkSprite,
-								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, variant);
+								extraTextures, allPositionsPlayed, selectedPiece, capturePiece, window, board, lastMoveStart, lastMoveDest, wKRook, wQRook, bKRook, bQRook, standardPosition, checksEnabled, castlingEnabled, whiteChecks, blackChecks, variant);
 							break;
 						}
 						}

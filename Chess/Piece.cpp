@@ -39,9 +39,7 @@ void Piece::setGhostSpriteVisible(bool visible, bool pieceVisible)
 	else {
 		ghostSprite.setColor(sf::Color(255, 255, 255, 0));
 	}
-	if (pieceVisible) {
-		sprite.setColor(sf::Color(255, 255, 255, 255));
-	}
+	if (pieceVisible) { sprite.setColor(sf::Color(255, 255, 255, 255)); }
 	else {
 		sprite.setColor(sf::Color(255, 255, 255, 0));
 	}

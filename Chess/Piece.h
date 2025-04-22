@@ -8,6 +8,14 @@ namespace Chess
 		White,
 		Black
 	};
+	enum Endgame {
+		Undetermined,
+		Stalemate,
+		Checkmate,
+		InsufficientMaterial,
+		FiftyMoveRule,
+		ThreefoldRepetition
+	};
 	enum Variant {
 		Standard,
 		Chess960,
@@ -15,9 +23,10 @@ namespace Chess
 		Antichess,
 		Horde,
 		ThreeCheck,
+		FiveCheck,
 		RacingKings,
 		KOTH,
-		Crazyhouse,
+		Crazyhouse
 	};
 }
 using namespace Chess;
@@ -50,9 +59,6 @@ public:
 	float getBoardMultiplier() const { return boardMultiplier; }
 	float getBoardOffset() const { return boardOffset; }
 	float getScale() const { return scale; }
-	bool operator==(const Piece& other) const { return pointValue == other.pointValue; }
-	bool operator<(const Piece& other) const { return pointValue < other.pointValue; }
-	bool operator>(const Piece& other) const { return pointValue > other.pointValue; }
 	bool contains(sf::Vector2i pos) { return sprite.getGlobalBounds().contains((sf::Vector2f)pos); }
 	bool contains(sf::Vector2f pos) { return sprite.getGlobalBounds().contains(pos); }
 	int reverseY(int y) { return 9 - y; }

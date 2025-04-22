@@ -1,6 +1,7 @@
 #pragma once
 #include <SDKDDKVer.h>
 #include <iostream>
+#include <fstream>
 #include <future>
 #include <thread>
 #include <vector>
@@ -20,10 +21,10 @@
 #include <boost/asio.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <fstream>
 
 typedef std::vector<std::shared_ptr<Piece>> pieceVector;
 typedef std::vector<std::reference_wrapper<sf::Texture>> textureVector;
+typedef std::pair<std::array<std::array<int, 8>, 8>, bool> basicBitboard;
 using namespace Chess;
 namespace bp = boost::process::v1;
 class Main {
@@ -242,12 +243,13 @@ public:
 	}
 
 	static std::string getBestMove(std::string fen, std::string moves, const bp::child& c, bp::opstream& os, bp::ipstream& is) {
+
+		std::string line;
+		std::string move_string;
 		os << "isready" << std::endl;
 		os << "position fen " + fen + " moves" + moves << std::endl;
 		os << "go movetime 1500" << std::endl; // Depth 16/17
 
-		std::string line;
-		std::string move_string;
 		while (getline(is, line)) {
 			if (!line.compare(0, 8, "bestmove")) {
 				move_string = line;
@@ -261,8 +263,8 @@ public:
 		return mv.at(0);
 	}
 
-	static std::string startStockfish(std::string fen, const bp::child& c, bp::opstream& os, bp::ipstream& is, const Variant variant, bool chess960) {
-		std::string variantString = "chess", chess960String = "false";
+	static std::string startStockfish(std::string fen, const bp::child& c, bp::opstream& os, bp::ipstream& is, const Variant variant, bool Chess960) {
+		std::string line, variantString = "chess", chess960String = "false";
 		switch (variant) {
 		case Antichess:
 			variantString = "antichess";
@@ -285,19 +287,23 @@ public:
 		case ThreeCheck:
 			variantString = "3check";
 			break;
+		case FiveCheck:
+			variantString = "5check";
+			break;
 		}
-		if (chess960) { chess960String = "true"; }
+		if (Chess960) { chess960String = "true"; }
 		os << "uci" << std::endl;
 		os << "setoption name Threads value 11" << std::endl;
-		os << "setoption name Hash value 1024" << std::endl; // ?
+		os << "setoption name Hash value 2048" << std::endl; // ?
+		os << "setoption name VariantPath value assets/other/variants.ini" << std::endl;
 		os << "setoption name UCI_Variant value " << variantString << std::endl;
 		os << "setoption name UCI_Chess960 value " << chess960String << std::endl;
+		os << "setoption name Slow Mover value 200" << std::endl;
 		os << "isready" << std::endl;
 		os << "position fen " + fen << std::endl;
 		os << "ucinewgame" << std::endl;
-		os << "go movetime 2000" << std::endl;
+		os << "go movetime 1000" << std::endl;
 
-		std::string line;
 		std::string move_string;
 		while (getline(is, line)) {
 			if (!line.compare(0, 8, "bestmove")) {
@@ -457,7 +463,7 @@ public:
 	static pieceVector generatePositionFromFENID(std::string code, textureVector& pieceTextures,
 		float pieceScale, float boardOffset, float boardSquareOffset, bool& whiteToPlay, int& halfMoves, int& fullMoves, std::shared_ptr<Pawn>& enPassantPiece,
 		sf::Sprite& checkSprite, bool& check, textureVector& extraTextures, bool animated, bool& standardPosition, int& wKRook, int& wQRook, int& bKRook, int& bQRook,
-		bool checksEnabled, bool castlingEnabled, bool chess960, Variant variant) {
+		bool checksEnabled, bool castlingEnabled, int& whiteChecks, int& blackChecks, std::string& whiteDropPieces, std::string& blackDropPieces, Variant variant) {
 		pieceVector pieces;
 		std::vector<std::string> splitString = split(code, ' ');
 		// ========= MODIFIERS =========
@@ -469,194 +475,378 @@ public:
 		std::vector<std::string> ranks = split(splitString.front(), '/');
 		std::vector<char> start, end;
 		std::vector<char> whiteKingSideCharacters, whiteQueenSideCharacters, blackKingSideCharacters, blackQueenSideCharacters;
-		if (!chess960) {
-			if (ranks.front().front() == 'r' && ranks.front().back() == 'r') {
-				if (ranks.back().front() == 'R' && ranks.back().back() == 'R') {
-					std::string tempfront, tempback;
+		std::string tempfront, tempback;
+		for (int j = 0; j < ranks.front().size(); j++) {
+			if (std::isdigit(ranks.front().at(j))) {
+				int num = ranks.front().at(j) - '0';
+				for (int k = 0; k < num; k++) {
+					tempfront.push_back('0');
+				}
+			}
+			else {
+				tempfront.push_back(ranks.front().at(j));
+			}
+		}
+		for (int j = 0; j < ranks.back().size(); j++) {
+			if (std::isdigit(ranks.back().at(j))) {
+				int num = ranks.back().at(j) - '0';
+				for (int k = 0; k < num; k++) {
+					tempback.push_back('0');
+				}
+			}
+			else {
+				tempback.push_back(ranks.back().at(j));
+			}
+		}
+		if (tempfront.front() == 'r' && tempfront.at(7) == 'r') {
+			if (tempback.front() == 'R' && tempback.at(7) == 'R') {
+				if (tempfront.at(4) == 'k' && tempback.at(4) == 'K') {
+					standardPosition = true;
+				}
+			}
+		}
+		for (int i = 0; i < modifiers.size(); i++) {
+			std::string modifier = modifiers.at(i);
+			if (variant == ThreeCheck || variant == FiveCheck) {
+				switch (i) {
+					// Side to Play
+				case 0:
+					if (modifier.front() == 'w') {
+						whiteToPlay = true;
+					}
+					else if (modifier.front() == 'b') {
+						whiteToPlay = false;
+					}
+					break;
+					// Castling Rights
+				case 1:
+					if (modifier.front() == '-') {
+						break;
+					}
 					for (int j = 0; j < ranks.front().size(); j++) {
 						if (std::isdigit(ranks.front().at(j))) {
 							int num = ranks.front().at(j) - '0';
 							for (int k = 0; k < num; k++) {
-								tempfront.push_back('0');
+								start.push_back('0');
 							}
 						}
 						else {
-							tempfront.push_back(ranks.front().at(j));
+							start.push_back(ranks.front().at(j));
 						}
 					}
 					for (int j = 0; j < ranks.back().size(); j++) {
 						if (std::isdigit(ranks.back().at(j))) {
 							int num = ranks.back().at(j) - '0';
 							for (int k = 0; k < num; k++) {
-								tempback.push_back('0');
+								end.push_back('0');
 							}
 						}
 						else {
-							tempback.push_back(ranks.back().at(j));
+							end.push_back(ranks.back().at(j));
 						}
 					}
-					if (tempfront.at(4) == 'k' && tempback.at(4) == 'K') {
-						standardPosition = true;
+					for (int j = 0; j < end.size(); j++) {
+						if (end.at(j) == 'K') {
+							whiteKingX = j + 1;
+						}
 					}
-				}
-			}
-		}
+					for (int j = 0; j < start.size(); j++) {
+						if (start.at(j) == 'k') {
+							blackKingX = j + 1;
+						}
+					}
+					for (auto& l : modifier) {
+						if (l == 'Q') {
+							whiteCanNeverCastleQ = false;
+							for (int k = 0; k < whiteKingX; k++) {
+								if (end.at(k) == 'R') {
+									wQRook = k + 1;
+								}
+							}
+						}
+						else if (l == 'K') {
+							whiteCanNeverCastleK = false;
+							for (int k = whiteKingX; k < 8; k++) {
+								if (end.at(k) == 'R') {
+									wKRook = k + 1;
+								}
+							}
+						}
+						else if (l == 'q') {
+							blackCanNeverCastleQ = false;
+							for (int k = 0; k < blackKingX; k++) {
+								if (start.at(k) == 'r') {
+									bQRook = k + 1;
+								}
+							}
+						}
+						else if (l == 'k') {
+							blackCanNeverCastleK = false;
+							for (int k = blackKingX; k < 8; k++) {
+								if (start.at(k) == 'r') {
+									bKRook = k + 1;
+								}
+							}
+						}
+					}
+					// SHREDDER FEN
+					for (int k = 0; k < whiteKingX - 1; k++) {
+						whiteQueenSideCharacters.push_back(convertXtoChar(k));
+					}
+					for (int k = whiteKingX; k < 8; k++) {
+						whiteKingSideCharacters.push_back(convertXtoChar(k));
+					}
+					for (int k = 0; k < blackKingX - 1; k++) {
+						blackQueenSideCharacters.push_back(convertXtoChar(k));
+					}
+					for (int k = blackKingX; k < 8; k++) {
+						blackKingSideCharacters.push_back(convertXtoChar(k));
+					}
 
-
-		for (int i = 0; i < modifiers.size(); i++) {
-			std::string modifier = modifiers.at(i);
-			switch (i) {
-				// Side to Play
-			case 0:
-				if (modifier.front() == 'w') {
-					whiteToPlay = true;
-				}
-				else if (modifier.front() == 'b') {
-					whiteToPlay = false;
-				}
-				break;
-				// Castling Rights
-			case 1:
-				if (modifier.front() == '-') {
+					for (int j = 0; j < modifier.size(); j++) {
+						char letter = modifier.at(j);
+						if (isupper(letter)) {
+							if (std::any_of(whiteKingSideCharacters.begin(), whiteKingSideCharacters.end(), [letter](char c) { return c == std::tolower(letter); })) {
+								int x = convertChartoX(std::tolower(letter));
+								if (end.at(x) == 'R') {
+									wKRook = x + 1;
+									whiteCanNeverCastleK = false;
+								}
+							}
+							else if (std::any_of(whiteQueenSideCharacters.begin(), whiteQueenSideCharacters.end(), [letter](char c) { return c == std::tolower(letter); })) {
+								int x = convertChartoX(std::tolower(letter));
+								if (end.at(x) == 'R') {
+									wQRook = x + 1;
+									whiteCanNeverCastleQ = false;
+								}
+							}
+						}
+						else {
+							if (std::any_of(blackKingSideCharacters.begin(), blackKingSideCharacters.end(), [letter](char c) { return c == letter; })) {
+								int x = convertChartoX(std::tolower(letter));
+								if (start.at(x) == 'r') {
+									bKRook = x + 1;
+									blackCanNeverCastleK = false;
+								}
+							}
+							else if (std::any_of(blackQueenSideCharacters.begin(), blackQueenSideCharacters.end(), [letter](char c) { return c == letter; })) {
+								int x = convertChartoX(std::tolower(letter));
+								if (start.at(x) == 'r') {
+									bQRook = x + 1;
+									blackCanNeverCastleQ = false;
+								}
+							}
+						}
+					}
+					break;
+					// En Passant Target
+				case 2:
+					if (modifier.at(0) != '-') {
+						enPassantTarget = convertChessNotationtoPosition(modifier);
+					}
+					else {
+						enPassantTarget = {};
+					}
+					break;
+				case 3:
+					if (modifier.size() >= 3) {
+						size_t plus = modifier.find('+');
+						if (variant == ThreeCheck) {
+							blackChecks = 3 - std::stoi(modifier.substr(0, plus));
+							whiteChecks = 3 - std::stoi(modifier.substr(plus));
+						}
+						else if (variant == FiveCheck) {
+							blackChecks = 5 - std::stoi(modifier.substr(0, plus));
+							whiteChecks = 5 - std::stoi(modifier.substr(plus));
+						}
+					}
+					break;
+					// Half Moves
+				case 4:
+					halfMoves = std::stoi(modifier);
+					break;
+					// Full Moves
+				case 5:
+					fullMoves = std::stoi(modifier);
 					break;
 				}
-				for (int j = 0; j < ranks.front().size(); j++) {
-					if (std::isdigit(ranks.front().at(j))) {
-						int num = ranks.front().at(j) - '0';
-						for (int k = 0; k < num; k++) {
-							start.push_back('0');
+			}
+			else {
+				switch (i) {
+					// Side to Play
+				case 0:
+					if (modifier.front() == 'w') {
+						whiteToPlay = true;
+					}
+					else if (modifier.front() == 'b') {
+						whiteToPlay = false;
+					}
+					break;
+					// Castling Rights
+				case 1:
+					if (modifier.front() == '-') {
+						break;
+					}
+					for (int j = 0; j < ranks.front().size(); j++) {
+						if (std::isdigit(ranks.front().at(j))) {
+							int num = ranks.front().at(j) - '0';
+							for (int k = 0; k < num; k++) {
+								start.push_back('0');
+							}
+						}
+						else {
+							start.push_back(ranks.front().at(j));
 						}
 					}
-					else {
-						start.push_back(ranks.front().at(j));
-					}
-				}
-				for (int j = 0; j < ranks.back().size(); j++) {
-					if (std::isdigit(ranks.back().at(j))) {
-						int num = ranks.back().at(j) - '0';
-						for (int k = 0; k < num; k++) {
-							end.push_back('0');
+					for (int j = 0; j < ranks.back().size(); j++) {
+						if (std::isdigit(ranks.back().at(j))) {
+							int num = ranks.back().at(j) - '0';
+							for (int k = 0; k < num; k++) {
+								end.push_back('0');
+							}
+						}
+						else {
+							end.push_back(ranks.back().at(j));
 						}
 					}
-					else {
-						end.push_back(ranks.back().at(j));
+					for (int j = 0; j < end.size(); j++) {
+						if (end.at(j) == 'K') {
+							whiteKingX = j + 1;
+						}
 					}
-				}
-				for (int j = 0; j < end.size(); j++) {
-					if (end.at(j) == 'K') {
-						whiteKingX = j + 1;
+					for (int j = 0; j < start.size(); j++) {
+						if (start.at(j) == 'k') {
+							blackKingX = j + 1;
+						}
 					}
-				}
-				for (int j = 0; j < start.size(); j++) {
-					if (start.at(j) == 'k') {
-						blackKingX = j + 1;
-					}
-				}
-				for (auto& l : modifier) {
-					if (l == 'Q') {
-						whiteCanNeverCastleQ = false;
-						for (int k = 0; k < whiteKingX; k++) {
-							if (end.at(k) == 'R') {
-								wQRook = k + 1;
+					for (auto& l : modifier) {
+						if (l == 'Q') {
+							whiteCanNeverCastleQ = false;
+							for (int k = 0; k < whiteKingX; k++) {
+								if (end.at(k) == 'R') {
+									wQRook = k + 1;
+								}
+							}
+						}
+						else if (l == 'K') {
+							whiteCanNeverCastleK = false;
+							for (int k = whiteKingX; k < 8; k++) {
+								if (end.at(k) == 'R') {
+									wKRook = k + 1;
+								}
+							}
+						}
+						else if (l == 'q') {
+							blackCanNeverCastleQ = false;
+							for (int k = 0; k < blackKingX; k++) {
+								if (start.at(k) == 'r') {
+									bQRook = k + 1;
+								}
+							}
+						}
+						else if (l == 'k') {
+							blackCanNeverCastleK = false;
+							for (int k = blackKingX; k < 8; k++) {
+								if (start.at(k) == 'r') {
+									bKRook = k + 1;
+								}
 							}
 						}
 					}
-					else if (l == 'K') {
-						whiteCanNeverCastleK = false;
-						for (int k = whiteKingX; k < 8; k++) {
-							if (end.at(k) == 'R') {
-								wKRook = k + 1;
-							}
-						}
+					// SHREDDER FEN
+					for (int k = 0; k < whiteKingX - 1; k++) {
+						whiteQueenSideCharacters.push_back(convertXtoChar(k));
 					}
-					else if (l == 'q') {
-						blackCanNeverCastleQ = false;
-						for (int k = 0; k < blackKingX; k++) {
-							if (start.at(k) == 'r') {
-								bQRook = k + 1;
-							}
-						}
+					for (int k = whiteKingX; k < 8; k++) {
+						whiteKingSideCharacters.push_back(convertXtoChar(k));
 					}
-					else if (l == 'k') {
-						blackCanNeverCastleK = false;
-						for (int k = blackKingX; k < 8; k++) {
-							if (start.at(k) == 'r') {
-								bKRook = k + 1;
-							}
-						}
+					for (int k = 0; k < blackKingX - 1; k++) {
+						blackQueenSideCharacters.push_back(convertXtoChar(k));
 					}
-				}
-				// SHREDDER FEN
-				for (int k = 0; k < whiteKingX - 1; k++) {
-					whiteQueenSideCharacters.push_back(convertXtoChar(k));
-				}
-				for (int k = whiteKingX; k < 8; k++) {
-					whiteKingSideCharacters.push_back(convertXtoChar(k));
-				}
-				for (int k = 0; k < blackKingX - 1; k++) {
-					blackQueenSideCharacters.push_back(convertXtoChar(k));
-				}
-				for (int k = blackKingX; k < 8; k++) {
-					blackKingSideCharacters.push_back(convertXtoChar(k));
-				}
+					for (int k = blackKingX; k < 8; k++) {
+						blackKingSideCharacters.push_back(convertXtoChar(k));
+					}
 
-				for (int j = 0; j < modifier.size(); j++) {
-					char letter = modifier.at(j);
-					if (isupper(letter)) {
-						if (std::any_of(whiteKingSideCharacters.begin(), whiteKingSideCharacters.end(), [letter](char c) { return c == std::tolower(letter); })) {
-							int x = convertChartoX(std::tolower(letter));
-							if (end.at(x) == 'R') {
-								wKRook = x + 1;
-								whiteCanNeverCastleK = false;
+					for (int j = 0; j < modifier.size(); j++) {
+						char letter = modifier.at(j);
+						if (isupper(letter)) {
+							if (std::any_of(whiteKingSideCharacters.begin(), whiteKingSideCharacters.end(), [letter](char c) { return c == std::tolower(letter); })) {
+								int x = convertChartoX(std::tolower(letter));
+								if (end.at(x) == 'R') {
+									wKRook = x + 1;
+									whiteCanNeverCastleK = false;
+								}
+							}
+							else if (std::any_of(whiteQueenSideCharacters.begin(), whiteQueenSideCharacters.end(), [letter](char c) { return c == std::tolower(letter); })) {
+								int x = convertChartoX(std::tolower(letter));
+								if (end.at(x) == 'R') {
+									wQRook = x + 1;
+									whiteCanNeverCastleQ = false;
+								}
 							}
 						}
-						else if (std::any_of(whiteQueenSideCharacters.begin(), whiteQueenSideCharacters.end(), [letter](char c) { return c == std::tolower(letter); })) {
-							int x = convertChartoX(std::tolower(letter));
-							if (end.at(x) == 'R') {
-								wQRook = x + 1;
-								whiteCanNeverCastleQ = false;
+						else {
+							if (std::any_of(blackKingSideCharacters.begin(), blackKingSideCharacters.end(), [letter](char c) { return c == letter; })) {
+								int x = convertChartoX(std::tolower(letter));
+								if (start.at(x) == 'r') {
+									bKRook = x + 1;
+									blackCanNeverCastleK = false;
+								}
+							}
+							else if (std::any_of(blackQueenSideCharacters.begin(), blackQueenSideCharacters.end(), [letter](char c) { return c == letter; })) {
+								int x = convertChartoX(std::tolower(letter));
+								if (start.at(x) == 'r') {
+									bQRook = x + 1;
+									blackCanNeverCastleQ = false;
+								}
 							}
 						}
+					}
+					break;
+					// En Passant Target
+				case 2:
+					if (modifier.at(0) != '-') {
+						enPassantTarget = convertChessNotationtoPosition(modifier);
 					}
 					else {
-						if (std::any_of(blackKingSideCharacters.begin(), blackKingSideCharacters.end(), [letter](char c) { return c == letter; })) {
-							int x = convertChartoX(std::tolower(letter));
-							if (start.at(x) == 'r') {
-								bKRook = x + 1;
-								blackCanNeverCastleK = false;
-							}
-						}
-						else if (std::any_of(blackQueenSideCharacters.begin(), blackQueenSideCharacters.end(), [letter](char c) { return c == letter; })) {
-							int x = convertChartoX(std::tolower(letter));
-							if (start.at(x) == 'r') {
-								bQRook = x + 1;
-								blackCanNeverCastleQ = false;
-							}
-						}
+						enPassantTarget = {};
 					}
+					break;
+					// Half Moves
+				case 3:
+					halfMoves = std::stoi(modifier);
+					break;
+					// Full Moves
+				case 4:
+					fullMoves = std::stoi(modifier);
+					break;
+				case 5:
+					// 3check or 5check
+					if (modifier.front() == '+' && modifier.size() >= 4) {
+						size_t plus = modifier.find('+', 1);
+						blackChecks = std::stoi(modifier.substr(1, plus));
+						whiteChecks = std::stoi(modifier.substr(plus));
+					}
+					break;
 				}
-				break;
-				// En Passant Target
-			case 2:
-				if (modifier.at(0) != '-') {
-					enPassantTarget = convertChessNotationtoPosition(modifier);
-				}
-				else {
-					enPassantTarget = {};
-				}
-				break;
-				// Half Moves
-			case 3:
-				halfMoves = std::stoi(modifier);
-				break;
-				// Full Moves
-			case 4:
-				fullMoves = std::stoi(modifier);
-				break;
 			}
 		}
 		// ========= RANKS =============
-
+		std::string back = ranks.back();
+		size_t dropBegin = back.find('['), dropEnd = back.find(']');
+		if (dropBegin != std::string::npos && dropEnd != std::string::npos) {
+			std::string drop = ranks.back().substr(dropBegin + 1, dropEnd);
+			drop.pop_back();
+			for (auto& l : drop) {
+				if (std::isupper(l)) {
+					whiteDropPieces += l;
+				}
+				else {
+					blackDropPieces += l;
+				}
+			}
+			ranks.back() = ranks.back().substr(0, dropBegin);
+		}
 		for (int i = 0; i < ranks.size(); i++) {
 			int x = 1;
 			int y = reverseY(i + 1);
@@ -2101,7 +2291,7 @@ public:
 		}
 	}
 
-	static int determineEnd(pieceVector& position, bool whiteToPlay, int halfMoves, Variant variant) {
+	static int determineEnd(pieceVector& position, bool whiteToPlay, int halfMoves, int& whiteChecks, int& blackChecks, Variant variant) {
 		// Neither 0, Stalemate 1, Checkmate 2, Insufficient Material 3, 50 Move Rule 4
 		if (halfMoves >= 100) {
 			return 4;
@@ -2197,10 +2387,59 @@ public:
 				}
 			}
 		}
+		else if (variant == Horde) {
+			if (!whiteToPlay) {
+				if (std::none_of(position.begin(), position.end(), [whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; })) {
+					for (auto& piece : position) {
+						if (whiteToPlay == (piece->color == PColor::White) && piece->name == "King") {
+							std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
+							if (king->inCheck) {
+								return 2;
+							}
+							else {
+								return 1;
+							}
+						}
+					}
+				}
+			}
+			else {
+				if (std::none_of(position.begin(), position.end(), [whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()); })) {
+					return 2;
+				}
+				if (std::none_of(position.begin(), position.end(), [whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; })) {
+					return 1;
+				}
+			}
+		}
+		else if (variant == ThreeCheck) {
+			if (whiteToPlay) {
+				if (whiteChecks >= 3) {
+					return 2;
+				}
+			}
+			else {
+				if (blackChecks >= 3) {
+					return 2;
+				}
+			}
+		}
+		else if (variant == FiveCheck) {
+			if (whiteToPlay) {
+				if (whiteChecks >= 5) {
+					return 2;
+				}
+			}
+			else {
+				if (blackChecks >= 5) {
+					return 2;
+				}
+			}
+		}
 		return 0;
 	}
 
-	static std::pair<std::array<std::array<int, 8>, 8>, bool> savePosition(pieceVector& position, bool whiteToPlay) {
+	static basicBitboard savePosition(pieceVector& position, bool whiteToPlay) {
 		std::array<std::array<int, 8>, 8> array{ 0 };
 		for (auto& piece : position) {
 			if (piece != nullptr) {
@@ -2251,14 +2490,15 @@ public:
 
 	static int postMove(std::shared_ptr<Piece> piece, pieceVector& pieceList, pieceVector::iterator& it,
 		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, int& fullMoves, int& halfMoves, sf::Sprite& checkSprite,
-		textureVector extraTextures, std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed,
+		textureVector extraTextures, std::vector<basicBitboard> allPositionsPlayed,
 		std::shared_ptr<Piece>& selectedPiece, std::shared_ptr<Piece>& capturePiece, sf::RenderWindow& window, sf::Sprite& board, sf::Sprite& lastMoveStart, sf::Sprite& lastMoveDest,
-		int wKRook, int wQRook, int bKRook, int bQRook, bool standardPosition, bool checksEnabled, bool castlingEnabled, Variant variant) {
+		int wKRook, int wQRook, int bKRook, int bQRook, bool standardPosition, bool checksEnabled, bool castlingEnabled, int& whiteChecks, int& blackChecks, Variant variant) {
 		bool endCheck = false;
 		bool capturedAtomic = false;
 		if (capturePiece != nullptr) {
 			if (variant == Atomic) {
 				capturedAtomic = true;
+				halfMoves = 0;
 				for (auto it2 = pieceList.begin(); it2 != pieceList.end(); it2++) {
 					std::shared_ptr<Piece> p = *it2;
 					if (p->position == piece->position) {
@@ -2375,6 +2615,12 @@ public:
 			}
 		next:
 			if (check) {
+				if (whiteToPlay) {
+					blackChecks++;
+				}
+				else {
+					whiteChecks++;
+				}
 				window.clear();
 				window.draw(board);
 				window.draw(lastMoveStart);
@@ -2432,7 +2678,7 @@ public:
 		}
 		Main::setExtraSprites(pieceList, extraTextures);
 		whiteToPlay = !whiteToPlay;
-		std::cout << Main::determineEnd(pieceList, whiteToPlay, halfMoves, variant) << std::endl;
+		std::cout << Main::determineEnd(pieceList, whiteToPlay, halfMoves, whiteChecks, blackChecks, variant) << std::endl;
 		moving = false;
 		auto pos = Main::savePosition(pieceList, whiteToPlay);
 		int count = 1;
@@ -2453,13 +2699,14 @@ public:
 
 	static int postMove(std::shared_ptr<Piece> piece, pieceVector& pieceList,
 		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, int& fullMoves, int& halfMoves, sf::Sprite& checkSprite,
-		textureVector extraTextures, std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed,
+		textureVector extraTextures, std::vector<basicBitboard> allPositionsPlayed,
 		std::shared_ptr<Piece>& selectedPiece, std::shared_ptr<Piece>& capturePiece, sf::RenderWindow& window, sf::Sprite& board, sf::Sprite& lastMoveStart, sf::Sprite& lastMoveDest,
-		int wKRook, int wQRook, int bKRook, int bQRook, bool standardPosition, bool checksEnabled, bool castlingEnabled, Variant variant) {
+		int wKRook, int wQRook, int bKRook, int bQRook, bool standardPosition, bool checksEnabled, bool castlingEnabled, int& whiteChecks, int& blackChecks, Variant variant) {
 
 		bool capturedAtomic = false;
 		if (capturePiece != nullptr) {
 			if (variant == Atomic) {
+				halfMoves = 0;
 				capturedAtomic = true;
 				for (auto it2 = pieceList.begin(); it2 != pieceList.end(); it2++) {
 					std::shared_ptr<Piece> p = *it2;
@@ -2568,6 +2815,12 @@ public:
 
 			next:
 				if (check) {
+					if (whiteToPlay) {
+						blackChecks++;
+					}
+					else {
+						whiteChecks++;
+					}
 					window.clear();
 					window.draw(board);
 					window.draw(lastMoveStart);
@@ -2631,7 +2884,7 @@ public:
 		}
 		Main::setExtraSprites(pieceList, extraTextures);
 		whiteToPlay = !whiteToPlay;
-		std::cout << Main::determineEnd(pieceList, whiteToPlay, halfMoves, variant) << std::endl;
+		std::cout << Main::determineEnd(pieceList, whiteToPlay, halfMoves, whiteChecks, blackChecks, variant) << std::endl;
 		moving = false;
 		auto pos = Main::savePosition(pieceList, whiteToPlay);
 		int count = 1;
@@ -2651,9 +2904,9 @@ public:
 
 	static int postCastle(std::shared_ptr<King> piece, std::shared_ptr<Piece> piece2, pieceVector& pieceList,
 		float boardOffset, float boardMultiplier, bool& whiteToPlay, bool& check, bool& moving, int& fullMoves, int& halfMoves, sf::Sprite& checkSprite,
-		textureVector extraTextures, std::vector<std::pair<std::array<std::array<int, 8>, 8>, bool>> allPositionsPlayed,
+		textureVector extraTextures, std::vector<basicBitboard> allPositionsPlayed,
 		std::shared_ptr<Piece>& selectedPiece, sf::RenderWindow& window, sf::Sprite& board, sf::Sprite& lastMoveStart, sf::Sprite& lastMoveDest,
-		int wKRook, int wQRook, int bKRook, int bQRook, bool standardPosition, bool checksEnabled, bool castlingEnabled, Variant variant) {
+		int wKRook, int wQRook, int bKRook, int bQRook, bool standardPosition, bool checksEnabled, bool castlingEnabled, int& whiteChecks, int& blackChecks, Variant variant) {
 		if (piece->isBlack()) {
 			fullMoves++;
 		}
@@ -2711,6 +2964,12 @@ public:
 
 		next:
 			if (check) {
+				if (whiteToPlay) {
+					blackChecks++;
+				}
+				else {
+					whiteChecks++;
+				}
 				window.clear();
 				window.draw(board);
 				window.draw(lastMoveStart);
@@ -2736,7 +2995,7 @@ public:
 		}
 		Main::setExtraSprites(pieceList, extraTextures);
 		whiteToPlay = !whiteToPlay;
-		std::cout << Main::determineEnd(pieceList, whiteToPlay, halfMoves, variant) << std::endl;
+		std::cout << Main::determineEnd(pieceList, whiteToPlay, halfMoves, whiteChecks, blackChecks, variant) << std::endl;
 		moving = false;
 		auto pos = Main::savePosition(pieceList, whiteToPlay);
 		int count = 1;

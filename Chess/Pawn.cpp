@@ -11,12 +11,12 @@ Pawn::Pawn(int x, int y, float scale, float boardOffset, float boardMultiplier, 
     blackIdentifier = "♟";
     pointValue = 1;
     if (isWhite()) {
-        if (y == 2) {
+        if (y == 1 || y == 2) {
             hasMoved = false;
         }
     }
     else {
-        if (y == 7) {
+        if (y == 7 || y == 8) {
             hasMoved = false;
         }
     }
@@ -33,12 +33,12 @@ Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float boardOffset, f
     blackIdentifier = "♟";
     pointValue = 1;
     if (isWhite()) {
-        if (y == 2) {
+        if (y == 1 || y == 2) {
             hasMoved = false;
         }
     }
     else {
-        if (y == 7) {
+        if (y == 7 || y == 8) {
             hasMoved = false;
         }
     }
