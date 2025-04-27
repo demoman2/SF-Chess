@@ -28,6 +28,9 @@ namespace Chess
 		KOTH,
 		Crazyhouse
 	};
+	inline PColor operator!(PColor c) {
+		return static_cast<PColor>(c + 1 % 2);
+	}
 }
 using namespace Chess;
 class Piece
