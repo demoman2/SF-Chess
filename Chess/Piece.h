@@ -9,7 +9,7 @@ namespace Chess
 		Black
 	};
 	enum Endgame {
-		Undetermined,
+		None,
 		Stalemate,
 		Checkmate,
 		InsufficientMaterial,
@@ -46,7 +46,7 @@ public:
 	std::string whiteIdentifier, blackIdentifier;
 	std::vector<sf::Vector2i> availablePositions, availableCapturePositions;
 	std::vector<sf::Sprite> selectionSquares, captureSquares;
-	Piece(int x, int y, float scale, float boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated);
+	Piece(int x, int y, float scale, float boardXOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated);
 	virtual ~Piece();
 	virtual std::shared_ptr<Piece> clone() const = 0;
 	// virtual std::vector calculatePositions() = 0;
@@ -60,7 +60,7 @@ public:
 	std::vector<sf::Vector2i> getAvailablePositions() { return availablePositions; }
 	std::vector<sf::Vector2i> getAvailableCapturePositions() { return availableCapturePositions; }
 	float getBoardMultiplier() const { return boardMultiplier; }
-	float getBoardOffset() const { return boardOffset; }
+	float getBoardOffset() const { return boardXOffset; }
 	float getScale() const { return scale; }
 	bool contains(sf::Vector2i pos) { return sprite.getGlobalBounds().contains((sf::Vector2f)pos); }
 	bool contains(sf::Vector2f pos) { return sprite.getGlobalBounds().contains(pos); }
@@ -77,7 +77,7 @@ public:
 	};
 
 private:
-	float boardMultiplier, scale, boardOffset;
+	float boardMultiplier, scale, boardXOffset;
 	sf::Texture texture;
 	sf::Sprite sprite, ghostSprite;
 	sf::Color ghostSpriteColor = sf::Color(255, 255, 255, 76);

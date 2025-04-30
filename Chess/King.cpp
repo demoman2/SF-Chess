@@ -1,7 +1,7 @@
 ﻿#include "King.h"
 
-King::King(int x, int y, float scale, float boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
-    : Piece(x, y, scale, boardOffset, boardMultiplier, color, texture, animated), canCastleK(false), canCastleQ(false), canNeverCastleK(false), canNeverCastleQ(false), inCheck(false)
+King::King(int x, int y, float scale, float boardXOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
+    : Piece(x, y, scale, boardXOffset, boardMultiplier, color, texture, animated), canCastleK(false), canCastleQ(false), canNeverCastleK(false), canNeverCastleQ(false), inCheck(false)
 {
     name = "King";
     whiteIdentifier = "♔";
@@ -9,8 +9,8 @@ King::King(int x, int y, float scale, float boardOffset, float boardMultiplier, 
     pointValue = 10000;
 }
 
-King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
-    : Piece(x, y, scale, boardOffset, boardMultiplier, color, texture, animated), canCastleK(false), canCastleQ(false), inCheck(false)
+King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, float boardXOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
+    : Piece(x, y, scale, boardXOffset, boardMultiplier, color, texture, animated), canCastleK(false), canCastleQ(false), inCheck(false)
 {
     name = "King";
     this->canNeverCastleK = canNeverCastleK;
