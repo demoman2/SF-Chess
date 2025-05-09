@@ -1,9 +1,10 @@
 ﻿#include "Bishop.h"
 
-Bishop::Bishop(int x, int y, float scale, float boardXOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
-	: Piece(x, y, scale, boardXOffset, boardMultiplier, color, texture, animated)
+Bishop::Bishop(int x, int y, float scale, sf::Vector2f boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
+	: Piece(x, y, scale, boardOffset, boardMultiplier, color, texture, animated)
 {
     name = "Bishop";
+    id = 'b';
     whiteIdentifier = "♗";
     blackIdentifier = "♝";
     pointValue = 3;

@@ -1,16 +1,17 @@
 #include "Piece.h"
+#include "Board.h"
 #include "Main.h"
 
-Piece::Piece(int x, int y, float scale, float boardXOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
-	: sprite(texture), position(x, y), color(color), x(x), y(y), scale(scale), boardXOffset(boardXOffset), boardMultiplier(boardMultiplier), texture(texture), ghostSprite(texture),
-	hasMoved(false), canMove(false)
+Piece::Piece(int x, int y, float scale, sf::Vector2f boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
+	: sprite(texture), position(x, y), color(color), x(x), y(y), texture(texture), ghostSprite(texture),
+	hasMoved(false), canMove(false), promoted(false), pointValue(0)
 {
 	if (animated) {
-		sprite.setPosition(sf::Vector2f{ boardXOffset + ((4.5f - 0.5f) * boardMultiplier), (reverseY(4.5f) - 0.5f) * boardMultiplier });
-		animationTarget = sf::Vector2f{ boardXOffset + ((x - 0.5f) * boardMultiplier), (reverseY(y) - 0.5f) * boardMultiplier };
+		sprite.setPosition(Main::getGlobalPositionF(sf::Vector2f{ 4.5f, 4.5f }, boardOffset, boardMultiplier));
+		animationTarget = Main::getGlobalPosition({x, y}, boardOffset, boardMultiplier);
 	}
 	else {
-		sprite.setPosition(sf::Vector2f{ boardXOffset + ((x - 0.5f) * boardMultiplier), (reverseY(y) - 0.5f) * boardMultiplier });
+		sprite.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
 	}
 	sprite.setOrigin(sprite.getLocalBounds().getCenter());
 	sprite.setScale(sf::Vector2f(scale, scale));
@@ -52,10 +53,26 @@ void Piece::setLocalPosition(sf::Vector2i pos)
 	position = { pos };
 }
 
-void Piece::setGlobalPosition(sf::Vector2f pos)
+void Piece::setGlobalPosition(sf::Vector2f pos, sf::Vector2f boardOffset, float boardMultiplier)
 {
 	if (this != nullptr) {
-		ghostSprite.setPosition(Main::getGlobalPosition(getLocalPosition(), boardXOffset, boardMultiplier));
+		ghostSprite.setPosition(Main::getGlobalPosition(getLocalPosition(), boardOffset, boardMultiplier));
 		sprite.setPosition(pos);
+	}
+}
+
+void Piece::setPosition(sf::Vector2f pos)
+{
+	if (this != nullptr) {
+		ghostSprite.setPosition(pos);
+		sprite.setPosition(pos);
+	}
+}
+
+void Piece::setPosition(sf::Vector2i pos)
+{
+	if (this != nullptr) {
+		ghostSprite.setPosition((sf::Vector2f)pos);
+		sprite.setPosition((sf::Vector2f)pos);
 	}
 }

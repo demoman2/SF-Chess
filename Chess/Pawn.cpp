@@ -1,10 +1,11 @@
 ﻿#include "Pawn.h"
 
-Pawn::Pawn(int x, int y, float scale, float boardXOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
-    : Piece(x, y, scale, boardXOffset, boardMultiplier, color, texture, animated)
+Pawn::Pawn(int x, int y, float scale, sf::Vector2f boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
+    : Piece(x, y, scale, boardOffset, boardMultiplier, color, texture, animated)
 {
     hasMoved = true;
     name = "Pawn";
+    id = 'p';
     enPassantTarget = false;
     capturingEnPassant = false;
     whiteIdentifier = "♙";
@@ -22,11 +23,12 @@ Pawn::Pawn(int x, int y, float scale, float boardXOffset, float boardMultiplier,
     }
 }
 
-Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, float boardXOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated) :
-    Piece(x, y, scale, boardXOffset, boardMultiplier, color, texture, animated)
+Pawn::Pawn(bool enPassantTarget, int x, int y, float scale, sf::Vector2f boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated) :
+    Piece(x, y, scale, boardOffset, boardMultiplier, color, texture, animated)
 {
     hasMoved = true;
     name = "Pawn";
+    id = 'p';
     this->enPassantTarget = enPassantTarget;
     capturingEnPassant = false;
     whiteIdentifier = "♙";
