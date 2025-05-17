@@ -57,6 +57,7 @@ public:
 					}
 				}
 			}
+			board.pieceMoving = true;
 			switch (std::tolower(move.at(0))) {
 				// Bishop, King, Knight, Pawn, Queen, Rook
 				// Black --> White
@@ -80,7 +81,7 @@ public:
 			}
 			case 'p':
 			{
-				std::shared_ptr<Pawn> pawn = std::make_shared<Pawn>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, col, board.pieceTextures.at(9 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), false);
+				std::shared_ptr<Pawn> pawn = std::make_shared<Pawn>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, col, board.pieceTextures.at(9 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), false );
 				board.pieceList.push_back(pawn);
 				board.calculatingPos = true;
 				std::thread postMoveF(Main::postMove, pawn, std::ref(board));
@@ -132,13 +133,14 @@ public:
 				if (piece->isBlack()) {
 					offset = -6;
 				}
+				board.pieceMoving = true;
 				char c = move.back();
 				switch (c) {
 					// Bishop, King, Knight, Pawn, Queen, Rook
 					// Black --> White
 				case 'b':
 				{
-					std::shared_ptr<Bishop> bishop = std::make_shared<Bishop>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(6 + offset), false);
+					std::shared_ptr<Bishop> bishop = std::make_shared<Bishop>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(6 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), false);
 					bishop->promoted = true;
 					bishop->setTarget(getGlobalPosition(dest, board.boardOffset, board.boardMultiplier));
 					board.pieceList.push_back(bishop);
@@ -146,7 +148,7 @@ public:
 				}
 				case 'q':
 				{
-					std::shared_ptr<Queen> queen = std::make_shared<Queen>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(10 + offset), false);
+					std::shared_ptr<Queen> queen = std::make_shared<Queen>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(10 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), false);
 					queen->promoted = true;
 					queen->setTarget(getGlobalPosition(dest, board.boardOffset, board.boardMultiplier));
 					board.pieceList.push_back(queen);
@@ -154,7 +156,7 @@ public:
 				}
 				case 'k':
 				{
-					std::shared_ptr<King> king = std::make_shared<King>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(7 + offset), false);
+					std::shared_ptr<King> king = std::make_shared<King>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(7 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), false);
 					king->promoted = true;
 					king->setTarget(getGlobalPosition(dest, board.boardOffset, board.boardMultiplier));
 					board.pieceList.push_back(king);
@@ -162,7 +164,7 @@ public:
 				}
 				case 'n':
 				{
-					std::shared_ptr<Knight> knight = std::make_shared<Knight>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(8 + offset), false);
+					std::shared_ptr<Knight> knight = std::make_shared<Knight>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(8 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), false);
 					knight->promoted = true;
 					knight->setTarget(getGlobalPosition(dest, board.boardOffset, board.boardMultiplier));
 					board.pieceList.push_back(knight);
@@ -170,7 +172,7 @@ public:
 				}
 				case 'r':
 				{
-					std::shared_ptr<Rook> rook = std::make_shared<Rook>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(11 + offset), false);
+					std::shared_ptr<Rook> rook = std::make_shared<Rook>(dest.x, dest.y, board.pieceScale, board.boardOffset, board.boardMultiplier, piece->color, board.pieceTextures.at(11 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), false);
 					rook->promoted = true;
 					rook->setTarget(getGlobalPosition(dest, board.boardOffset, board.boardMultiplier));
 					board.pieceList.push_back(rook);
@@ -196,6 +198,7 @@ public:
 						capture.reset();
 					}
 				}
+				board.pieceMoving = true;
 				board.lastMoveStart.setPosition(piece->getGlobalPosition());
 				board.lastMoveDest.setPosition(getGlobalPosition(dest, board.boardOffset, board.boardMultiplier));
 				if (board.check) { board.check = false; }
@@ -438,7 +441,9 @@ public:
 	// Bishop, King, Knight, Pawn, Queen, Rook
 	static void loadPieceSet(sf::Image spriteSheet, textureVector& pieceTextures, int pieceSize) {
 		for (size_t i = 0; i < pieceTextures.size(); i++) {
-			pieceTextures.at(i).get().setSmooth(true);
+			if (!pieceTextures.at(i).get().isSmooth()) {
+				pieceTextures.at(i).get().setSmooth(true);
+			}
 			switch (i) {
 				// Black
 			case 0:
@@ -2697,6 +2702,8 @@ public:
 
 	static void postMove(std::shared_ptr<Piece> piece, Board& board) {
 		board.whiteToPlay = !board.whiteToPlay;
+		board.lastMoveStartLocal = (sf::Vector2u)getLocalPosition(board.lastMoveStart.getPosition(), board.boardOffset, board.boardMultiplier);
+		board.lastMoveDestLocal = (sf::Vector2u)getLocalPosition(board.lastMoveDest.getPosition(), board.boardOffset, board.boardMultiplier);
 		if (piece->isBlack()) {
 			board.fullMoves++;
 		}
@@ -2816,6 +2823,7 @@ public:
 			// Threefold Repetition
 		}
 		board.allPositionsPlayed.push_back(pos);
+		board.pieceMoving = false;
 		board.calculatingPos = false;
 	}
 
@@ -2848,6 +2856,7 @@ public:
 			// Threefold Repetition
 		}
 		board.allPositionsPlayed.push_back(pos);
+		board.pieceMoving = false;
 		board.calculatingPos = false;
 	}
 

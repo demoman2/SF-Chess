@@ -60,6 +60,19 @@ struct DropPiece {
 			text.setFillColor(sf::Color(text.getFillColor().r, text.getFillColor().g, text.getFillColor().b, 255));
 		}
 	}
+	void move(float x, float y) {
+		sprite.move({ x, y });
+		textBG.move({ x, y });
+		text.move({ x, y });
+	}
+	void scale(textureVector& pieceTextures, float dropPieceSquareSize, sf::Sprite& dropPieceBackground, float bgStart, int i) {
+		sprite.setScale({ dropPieceSquareSize / pieceTextures.at(tex).get().getSize().x, dropPieceSquareSize / pieceTextures.at(3).get().getSize().y });
+		textBG.setScale(sprite.getScale());
+		text.setScale({ sprite.getScale().x * 3, sprite.getScale().y * 3 });
+		sprite.setPosition({ dropPieceBackground.getPosition().x, bgStart + dropPieceSquareSize * i });
+		textBG.setPosition(sprite.getPosition());
+		text.setPosition(sprite.getPosition() + sf::Vector2f{ dropPieceSquareSize * 0.35f, dropPieceSquareSize * 0.32f });
+	}
 	bool mouseSelecting(sf::Vector2i mousePos) const {
 		return count != 0 && sprite.getGlobalBounds().contains((sf::Vector2f)mousePos);
 	}
@@ -84,14 +97,14 @@ public:
 	Variant variant;
 	pieceVector pieceList;
 	textureVector pieceTextures;
-	int boardSize, halfMoves, fullMoves, whiteChecks, blackChecks, wKRook, wQRook, bKRook, bQRook;
-	float sizeMultiplier, boardScale, pieceScale, boardMultiplier, threshold, pieceSize;
+	int pieceSet, boardSet, boardSize, halfMoves, fullMoves, whiteChecks, blackChecks, wKRook, wQRook, bKRook, bQRook;
+	float sizeMultiplier, boardScale, pieceScale, startingScale, boardMultiplier, threshold, pieceSize;
 	bool whiteToPlay, playerSideWhite, unpromoting, kingPromotionEnabled, endgamePosition, Chess960Enabled, StockfishEnabled, AI_Only,
 		calculatingPos, hourGlass, eighthRankWhite, movePlayed, mouseSelecting,
 		mouseClicked, pieceMoving, check, promoting, animationFinished,
-		pieceSelectionLock, dropPieceLock, standardPosition, checksEnabled, castlingEnabled, dropsEnabled, animated;
-	sf::Vector2f boardOffset, dropPieceSquareSize, dropPieceWidth, dropPieceHeight;
-	sf::Vector2u dropPieceCount;
+		pieceSelectionLock, dropPieceLock, standardPosition, checksEnabled, castlingEnabled, dropsEnabled, scaleMode, mouseMode, animated;
+	sf::Vector2f boardOffset, dropPieceSquareSize, dropPieceWidth, dropPieceHeight, startingOffset, offset;
+	sf::Vector2u dropPieceCount, windowSize, lastMoveStartLocal, lastMoveDestLocal;
 	sf::Sprite boardSprite, selectedPieceBackground, checkSprite, lastMoveStart, lastMoveDest, kothBackground, kothShadow, rankBackground, rankShadowTop,
 		whiteCheckCount, blackCheckCount, dropPieceBackgroundW, dropPieceBackgroundB;
 	sf::Text whiteCheckText, blackCheckText;
@@ -117,6 +130,12 @@ public:
 	void calculatePositions(bool init);
 	void setupDropSprites();
 	void calculateDropPositions();
+	void moveBy(float x, float y);
+	void setPosition(sf::Vector2f pos);
+	void resetTransform();
+	void scale(float scale);
+	void setBoardTexture(sf::Image& boardSheet, int set);
+	void setPieceSheet(std::vector<sf::Image> sheets, int set);
 	void draw(sf::RenderWindow& window);
 	~Board();
 

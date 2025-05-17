@@ -98,10 +98,11 @@ int main()
 		kothBackgroundTexture, kothShadowTexture, rankBackgroundTexture, rankShadowTopTexture, checkCount, dropBackgroundTexture, dropTextBackground };
 
 	// Board Customization
-	int PIECE_SET = 1; // 0 - 3
+	Variant VARIANT = Crazyhouse;
+	int PIECE_SET = 2; // 0 - 3
 	int BOARD_SET = 19; // 0 - 23
 	bool AI = true; 
-	bool AI_ONLY = true;
+	bool AI_ONLY = false;
 	bool CHESS960 = true;
 	bool ENDGAME = false;
 	bool ANIMATED = true;
@@ -111,7 +112,7 @@ int main()
 	std::optional<std::string> FEN = std::nullopt;
 	std::optional<bool> WHITE = std::nullopt;
 		
-	Board board{ Crazyhouse, FEN, X_OFFSET, Y_OFFSET, boardSize, ANIMATED, window.getSize(), BOARD_SCALE, BOARD_SET, PIECE_SET, pieceSpriteSheets, boardSpriteSheet, textFont, boardTexture, AI, AI_ONLY, WHITE, CHESS960, ENDGAME, pieceTextures, boardTextures};
+	Board board{ VARIANT, FEN, X_OFFSET, Y_OFFSET, boardSize, ANIMATED, window.getSize(), BOARD_SCALE, BOARD_SET, PIECE_SET, pieceSpriteSheets, boardSpriteSheet, textFont, boardTexture, AI, AI_ONLY, WHITE, CHESS960, ENDGAME, pieceTextures, boardTextures};
 
 	// Vars
 	sf::Vector2f selectedPos{ 0.0f, 0.0f };
@@ -143,7 +144,7 @@ int main()
 						}
 					}
 					std::shared_ptr<Piece> p = Main::getPieceFromPosition(sf::Vector2i(selectedPos), board.pieceList);
-					if (p != nullptr && board.promotePiece == nullptr && !board.pieceMoving && board.animationFinished && !board.calculatingPos) {
+					if (p != nullptr && board.promotePiece == nullptr && !board.pieceMoving && board.animationFinished && !board.calculatingPos && !board.mouseMode) {
 						// Side to Play == Color
 						if (board.whiteToPlay == (p->color == PColor::White)) {
 							if (board.selectedPiece != nullptr && board.selectedPiece->name == "King") {
@@ -167,14 +168,40 @@ int main()
 					}
 				}
 				else if (keyPressed->code == sf::Keyboard::Key::D) {
-
+					if (!board.pieceMoving && board.animationFinished && !board.calculatingPos) {
+						board.scale(1.2f);
+					}
+				}
+				else if (keyPressed->code == sf::Keyboard::Key::I) {
+					if (!board.pieceMoving && board.animationFinished && !board.calculatingPos) {
+						board.scale(0.8f);
+					}
 				}
 				else if (keyPressed->code == sf::Keyboard::Key::Q) {
 					window.close();
 				}
+				else if (keyPressed->code == sf::Keyboard::Key::R) {
+					board.scaleMode = !board.scaleMode;
+				}
+				else if (keyPressed->code == sf::Keyboard::Key::T) {
+					board.resetTransform();
+				}
+				else if (keyPressed->code == sf::Keyboard::Key::M) {
+					board.mouseMode = !board.mouseMode;
+				}
+				else if (keyPressed->code == sf::Keyboard::Key::P) {
+					++board.pieceSet %= pieceSpriteSheets.size();
+					board.setPieceSheet(pieceSpriteSheets, board.pieceSet);
+				}
+				else if (keyPressed->code == sf::Keyboard::Key::B) {
+					++board.boardSet %= 23;
+					board.setBoardTexture(boardSpriteSheet, board.boardSet);
+				}
 			}
 			else if (event->is<sf::Event::FocusLost>()) {
-				// Main::block_until_gained_focus(window);
+				if (!board.calculatingPos) {
+					Main::block_until_gained_focus(window);
+				}
 			}
 		}
 
@@ -857,14 +884,12 @@ int main()
 					std::shared_ptr<Piece> piece = *it2;
 					if (piece != nullptr && piece->targetPos.has_value()) {
 						if (piece->getGlobalPosition() == piece->targetPos.value()) {
-							board.pieceMoving = false;
 							board.calculatingPos = true;
 							std::thread postMoveF(Main::postMove, piece, std::ref(board));
 							postMoveF.detach();
 							break;
 						}
 						else {
-							board.pieceMoving = true;
 							if (piece->name == "Pawn") {
 								std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
 								if (pawn->capturingEnPassant) {
@@ -915,7 +940,7 @@ int main()
 		}
 
 		// Selection Sprites
-		if (!board.pieceMoving && board.selectedPiece != nullptr && !board.promoting && !board.calculatingPos) {
+		if (!board.pieceMoving && board.selectedPiece != nullptr && !board.promoting && !board.calculatingPos && !board.mouseMode) {
 			for (auto& sprite : board.selectedPiece->selectionSquares) {
 				if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 					board.mouseSelecting = true;
@@ -965,7 +990,7 @@ int main()
 			}
 		}
 		// Click Detection
-		if (!board.pieceMoving && board.mouseClicked && board.animationFinished && !board.calculatingPos) {
+		if (!board.pieceMoving && board.mouseClicked && board.animationFinished && !board.calculatingPos && !board.mouseMode) {
 			if (board.selectedPiece != nullptr) {
 				if (board.selectedPiece->contains(mousePos)) {
 					board.pieceSelectionLock = true;
@@ -1014,6 +1039,7 @@ int main()
 								board.lastMoveStart.setPosition(board.selectedPiece->getGlobalPosition());
 								board.lastMoveDest.setPosition(sprite.getPosition());
 							}
+							board.pieceMoving = true;
 							board.selectedPiece->setTarget(sprite.getPosition());
 							board.selectedPiece.reset();
 						}
@@ -1060,6 +1086,7 @@ int main()
 									piece->setGhostSpriteVisible(true, false);
 								}
 							};
+							board.pieceMoving = true;
 							board.selectedPiece->setTarget(sprite.getPosition());
 							board.selectedPiece.reset();
 						}
@@ -1093,6 +1120,7 @@ int main()
 										king->setTarget(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, board.boardOffset, board.boardMultiplier));
 										board.castleKing = king;
 										board.castleRook = rook;
+										board.pieceMoving = true;
 									}
 								}
 								else if (Main::getLocalPosition(sprite.getPosition(), board.boardOffset, board.boardMultiplier).x == 7) {
@@ -1102,6 +1130,7 @@ int main()
 										king->setTarget(Main::getGlobalPosition({ 7, king->getLocalPosition().y }, board.boardOffset, board.boardMultiplier));
 										board.castleKing = king;
 										board.castleRook = rook;
+										board.pieceMoving = true;
 									}
 								}
 								board.selectedPiece.reset();
@@ -1177,6 +1206,7 @@ int main()
 												king->setTarget(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, board.boardOffset, board.boardMultiplier));
 												board.castleKing = king;
 												board.castleRook = rook;
+												board.pieceMoving = true;
 											}
 										}
 									}
@@ -1207,6 +1237,7 @@ int main()
 												king->setTarget(Main::getGlobalPosition({ 7, king->getLocalPosition().y }, board.boardOffset, board.boardMultiplier));
 												board.castleKing = king;
 												board.castleRook = rook;
+												board.pieceMoving = true;
 											}
 										}
 										else if (Main::getLocalPosition(sprite.getPosition(), board.boardOffset, board.boardMultiplier).x == board.bQRook) {
@@ -1235,6 +1266,7 @@ int main()
 												king->setTarget(Main::getGlobalPosition({ 3, king->getLocalPosition().y }, board.boardOffset, board.boardMultiplier));
 												board.castleKing = king;
 												board.castleRook = rook;
+												board.pieceMoving = true;
 											}
 										}
 									}
@@ -1275,6 +1307,7 @@ int main()
 								pawn->capturingEnPassant = true;
 								board.selectedPiece->setTarget(sprite.getPosition());
 								board.selectedPiece.reset();
+								board.pieceMoving = true;
 							}
 						}
 					}
@@ -1282,6 +1315,43 @@ int main()
 			}
 			if (Main::getPieceFromPosition(sf::Vector2i(selectedPos), board.pieceList) == nullptr) {
 				board.selectedPiece.reset();
+			}
+		}
+
+		if (!board.pieceMoving && board.animationFinished && !board.calculatingPos) {
+			if (!board.scaleMode) {
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
+					board.moveBy(3, 0);
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+					board.moveBy(-3, 0);
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+					board.moveBy(0, -3);
+				}
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+					board.moveBy(0, 3);
+				}
+			}
+			else {
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)) {
+					board.scale(1.01f);
+				}
+				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)) {
+					board.scale(0.99f);
+				}
+				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)) {
+					board.scale(1.01f);
+				}
+				else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)) {
+					board.scale(0.99f);
+				}
+			}
+			if (board.mouseMode) {
+				board.mouseSelecting = true;
+				if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+					board.setPosition((sf::Vector2f)mousePos);
+				}
 			}
 		}
 

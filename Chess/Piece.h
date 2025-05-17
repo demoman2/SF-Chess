@@ -52,7 +52,8 @@ public:
 	Piece(int x, int y, float scale, sf::Vector2f boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated);
 	virtual ~Piece();
 	virtual std::shared_ptr<Piece> clone() const = 0;
-	bool operator==(std::string& s) { return name == s; }
+	bool operator==(std::string& other) { return name == other; }
+	bool operator==(char& other) { return id == other; }
 	// virtual std::vector calculatePositions() = 0;
 
 
@@ -73,7 +74,10 @@ public:
 	void setPosition(sf::Vector2i pos);
 	void addCaptureSquare(sf::Vector2i square) { availableCapturePositions.push_back(square); }
 	void addMoveSquare(sf::Vector2i square) { availablePositions.push_back(square); }
-	sf::Vector2i getLocalPosition() { return position; };
+	void move(float x, float y) { sprite.move({ x, y }); ghostSprite.move({ x, y }); }
+	void updateScale(float scale, sf::Vector2f boardOffset, float boardMultiplier);
+	void setTexture(sf::Texture& texture) { sprite.setTexture(texture); ghostSprite.setTexture(texture); }
+	sf::Vector2i getLocalPosition() const { return position; };
 	sf::Vector2f getGlobalPosition() { return sprite.getPosition(); };
 	void setTarget(std::optional<sf::Vector2f> target) { targetPos = target; };
 

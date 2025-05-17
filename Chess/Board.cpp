@@ -7,30 +7,29 @@ Board::Board(Variant variant, std::optional<std::string> FEN_ID, float xOffset, 
 	selectedPiece(nullptr), capturePiece(nullptr), castleKing(nullptr), castleRook(nullptr), enPassantPiece(nullptr), promotePiece(nullptr),
 	boardTexture(boardT), boardSprite(boardT), selectedPieceBackground(boardTextures.at(5)), checkSprite(boardTextures.at(2)), lastMoveStart(boardTextures.at(3)), lastMoveDest(boardTextures.at(3)), kothBackground(boardTextures.at(8)), kothShadow(boardTextures.at(9)), rankBackground(boardTextures.at(10)), rankShadowTop(boardTextures.at(11)),
 	dropPieceBackgroundW(boardTextures.at(13)), dropPieceBackgroundB(boardTextures.at(13)), whiteCheckCount(boardTextures.at(12)), blackCheckCount(boardTextures.at(12)), whiteCheckText(textFont), blackCheckText(textFont), moveSound(moveBuffer), captureSound(captureBuffer), gameEndSound(gameEndBuffer), threshold(1.0f), pieceSize(320.0f), boardSize(boardSize), halfMoves(0), fullMoves(0), sizeMultiplier(scale), c("assets/other/fairy-stockfish-largeboard_x86-64.exe", bp::std_in < os, bp::std_out > is),
-	whiteChecks(0), blackChecks(0), wKRook(-1), bKRook(-1), wQRook(-1), bQRook(-1), animated(animated), pieceTextures(pTextures), boardTextures(std::make_unique<textureVector>(boardTextures)), textFont(std::make_unique<sf::Font>(textFont)), dropPiece(pieceTextures.at(0), ' ')
+	whiteChecks(0), blackChecks(0), wKRook(-1), bKRook(-1), wQRook(-1), bQRook(-1), animated(animated), pieceTextures(pTextures), boardTextures(std::make_unique<textureVector>(boardTextures)), textFont(std::make_unique<sf::Font>(textFont)), dropPiece(pieceTextures.at(0), ' '), windowSize(windowSize), scaleMode(false), mouseMode(false), pieceSet(pieceSet), boardSet(boardSet)
 {
 	// Setup
 	Main::loadBoard(boardSheet, boardSprite, boardTexture, boardSet, boardSize);
 	Main::loadPieceSet(pieceSheets.at(pieceSet), pieceTextures, pieceSize);
 	// Vars
-	float windowSizeX = windowSize.x;
-	float windowSizeY = windowSize.y;
-	float ScaleX = windowSizeX / (float)boardTexture.getSize().x;
-	float ScaleY = windowSizeY / (float)boardTexture.getSize().y;
+	startingOffset = { xOffset, yOffset };
+	offset += {xOffset, yOffset};
+	float ScaleX = windowSize.x / (float)boardTexture.getSize().x;
+	float ScaleY = windowSize.y / (float)boardTexture.getSize().y;
 	boardScale = std::min(ScaleX, ScaleY) * sizeMultiplier;
+	startingScale = boardScale;
 	pieceScale = boardScale * 128.0f / pieceSize;
-	boardOffset.x = (windowSizeX / 2.0f) - ((boardTexture.getSize().x * boardScale) / 2.0f) + xOffset;
-	boardOffset.y = (windowSizeY / 2.0f) - ((boardTexture.getSize().y * boardScale) / 2.0f) + yOffset;
+	boardOffset.x = (windowSize.x / 2.0f) - ((boardTexture.getSize().x * boardScale) / 2.0f) + xOffset;
+	boardOffset.y = (windowSize.y / 2.0f) - ((boardTexture.getSize().y * boardScale) / 2.0f) + yOffset;
 	boardMultiplier = ((boardTexture.getSize().x * boardScale) / 8);
 
 	// Sprite Setup
 	boardSprite.setScale({ boardScale, boardScale });
 	boardSprite.setOrigin(boardSprite.getLocalBounds().getCenter());
-	boardSprite.setPosition({ windowSizeX / 2.0f + xOffset, windowSizeY / 2.0f + yOffset });
 	promotionOverlay.setSize({ (float)boardSize, (float)boardSize });
 	promotionOverlay.setOrigin(promotionOverlay.getGlobalBounds().getCenter());
 	promotionOverlay.setScale(boardSprite.getScale());
-	promotionOverlay.setPosition(boardSprite.getPosition());
 	promotionOverlay.setFillColor(sf::Color(35, 35, 35, 150));
 	selectedPieceBackground.setOrigin(selectedPieceBackground.getGlobalBounds().getCenter());
 	selectedPieceBackground.setScale(boardSprite.getScale());
@@ -38,21 +37,15 @@ Board::Board(Variant variant, std::optional<std::string> FEN_ID, float xOffset, 
 	checkSprite.setScale(boardSprite.getScale());
 	lastMoveDest.setOrigin(lastMoveDest.getGlobalBounds().getCenter());
 	lastMoveDest.setScale(boardSprite.getScale());
-	lastMoveDest.setPosition({ -1000, -1000 });
 	lastMoveStart.setOrigin(lastMoveStart.getGlobalBounds().getCenter());
 	lastMoveStart.setScale(boardSprite.getScale());
-	lastMoveStart.setPosition({ -1000, -1000 });
 	kothBackground.setOrigin(kothBackground.getGlobalBounds().getCenter());
-	kothBackground.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(4.5f) - 1.0f) * boardMultiplier } + boardOffset);
 	kothBackground.setScale(boardSprite.getScale());
 	kothShadow.setOrigin(kothShadow.getGlobalBounds().getCenter());
-	kothShadow.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(4.5f) - 1.0f) * boardMultiplier } + boardOffset);
 	kothShadow.setScale(boardSprite.getScale());
 	rankBackground.setOrigin(rankBackground.getGlobalBounds().getCenter());
-	rankBackground.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(8.0f) - 0.5f) * boardMultiplier } + boardOffset);
 	rankBackground.setScale(boardSprite.getScale());
 	rankShadowTop.setOrigin(rankShadowTop.getGlobalBounds().getCenter());
-	rankShadowTop.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(8.0f) - 0.5f) * boardMultiplier } + boardOffset);
 	rankShadowTop.setScale(boardSprite.getScale());
 	whiteCheckCount.setOrigin(whiteCheckCount.getGlobalBounds().getCenter());
 	whiteCheckCount.setScale({ boardSprite.getScale().x / 3.0f, boardSprite.getScale().y / 3.0f });
@@ -64,6 +57,15 @@ Board::Board(Variant variant, std::optional<std::string> FEN_ID, float xOffset, 
 	blackCheckText.setOrigin(blackCheckText.getLocalBounds().getCenter());
 	blackCheckText.setCharacterSize(35);
 	blackCheckText.setScale({ sizeMultiplier, sizeMultiplier });
+
+	boardSprite.setPosition({ boardOffset.x + ((boardTexture.getSize().x * boardScale) / 2.0f),  boardOffset.y + ((boardTexture.getSize().y * boardScale) / 2.0f) });
+	lastMoveDest.setPosition({ -1000, -1000 });
+	lastMoveStart.setPosition({ -1000, -1000 });
+	kothBackground.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(4.5f) - 1.0f) * boardMultiplier } + boardOffset);
+	kothShadow.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(4.5f) - 1.0f) * boardMultiplier } + boardOffset);
+	rankBackground.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(8.0f) - 0.5f) * boardMultiplier } + boardOffset);
+	promotionOverlay.setPosition(boardSprite.getPosition());
+	rankShadowTop.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(8.0f) - 0.5f) * boardMultiplier } + boardOffset);
 
 	// Audio
 	moveBuffer.loadFromFile("assets/sound/Move.mp3");
@@ -450,6 +452,112 @@ void Board::calculateDropPositions() {
 			}
 		}
 	}
+}
+
+void Board::moveBy(float x, float y)
+{
+	offset.x += x;
+	offset.y += y;
+	boardOffset.x += x;
+	boardOffset.y += y;
+	for (auto& piece : pieceList) {
+		piece->move(x, y);
+	}
+	boardSprite.move({ x, y });
+	checkSprite.move({ x, y });
+	selectedPieceBackground.move({ x, y });
+	lastMoveStart.move({ x, y });
+	lastMoveDest.move({ x, y });
+	kothBackground.move({ x, y });
+	kothShadow.move({ x, y });
+	rankBackground.move({ x, y });
+	rankShadowTop.move({ x, y });
+	whiteCheckCount.move({ x, y });
+	blackCheckCount.move({ x, y });
+	dropPieceBackgroundW.move({ x, y });
+	dropPieceBackgroundB.move({ x, y });
+	if (variant == Crazyhouse) {
+		for (auto& piece : whiteDropPieces) {
+			piece.move(x, y);
+		}
+		for (auto& piece : blackDropPieces) {
+			piece.move(x, y);
+		}
+	}
+	Main::setExtraSprites(pieceList, pieceScale, boardOffset, boardMultiplier, *boardTextures);
+}
+
+void Board::scale(float scale)
+{
+	boardScale *= scale;
+	boardMultiplier *= scale;
+	pieceScale *= scale;
+	dropPieceSquareSize.x *= scale;
+	dropPieceSquareSize.y *= scale;
+	sizeMultiplier *= scale;
+	boardSprite.setScale({ boardScale, boardScale });
+	boardOffset.x = (windowSize.x / 2.0f) - ((boardTexture.getSize().x * boardScale) / 2.0f) + offset.x;
+	boardOffset.y = (windowSize.y / 2.0f) - ((boardTexture.getSize().y * boardScale) / 2.0f) + offset.y;
+	for (auto& piece : pieceList) {
+		piece->updateScale(pieceScale, boardOffset, boardMultiplier);
+	}
+	checkSprite.setScale({boardScale, boardScale});
+	selectedPieceBackground.setScale({ boardScale, boardScale });
+	lastMoveStart.setScale({ boardScale, boardScale });
+	lastMoveDest.setScale({ boardScale, boardScale });
+	kothBackground.setScale({ boardScale, boardScale });
+	kothShadow.setScale({ boardScale, boardScale });
+	rankBackground.setScale({ boardScale, boardScale });
+	rankShadowTop.setScale({ boardScale, boardScale });
+	whiteCheckCount.setScale({ boardScale / 3.0f, boardScale / 3.0f });
+	blackCheckCount.setScale({ boardScale / 3.0f, boardScale / 3.0f });
+	whiteCheckText.setScale({ sizeMultiplier, sizeMultiplier });
+	blackCheckText.setScale({ sizeMultiplier, sizeMultiplier });
+	dropPieceBackgroundW.setScale({ dropPieceBackgroundW.getScale().x * scale, dropPieceBackgroundW.getScale().y * scale });
+	dropPieceBackgroundB.setScale({ dropPieceBackgroundB.getScale().x * scale, dropPieceBackgroundB.getScale().y * scale });
+	dropPieceBackgroundW.setPosition({ boardOffset.x - (dropPieceSquareSize.x / 1.25f), dropPieceBackgroundW.getPosition().y });
+	dropPieceBackgroundB.setPosition({ boardOffset.x + (dropPieceSquareSize.y / 1.25f + boardTexture.getSize().x * boardScale), dropPieceBackgroundW.getPosition().y });
+	if (variant == Crazyhouse) {
+		sf::Vector2f bgStart = { dropPieceBackgroundW.getPosition().y - (dropPieceBackgroundW.getTexture().getSize().y * dropPieceBackgroundW.getScale().y / 2.0f) + (dropPieceSquareSize.y / 2.0f), dropPieceBackgroundB.getPosition().y - (dropPieceBackgroundB.getTexture().getSize().y * dropPieceBackgroundB.getScale().y / 2.0f) + (dropPieceSquareSize.y / 2.0f) };
+		int i = 0;
+		for (auto& piece : whiteDropPieces) {
+			piece.scale(pieceTextures, dropPieceSquareSize.x, dropPieceBackgroundW, bgStart.x, i);
+			i++;
+		}
+		i = 0;
+		for (auto& piece : blackDropPieces) {
+			piece.scale(pieceTextures, dropPieceSquareSize.y, dropPieceBackgroundB, bgStart.y, i);
+			i++;
+		}
+	}
+	kothBackground.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(4.5f) - 1.0f) * boardMultiplier } + boardOffset);
+	kothShadow.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(4.5f) - 1.0f) * boardMultiplier } + boardOffset);
+	rankBackground.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(8.0f) - 0.5f) * boardMultiplier } + boardOffset);
+	promotionOverlay.setPosition(boardSprite.getPosition());
+	rankShadowTop.setPosition(sf::Vector2f{ ((4.5f - 0.5f) * boardMultiplier), (Main::reverseY(8.0f) - 0.5f) * boardMultiplier } + boardOffset);
+	lastMoveStart.setPosition(Main::getGlobalPosition((sf::Vector2i)lastMoveStartLocal, boardOffset, boardMultiplier));
+	lastMoveDest.setPosition(Main::getGlobalPosition((sf::Vector2i)lastMoveDestLocal, boardOffset, boardMultiplier));
+	Main::setExtraSprites(pieceList, pieceScale, boardOffset, boardMultiplier, *boardTextures);
+}
+
+void Board::setPosition(sf::Vector2f pos)
+{
+	moveBy(pos.x - boardSprite.getPosition().x, pos.y - boardSprite.getPosition().y);
+}
+
+void Board::resetTransform() {
+	setPosition(startingOffset + sf::Vector2f{windowSize.x / 2.0f, windowSize.y / 2.0f});
+	scale(startingScale / boardScale);
+}
+
+void Board::setPieceSheet(std::vector<sf::Image> sheets, int set)
+{
+	Main::loadPieceSet(sheets.at(set), pieceTextures, pieceSize);
+}
+
+void Board::setBoardTexture(sf::Image& boardSheet, int set)
+{
+	Main::loadBoard(boardSheet, boardSprite, boardTexture, set, boardSize);
 }
 
 void Board::draw(sf::RenderWindow& window) {

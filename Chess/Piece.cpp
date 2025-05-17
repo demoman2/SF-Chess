@@ -3,7 +3,7 @@
 #include "Main.h"
 
 Piece::Piece(int x, int y, float scale, sf::Vector2f boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated)
-	: sprite(texture), position(x, y), color(color), x(x), y(y), texture(texture), ghostSprite(texture),
+	: sprite(texture), position(x, y), color(color), x(x), y(y), texture(texture), ghostSprite(texture), id(' '),
 	hasMoved(false), canMove(false), promoted(false), pointValue(0)
 {
 	if (animated) {
@@ -75,4 +75,12 @@ void Piece::setPosition(sf::Vector2i pos)
 		ghostSprite.setPosition((sf::Vector2f)pos);
 		sprite.setPosition((sf::Vector2f)pos);
 	}
+}
+
+void Piece::updateScale(float scale, sf::Vector2f boardOffset, float boardMultiplier)
+{
+	sprite.setScale(sf::Vector2f(scale, scale));
+	ghostSprite.setScale(sf::Vector2f(scale, scale));
+	sprite.setPosition(Main::getGlobalPosition({ x, y }, boardOffset, boardMultiplier));
+	ghostSprite.setPosition(sprite.getPosition());
 }
