@@ -5,12 +5,24 @@ class Pawn : public virtual Piece
 {
 
 public:
-	bool enPassantTarget, capturingEnPassant;
-	std::vector<sf::Vector2i> enPassantPositions;
-	std::vector<sf::Sprite> enPassantSquares;
-	Pawn(int x, int y, float scale, sf::Vector2f boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated);
-	Pawn(bool enPassantTarget, int x, int y, float scale, sf::Vector2f boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated);
+	bool enPassantTarget;
+
+	Pawn(int x, int y, float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, Chess::PColor color, sf::Texture& texture, bool animated, bool promoted, bool reversed);
+	Pawn(bool enPassantTarget, int x, int y, float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, Chess::PColor color, sf::Texture& texture, bool animated, bool promoted, bool reversed);
 	~Pawn();
-	virtual std::shared_ptr<Piece> clone() const override;
+
+	// Virtual Functions
+	std::shared_ptr<Piece> clone() const override;
+	void generateLegalMoves(const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled, bool castlingEnabled, bool chess960, bool hasDoubleCheck) override;
+	bool validatePosition(const pieceVector& pieceList) override;
+	void updateSprites(std::vector<sf::Texture>& boardTextures, sf::Vector2f mousePos, bool& mouseSelecting) override;
+	void afterMovePlayed() override { enPassantTarget = false; }
+
+	std::shared_ptr<std::vector<Chess::Square>> getEnPassantSquares() { return enPassantPositions; }
+
+private:
+	std::shared_ptr<std::vector<Chess::Square>> enPassantPositions;
+	void addEnPassantSquare(sf::Vector2i square);
+	bool isValidPassant(sf::Vector2i square, const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled);
 };
 

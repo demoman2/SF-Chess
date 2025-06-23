@@ -1,144 +1,117 @@
-#pragma once
-#include <SFML/Graphics.hpp>
-#include <SFML/Main.hpp>
+#pragma once 
+#include <SDKDDKVer.h>
 #include <SFML/Audio.hpp>
-#include <iostream>
 #include <fstream>
-#include <vector>
-#include "Piece.h"
+#include <sstream>
+#include "Stockfish.h"
+#include "ChessUtil.h"
 #include "Bishop.h"
-#include "King.h"
 #include "Knight.h"
 #include "Rook.h"
 #include "Queen.h"
 #include "Pawn.h"
-#include <boost/process.hpp>
-#include <boost/asio.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <map>
-
-typedef std::vector<std::shared_ptr<Piece>> pieceVector;
-typedef std::vector<std::reference_wrapper<sf::Texture>> textureVector;
-typedef std::pair<std::array<std::array<int, 8>, 8>, bool> basicBitboard;
-using namespace Chess;
-namespace bp = boost::process::v1;
-
-struct DropPiece {
-	char id;
-	int tex;
-	int count;
-	sf::Sprite sprite, textBG;
-	sf::Text text;
-
-	DropPiece(char id, int tex, textureVector& pieceTextures, textureVector& boardTextures, sf::Font& font, sf::Sprite& dropPieceBackground, float dropPieceSquareSize, float bgStart, size_t i)
-		: id(id), tex(tex), count(0), sprite(pieceTextures.at(tex)), textBG(boardTextures.at(14)), text(font, std::to_string(count), 32)
-	{
-		sprite.setOrigin(sprite.getLocalBounds().getCenter());
-		sprite.setScale({ dropPieceSquareSize / pieceTextures.at(tex).get().getSize().x, dropPieceSquareSize / pieceTextures.at(3).get().getSize().y });
-		sprite.setPosition({ dropPieceBackground.getPosition().x, bgStart + dropPieceSquareSize * i });
-
-		textBG.setOrigin(textBG.getLocalBounds().getCenter());
-		textBG.setScale(sprite.getScale());
-		textBG.setPosition(sprite.getPosition());
-
-		text.setScale({ sprite.getScale().x * 3, sprite.getScale().y * 3 });
-		text.setOrigin(text.getLocalBounds().getCenter());
-		text.setPosition(sprite.getPosition() + sf::Vector2f{ dropPieceSquareSize * 0.35f, dropPieceSquareSize * 0.32f });
-
-	}
-	void update() {
-		text.setString(std::to_string(count));
-		if (count == 0) {
-			sprite.setColor(sf::Color(sprite.getColor().r, sprite.getColor().g, sprite.getColor().b, 26));
-			textBG.setColor(sf::Color(textBG.getColor().r, textBG.getColor().g, textBG.getColor().b, 0));
-			text.setFillColor(sf::Color(text.getFillColor().r, text.getFillColor().g, text.getFillColor().b, 0));
-		}
-		else {
-			sprite.setColor(sf::Color(sprite.getColor().r, sprite.getColor().g, sprite.getColor().b, 255));
-			textBG.setColor(sf::Color(textBG.getColor().r, textBG.getColor().g, textBG.getColor().b, 255));
-			text.setFillColor(sf::Color(text.getFillColor().r, text.getFillColor().g, text.getFillColor().b, 255));
-		}
-	}
-	void move(float x, float y) {
-		sprite.move({ x, y });
-		textBG.move({ x, y });
-		text.move({ x, y });
-	}
-	void scale(textureVector& pieceTextures, float dropPieceSquareSize, sf::Sprite& dropPieceBackground, float bgStart, int i) {
-		sprite.setScale({ dropPieceSquareSize / pieceTextures.at(tex).get().getSize().x, dropPieceSquareSize / pieceTextures.at(3).get().getSize().y });
-		textBG.setScale(sprite.getScale());
-		text.setScale({ sprite.getScale().x * 3, sprite.getScale().y * 3 });
-		sprite.setPosition({ dropPieceBackground.getPosition().x, bgStart + dropPieceSquareSize * i });
-		textBG.setPosition(sprite.getPosition());
-		text.setPosition(sprite.getPosition() + sf::Vector2f{ dropPieceSquareSize * 0.35f, dropPieceSquareSize * 0.32f });
-	}
-	bool mouseSelecting(sf::Vector2i mousePos) const {
-		return count != 0 && sprite.getGlobalBounds().contains((sf::Vector2f)mousePos);
-	}
-	void draw(sf::RenderWindow& window) const {
-		window.draw(sprite);
-		window.draw(textBG);
-		window.draw(text);
-	}
-};
-
-struct PromotePiece {
-
-};
+#include "King.h"
 
 class Board
 {
+	using BasicPosition = std::pair<std::array<std::array<int, 8>, 8>, bool>;
 
-public:
-	std::unique_ptr<textureVector> boardTextures;
-	std::unique_ptr<sf::Font> textFont;
-	sf::Color promotionSquareColor{ 255, 255, 255 }, promotionSquareSelectedColor{ 255, 30, 0 };
-	Variant variant;
-	pieceVector pieceList;
-	textureVector pieceTextures;
-	int pieceSet, boardSet, boardSize, halfMoves, fullMoves, whiteChecks, blackChecks, wKRook, wQRook, bKRook, bQRook;
-	float sizeMultiplier, boardScale, pieceScale, startingScale, boardMultiplier, threshold, pieceSize;
-	bool whiteToPlay, playerSideWhite, unpromoting, kingPromotionEnabled, endgamePosition, Chess960Enabled, StockfishEnabled, AI_Only,
-		calculatingPos, hourGlass, eighthRankWhite, movePlayed, mouseSelecting,
-		mouseClicked, pieceMoving, check, promoting, animationFinished,
-		pieceSelectionLock, dropPieceLock, standardPosition, checksEnabled, castlingEnabled, dropsEnabled, scaleMode, mouseMode, animated;
-	sf::Vector2f boardOffset, dropPieceSquareSize, dropPieceWidth, dropPieceHeight, startingOffset, offset;
-	sf::Vector2u dropPieceCount, windowSize, lastMoveStartLocal, lastMoveDestLocal;
-	sf::Sprite boardSprite, selectedPieceBackground, checkSprite, lastMoveStart, lastMoveDest, kothBackground, kothShadow, rankBackground, rankShadowTop,
-		whiteCheckCount, blackCheckCount, dropPieceBackgroundW, dropPieceBackgroundB;
-	sf::Text whiteCheckText, blackCheckText;
-	sf::Texture boardTexture;
-	sf::RectangleShape promotionOverlay;
-	std::string move, currentMove, moves, FEN;
-	std::pair<sf::Sprite, char> dropPiece;
-	std::vector<basicBitboard> allPositionsPlayed;
+	// Stockfish
+	bool stockfishEnabled, AI_Only, playerSideWhite, isPaused, gameEnded, gameShouldEnd;
 	std::shared_ptr<Piece> selectedPiece, capturePiece, castleKing, castleRook, promotePiece;
-	std::shared_ptr<Pawn> enPassantPiece;
-	std::vector<sf::Sprite> promoteBackgrounds, promoteSprites, dropSquares;
-	std::vector<sf::Text> dropPieceTextsW, dropPieceTextsB;
-	std::vector<DropPiece> whiteDropPieces, blackDropPieces;
-	sf::SoundBuffer moveBuffer, captureBuffer, checkBuffer, gameEndBuffer, explosionBuffer;
-	sf::Sound moveSound, captureSound, gameEndSound;
-	bp::ipstream is;
-	bp::opstream os;
-	bp::child c;
+	Stockfish stockfish;
 
-	Board(Variant variant, std::optional<std::string> FEN_ID, float xOffset, float yOffset, int boardSize, bool animated, sf::Vector2u windowSize, float scale, int boardSet, int pieceSet, std::vector<sf::Image> pieceSheets, sf::Image& boardSheet, sf::Font& textFont, sf::Texture& boardT,
-		bool AI, bool AI_Only, std::optional<bool> playerWhite, bool chess960, bool endGamePosition, textureVector& pTextures, textureVector& boardTextures);
-	void setupFEN(std::optional<std::string> FEN_ID);
-	void calculatePositions(bool init);
+	// UI
+	float sizeMultiplier, boardScale, pieceScale, startingScale, boardMultiplier, captureThreshold;
+	int pieceSet, boardSet, boardTextureSize, pieceSize;
+	bool scaleMode, mouseMode, optionMode, isFlipped, autoFlip;
+
+	sf::Color promotionSquareColor{ 255, 255, 255 }, promotionSquareSelectedColor{ 255, 30, 0 };
+	std::shared_ptr<std::vector<sf::Texture>> boardTextures;
+	std::shared_ptr<sf::Font> textFont;
+	std::vector<sf::Texture> pieceTextures;
+	std::vector<sf::RectangleShape> captureObjects;
+	std::vector<Chess::PromotePiece> promotePieces;
+	sf::Vector2f boardOffset, dropPieceSquareSize, dropPieceWidth, dropPieceHeight, startingOffset, offset, boardSize;
+	sf::Vector2i selectedPos;
+	sf::Vector2u windowSize;
+	sf::Sprite boardSprite, selectedPieceBackground, checkSprite, lastMoveStart, lastMoveDest, kothBackground, kothShadow, rankBackground, rankShadowTop,
+		whiteCheckCount, blackCheckCount, dropPieceBackgroundW, dropPieceBackgroundB, ghostSprite;
+	sf::Text whiteCheckText, blackCheckText, optionChangeText;
+	sf::RectangleShape promotionOverlay, optionChangeOverlay;
+	sf::Texture boardTexture;
+	sf::Clock atomicClock, optionClock;
 	void setupDropSprites();
-	void calculateDropPositions();
+	void setupPromoteSprites();
+	void setExtraSprites();
 	void moveBy(float x, float y);
-	void setPosition(sf::Vector2f pos);
+	void setLocation(sf::Vector2f pos);
 	void resetTransform();
 	void scale(float scale);
 	void setBoardTexture(sf::Image& boardSheet, int set);
 	void setPieceSheet(std::vector<sf::Image> sheets, int set);
+	void setSpritePositions();
+	void flipBoard();
+	void setOptionChange(std::string string, bool v);
+	void setOptionChange(std::string string, int v);
+	void setOptionChange(std::string string, Chess::Variant v);
+
+	// Position
+	Chess::Variant variant;
+	pieceVector pieceList;
+	bool calculatingPos, whiteToPlay, promotionEnabled, endgamePosition, chess960Enabled, eighthRankWhite, hasCheck, hasDoubleCheck, isPromoting, atomicKings, playingMove,
+		pieceMoving, checksEnabled, castlingEnabled, dropsEnabled, isAnimated, animationFinished, shouldPostMove, repeatFEN, holdingPiece, mouseSelecting, mouseClicked, startedStockfish;
+	int halfMoves, fullMoves, whiteChecks, blackChecks, promotionPieceCount;
+	sf::Vector2i lastMoveStartLocal, lastMoveDestLocal;
+	std::string moves, FEN;
+	std::vector<BasicPosition> allPositionsPlayed;
+	sf::Clock cClock;
+	pieceVector generatePositionFromFENID(std::string code);
+	void setupFEN(std::optional<std::string> FEN_ID, bool init);
+	void setVariant(Chess::Variant variant);
+	void calculateDropPositions();
+	void playMove(std::string moveString, bool instantMove);
+	void postMove(pieceVector movePieces);
+	Chess::Endgame determineEnd();
+
+	// Utility
+	std::shared_ptr<Piece> getPieceFromCurrentPosition(sf::Vector2i position) const;
+	sf::Vector2f getGlobalPosition(sf::Vector2i localPos) const;
+	sf::Vector2f getGlobalPosition(sf::Vector2f localPos) const;
+	sf::Vector2i getLocalPosition(sf::Vector2f globalPos) const;
+	int getMoveCount();
+	BasicPosition savePosition();
+
+	sf::Texture& getTextureFromID(char id, Chess::PColor color);
+	std::shared_ptr<Piece> getPieceFromID(char id, sf::Vector2i pos, Chess::PColor color, bool promoted);
+
+	// Variants
+	bool holdingDropPiece;
+	Chess::SDropPiece selectedDropPiece;
+	std::vector<Chess::Square> dropSquares;
+	std::vector<Chess::DropPiece> whiteDropPieces, blackDropPieces;
+	sf::Vector2u dropPieceCount;
+
+	// Audio
+	sf::SoundBuffer moveBuffer, captureBuffer, checkBuffer, gameEndBuffer, explosionBuffer;
+	sf::Sound moveSound, captureSound, gameEndSound;
+
+public:
+	// Update
+	void handleEvent(std::optional<sf::Event> event, sf::Image& boardSpriteSheet, std::vector<sf::Image>& pieceSpriteSheets, bool isFocused);
+	void update(sf::Vector2f mousePos, bool isFocused);
+	void updateS(sf::Vector2f mousePos, bool isFocused); // Update for selected boards only
 	void draw(sf::RenderWindow& window);
+	void generateLegalMoves(bool init);
+	void setCalculating(bool c) { calculatingPos = c; }
+	void mouseModeOff() { mouseMode = false; };
+	bool intersects(sf::Vector2f position);
+	int getMouseCursor(bool& hourGlass) const;
+
+	bool generatingMoves;
+	sf::Texture getBoardT() { return boardTexture; }
+	Board(Chess::Variant variant, std::optional<std::string> FEN_ID, float xOffset, float yOffset, int boardSize, bool animated, sf::Vector2u windowSize, float scale, int boardSet, int pieceSet, std::vector<sf::Image> pieceSheets, sf::Image& boardSheet, sf::Font& textFont, sf::Texture& boardT,
+		bool AI, bool AI_Only, std::optional<bool> playerWhite, bool repeatFEN, bool chess960, bool endGamePosition, std::vector<sf::Texture>& pTextures, std::vector<sf::Texture>& boardTextures, bool init);
 	~Board();
 
-private:
 };
-

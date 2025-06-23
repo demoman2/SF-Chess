@@ -1,89 +1,77 @@
 #pragma once
-#include <SFML/Main.hpp>
 #include <SFML/Graphics.hpp>
+#include "ChessUtil.h"
 
-namespace Chess
-{
-	enum PColor {
-		White,
-		Black
-	};
-	enum Endgame {
-		None,
-		Stalemate,
-		Checkmate,
-		InsufficientMaterial,
-		FiftyMoveRule,
-		ThreefoldRepetition,
-		VariantEnding
-	};
-	enum Variant {
-		Standard,
-		Chess960,
-		Atomic,
-		Antichess,
-		Horde,
-		ThreeCheck,
-		FiveCheck,
-		RacingKings,
-		KOTH,
-		Crazyhouse
-	};
-	inline PColor operator!(PColor c) {
-		return static_cast<PColor>(c + 1 % 2);
-	}
-}
-
-using namespace Chess;
 class Piece
 {
+
 public:
 	std::string name;
 	char id;
 	bool hasMoved, canMove, promoted;
-	int x, y;
 	int pointValue;
-	sf::Vector2i position;
-	std::optional<sf::Vector2f> targetPos = {}, animationTarget = {};
-	PColor color;
-	std::string whiteIdentifier, blackIdentifier;
-	std::vector<sf::Vector2i> availablePositions, availableCapturePositions;
-	std::vector<sf::Sprite> selectionSquares, captureSquares;
-	Piece(int x, int y, float scale, sf::Vector2f boardOffset, float boardMultiplier, PColor color, sf::Texture& texture, bool animated);
+	Chess::PColor color;
+
+	Piece(int x, int y, float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, Chess::PColor color, sf::Texture& texture, bool animated, bool promoted, bool reversed);
+
+	// Virtual Functions
 	virtual ~Piece();
 	virtual std::shared_ptr<Piece> clone() const = 0;
-	bool operator==(std::string& other) { return name == other; }
-	bool operator==(char& other) { return id == other; }
-	// virtual std::vector calculatePositions() = 0;
 
+	virtual void addAttacker(){};
+	virtual void afterMovePlayed(){};
 
-	void draw(sf::RenderWindow& window) { window.draw(sprite); }
-	void drawGhostSprite(sf::RenderWindow& window) { window.draw(ghostSprite); }
-	bool isWhite() const { return color == PColor::White; }
-	bool isBlack() const { return color == PColor::Black; }
-	std::string getIdentifier() const;
-	std::vector<sf::Vector2i> getAvailablePositions() { return availablePositions; }
-	std::vector<sf::Vector2i> getAvailableCapturePositions() { return availableCapturePositions; }
+	virtual void generateLegalMoves(const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled, bool castlingEnabled, bool chess960, bool hasDoubleCheck) = 0;
+	virtual bool validatePosition(const pieceVector& pieceList) = 0;
+
+	// Update
+	void updateScale(float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, float reversed);
+	void updatePosition();
+	void updatePosition(float captureThreshold);
+
+	// Utility
+	bool isWhite() const { return color == Chess::PColor::White; }
+	bool isBlack() const { return color == Chess::PColor::Black; }
 	bool contains(sf::Vector2i pos) { return sprite.getGlobalBounds().contains((sf::Vector2f)pos); }
 	bool contains(sf::Vector2f pos) { return sprite.getGlobalBounds().contains(pos); }
-	int reverseY(int y) { return 9 - y; }
-	void setGhostSpriteVisible(bool visible, bool pieceVisible);
+	bool hasTarget() const { return targetPos.has_value(); }
+	bool hasAnimationTarget() const { return animationTarget.has_value(); }
+	bool IsA(std::string n) const { return name == n; }
+	sf::Vector2f getTarget() { return targetPos.value(); }
+	const sf::Texture& getTexture() { return sprite.getTexture(); }
+	sf::Vector2i getLocalPos() const { return position; };
+	sf::Vector2f getGlobalPos() { return sprite.getPosition(); };
+	std::string getMoveIntersecting(sf::Vector2f position);
+	std::shared_ptr<std::vector<Chess::Square>> getMoveSquares() { return availablePositions; }
+	std::shared_ptr<std::vector<Chess::Square>> getCaptureSquares() { return availableCapturePositions; }
+ 
+	// Main Sprite
 	void setLocalPosition(sf::Vector2i pos);
-	void setGlobalPosition(sf::Vector2f pos, sf::Vector2f boardOffset, float boardMultiplier);
+	void reversePosition(sf::Vector2f boardOffset, sf::Vector2f boardSize);
 	void setPosition(sf::Vector2f pos);
 	void setPosition(sf::Vector2i pos);
-	void addCaptureSquare(sf::Vector2i square) { availableCapturePositions.push_back(square); }
-	void addMoveSquare(sf::Vector2i square) { availablePositions.push_back(square); }
-	void move(float x, float y) { sprite.move({ x, y }); ghostSprite.move({ x, y }); }
-	void updateScale(float scale, sf::Vector2f boardOffset, float boardMultiplier);
-	void setTexture(sf::Texture& texture) { sprite.setTexture(texture); ghostSprite.setTexture(texture); }
-	sf::Vector2i getLocalPosition() const { return position; };
-	sf::Vector2f getGlobalPosition() { return sprite.getPosition(); };
+	void setVisible(bool visible);
 	void setTarget(std::optional<sf::Vector2f> target) { targetPos = target; };
+	void move(float x, float y) { sprite.move({ x, y }); }
+	void draw(sf::RenderWindow& window) { window.draw(sprite); }
 
-private:
+	// Square Sprites
+	void setSprites(sf::Texture& texture, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, float pieceScale, bool reversed);
+	virtual void updateSprites(std::vector<sf::Texture>& boardTextures, sf::Vector2f mousePos, bool& mouseSelecting);
+	void drawSprites(sf::RenderWindow& window);
+
+protected:
+	sf::Vector2i position;
+	std::optional<sf::Vector2f> targetPos = {}, animationTarget = {};
+	std::shared_ptr<std::vector<Chess::Square>> availablePositions, availableCapturePositions;
+	std::vector<std::shared_ptr<std::vector<Chess::Square>>> positionVectors;
+	sf::Sprite sprite;
 	sf::Texture texture;
-	sf::Sprite sprite, ghostSprite;
-	sf::Color ghostSpriteColor = sf::Color(255, 255, 255, 76);
+
+	virtual bool isValidMove(sf::Vector2i square, const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled);
+	virtual bool isValidCapture(sf::Vector2i square, const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled);
+
+	void addMoveSquare(sf::Vector2i square);
+	void addCaptureSquare(sf::Vector2i square);
 
 };
