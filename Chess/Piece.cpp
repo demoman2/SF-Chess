@@ -2,24 +2,51 @@
 #include <iostream>
 
 Piece::Piece(int x, int y, float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, Chess::PColor color, sf::Texture& texture, bool animated, bool promoted, bool reversed)
-	: sprite(texture), position(x, y), color(color), texture(texture), id(' '), hasMoved(false), canMove(false), promoted(promoted), pointValue(0),
-	availablePositions(std::make_shared<std::vector<Chess::Square>>()), availableCapturePositions(std::make_shared<std::vector<Chess::Square>>())
+	: sprite(std::make_unique<sf::Sprite>(texture)), position(x, y), color(color), id(' '), hasMoved(false), canMove(false), promoted(promoted)
 {
-	positionVectors.push_back(availablePositions);
-	positionVectors.push_back(availableCapturePositions);
-	if (animated) {
-		sprite.setPosition(Chess::getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }, boardOffset, boardSize, boardMultiplier, reversed));
-		animationTarget = Chess::getGlobalPosition(sf::Vector2i{ x, y }, boardOffset, boardSize, boardMultiplier, reversed);
+	positionVectors.push_back(&availablePositions);
+	positionVectors.push_back(&availableCapturePositions);
+	if (sprite) {
+		if (animated) {
+			sprite->setPosition(Chess::getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }, boardOffset, boardSize, boardMultiplier, reversed));
+			animationTarget = Chess::getGlobalPosition(sf::Vector2i{ x, y }, boardOffset, boardSize, boardMultiplier, reversed);
+		}
+		else {
+			sprite->setPosition(Chess::getGlobalPosition(sf::Vector2i{ x, y }, boardOffset, boardSize, boardMultiplier, reversed));
+		}
+		sprite->setOrigin(sprite->getLocalBounds().getCenter());
+		sprite->setScale(sf::Vector2f(scale, scale));
 	}
-	else {
-		sprite.setPosition(Chess::getGlobalPosition(sf::Vector2i{ x, y }, boardOffset, boardSize, boardMultiplier, reversed));
+}
+
+Piece::Piece(const Piece& other, bool copySprite, bool copySquares) : sprite(copySprite ? std::make_unique<sf::Sprite>(*other.sprite) : nullptr), position(other.position), color(other.color), id(other.id), hasMoved(other.hasMoved),
+	canMove(other.canMove), promoted(other.promoted)
+{
+	if (copySquares) {
+		availablePositions = other.availablePositions;
+		availableCapturePositions = other.availableCapturePositions;
 	}
-	sprite.setOrigin(sprite.getLocalBounds().getCenter());
-	sprite.setScale(sf::Vector2f(scale, scale));
+	positionVectors.push_back(&this->availablePositions);
+	positionVectors.push_back(&this->availableCapturePositions);
+}
+
+bool Piece::operator==(const Piece& other) const
+{
+	return id == other.id && color == other.color && position == other.position;
 }
 
 Piece::~Piece()
 {
+}
+
+void Piece::makeSprite(const sf::Texture& texture, float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, bool reversed)
+{
+	if (!sprite) {
+		sprite = std::make_unique<sf::Sprite>(texture);
+		sprite->setPosition(Chess::getGlobalPosition(position, boardOffset, boardSize, boardMultiplier, reversed));
+		sprite->setOrigin(sprite->getLocalBounds().getCenter());
+		sprite->setScale(sf::Vector2f(scale, scale));
+	}
 }
 
 void Piece::setLocalPosition(sf::Vector2i pos)
@@ -34,35 +61,43 @@ void Piece::reversePosition(sf::Vector2f boardOffset, sf::Vector2f boardSize)
 
 void Piece::setPosition(sf::Vector2f pos)
 {
-	sprite.setPosition(pos);
+	if (sprite) {
+		sprite->setPosition(pos);
+	}
 }
 
 void Piece::setPosition(sf::Vector2i pos)
 {
-	sprite.setPosition((sf::Vector2f)pos);
+	if (sprite) {
+		sprite->setPosition((sf::Vector2f)pos);
+	}
 }
 
 void Piece::addMoveSquare(sf::Vector2i square)
 {
 	std::string m = Chess::convertPositiontoNotation(position) + Chess::convertPositiontoNotation(square);
-	availablePositions->emplace_back(square, m);
+	availablePositions.emplace_back(square, m);
 }
 
 void Piece::addCaptureSquare(sf::Vector2i square)
 {
 	std::string m = Chess::convertPositiontoNotation(position) + Chess::convertPositiontoNotation(square);
-	availableCapturePositions->emplace_back(square, m);
+	availableCapturePositions.emplace_back(square, m);
 }
 
 void Piece::setVisible(bool visible)
 {
-	setSpriteVisible(sprite, visible);
+	if (sprite) {
+		setSpriteVisible(*sprite, visible);
+	}
 }
 
 void Piece::updateScale(float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, float reversed)
 {
-	sprite.setScale(sf::Vector2f(scale, scale));
-	sprite.setPosition(Chess::getGlobalPosition(position, boardOffset, boardSize, boardMultiplier, reversed));
+	if (sprite) {
+		sprite->setScale(sf::Vector2f(scale, scale));
+		sprite->setPosition(Chess::getGlobalPosition(position, boardOffset, boardSize, boardMultiplier, reversed));
+	}
 }
 
 bool Piece::isValidMove(sf::Vector2i square, const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled)
@@ -107,7 +142,7 @@ bool Piece::isValidCapture(sf::Vector2i square, const pieceVector& pieceList, Ch
 				}
 			}
 			else {
-				if (!isValidPosition(newV, color) && !(Chess::getPieceFromPosition(square, pieceList)->IsA("King") && Chess::getPieceFromPosition(square, pieceList)->color != color)) {
+				if (!isValidPosition(newV, color) && !(Chess::getPieceFromPosition(square, pieceList)->hasID('k') && Chess::getPieceFromPosition(square, pieceList)->color != color)) {
 					return false;
 				}
 			}
@@ -132,24 +167,24 @@ void Piece::setSprites(sf::Texture& texture, sf::Vector2f boardOffset, sf::Vecto
 
 void Piece::updateSprites(std::vector<sf::Texture>& boardTextures, sf::Vector2f mousePos, bool& mouseSelecting)
 {
-	for (auto& square : *availablePositions) {
-		if (square.sprite.has_value()) {
-			auto& sprite = square.sprite.value();
-			if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+	for (auto& square : availablePositions) {
+		if (square.sprite != nullptr) {
+			auto& sprite = square.sprite;
+			if (sprite->getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 				mouseSelecting = true;
-				sprite.setTexture(boardTextures.at(4), true);
+				sprite->setTexture(boardTextures.at(4), true);
 			}
-			else { sprite.setTexture(boardTextures.at(0), true); }
+			else { sprite->setTexture(boardTextures.at(0), true); }
 		}
 	}
-	for (auto& square : *availableCapturePositions) {
-		if (square.sprite.has_value()) {
-			auto& sprite = square.sprite.value();
-			if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+	for (auto& square : availableCapturePositions) {
+		if (square.sprite != nullptr) {
+			auto& sprite = square.sprite;
+			if (sprite->getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 				mouseSelecting = true;
-				sprite.setTexture(boardTextures.at(4));
+				sprite->setTexture(boardTextures.at(4));
 			}
-			else { sprite.setTexture(boardTextures.at(1)); }
+			else { sprite->setTexture(boardTextures.at(1)); }
 		}
 	}
 }
@@ -158,33 +193,36 @@ void Piece::drawSprites(sf::RenderWindow& window)
 {
 	for (auto& vec : positionVectors) {
 		for (auto& square : *vec) {
-			std::optional<sf::Sprite> sprite = square.sprite;
-			if (sprite.has_value()) {
-				window.draw(sprite.value());
+			if (square.sprite != nullptr) {
+				window.draw(*square.sprite);
 			}
 		}
 	}
 }
 
-void Piece::updatePosition()
+void Piece::updatePosition(float moveSpeed, float deltaTime)
 {
-	if (animationTarget.has_value()) {
-		if (sprite.getPosition() != animationTarget.value()) {
-			sprite.setPosition(Interpolate(sprite.getPosition(), animationTarget.value(), 0.22f));
+	if (sprite) {
+		if (animationTarget.has_value()) {
+			if (sprite->getPosition() != animationTarget.value()) {
+				sprite->setPosition(Interpolate(sprite->getPosition(), animationTarget.value(), 0.22f * deltaTime * 60));
+			}
+			else {
+				animationTarget = {};
+			}
 		}
-		else {
-			animationTarget = {};
+		else if (targetPos.has_value()) {
+			sprite->setPosition(Interpolate(sprite->getPosition(), targetPos.value(), moveSpeed * 0.25f * deltaTime * 60));
 		}
-	}
-	else if (targetPos.has_value()) {
-		sprite.setPosition(Interpolate(sprite.getPosition(), targetPos.value(), 0.25f));
 	}
 }
 
-void Piece::updatePosition(float captureThreshold)
+void Piece::updatePosition(float moveSpeed, float captureThreshold, float deltaTime)
 {
-	if (targetPos.has_value()) {
-		sprite.setPosition(Interpolate(sprite.getPosition(), targetPos.value(), 0.25f, captureThreshold));
+	if (sprite) {
+		if (targetPos.has_value()) {
+			sprite->setPosition(Interpolate(sprite->getPosition(), targetPos.value(), moveSpeed * 0.25f * deltaTime * 60, captureThreshold));
+		}
 	}
 }
 
@@ -192,7 +230,7 @@ std::string Piece::getMoveIntersecting(sf::Vector2f position)
 {
 	for (auto& vec : positionVectors) {
 		for (auto& square : *vec) {
-			if (square.sprite.has_value() && square.sprite.value().getGlobalBounds().contains(position)) {
+			if (square.sprite != nullptr && square.sprite->getGlobalBounds().contains(position)) {
 				return square.moveString;
 			}
 		}

@@ -1,5 +1,10 @@
 #include "Board.h"
 
+sf::Texture Board::getBoardT()
+{
+	return boardTexture;
+}
+
 std::shared_ptr<Piece> Board::getPieceFromCurrentPosition(sf::Vector2i position) const
 {
 	return Chess::getPieceFromPosition(position, pieceList);
@@ -319,7 +324,7 @@ pieceVector Board::generatePositionFromFENID(std::string code) {
 				break;
 				// En Passant Target
 			case 2:
-				if (modifier.at(0) != '-') {
+				if (modifier.front() != '-') {
 					enPassantTarget = Chess::convertChessNotationtoPosition(modifier);
 				}
 				else {
@@ -355,16 +360,16 @@ pieceVector Board::generatePositionFromFENID(std::string code) {
 			for (auto& l : drop) {
 				if (std::isupper(l)) {
 					for (auto& piece : whiteDropPieces) {
-						if (piece.id == std::tolower(l)) {
-							piece.count += 1;
+						if (piece->id == std::tolower(l)) {
+							piece->count += 1;
 							break;
 						}
 					}
 				}
 				else {
 					for (auto& piece : blackDropPieces) {
-						if (piece.id == l) {
-							piece.count += 1;
+						if (piece->id == l) {
+							piece->count += 1;
 							break;
 						}
 					}
@@ -419,7 +424,8 @@ pieceVector Board::generatePositionFromFENID(std::string code) {
 				}
 				case 'p':
 				{
-					if (enPassantTarget.has_value() && enPassantTarget.value() == sf::Vector2i{ x, y - 1 }) {
+					int off = color == Chess::White ? -1 : 1;
+					if (enPassantTarget.has_value() && enPassantTarget.value() == sf::Vector2i{ x, y + off }) {
 						std::shared_ptr<Pawn> p = std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(3 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), isAnimated, promoted, isFlipped);
 						pieces.push_back(p);
 					}
@@ -452,29 +458,29 @@ int Board::getMoveCount()
 	size_t count = 0;
 	for (auto& piece : pieceList) {
 		if (whiteToPlay == piece->isWhite()) {
-			count += piece->getMoveSquares()->size();
-			count += piece->getCaptureSquares()->size();
-			if (piece->IsA("King")) {
+			count += piece->getMoveSquares().size();
+			count += piece->getCaptureSquares().size();
+			if (piece->hasID('k')) {
 				std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
-				count += king->getCaptureCastleSquares()->size();
+				count += king->getCaptureCastleSquares().size();
 			}
-			else if (piece->IsA("Pawn")) {
+			else if (piece->hasID('p')) {
 				std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
-				count += pawn->getEnPassantSquares()->size();
-				for (auto& sq : *pawn->getMoveSquares()) {
+				count += pawn->getEnPassantSquares().size();
+				for (auto& sq : pawn->getMoveSquares()) {
 					if (pawn->isWhite() && sq.pos.y == 8) {
-						count += promotionPieceCount - 1;
+						count += whitePromotePieces.size() - 1;
 					}
 					else if (!pawn->isWhite() && sq.pos.y == 1) {
-						count += promotionPieceCount - 1;
+						count += blackPromotePieces.size() - 1;
 					}
 				}
-				for (auto& sq : *pawn->getCaptureSquares()) {
+				for (auto& sq : pawn->getCaptureSquares()) {
 					if (pawn->isWhite() && sq.pos.y == 8) {
-						count += promotionPieceCount - 1;
+						count += whitePromotePieces.size() - 1;
 					}
 					else if (!pawn->isWhite() && sq.pos.y == 1) {
-						count += promotionPieceCount - 1;
+						count += blackPromotePieces.size() - 1;
 					}
 				}
 			}
@@ -483,33 +489,15 @@ int Board::getMoveCount()
 	if (dropsEnabled) {
 		if (whiteToPlay) {
 			for (auto& piece : whiteDropPieces) {
-				if (piece.count != 0) {
-					if (piece.id != 'p') {
-						count += dropSquares.size();
-					}
-					else {
-						for (auto& sq : dropSquares) {
-							if (sq.pos.y != 1 && sq.pos.y != 8) {
-								count++;
-							}
-						}
-					}
+				if (piece->count != 0) {
+					count += piece->dropSquares.size();
 				}
 			}
 		}
 		else {
 			for (auto& piece : blackDropPieces) {
-				if (piece.count != 0) {
-					if (piece.id != 'p') {
-						count += dropSquares.size();
-					}
-					else {
-						for (auto& sq : dropSquares) {
-							if (sq.pos.y != 1 && sq.pos.y != 8) {
-								count++;
-							}
-						}
-					}
+				if (piece->count != 0) {
+					count += piece->dropSquares.size();
 				}
 			}
 		}
@@ -520,7 +508,7 @@ int Board::getMoveCount()
 Board::BasicPosition Board::savePosition() {
 	std::array<std::array<int, 8>, 8> array{ 0 };
 	for (auto& piece : pieceList) {
-		if (piece != nullptr && Chess::isValidSquare(piece->getLocalPos())) {
+		if (piece && Chess::isValidSquare(piece->getLocalPos())) {
 			int x = piece->getLocalPos().x - 1;
 			int y = piece->getLocalPos().y - 1;
 			if (piece->isWhite()) {
@@ -532,6 +520,164 @@ Board::BasicPosition Board::savePosition() {
 		}
 	}
 	return std::make_pair(array, whiteToPlay);
+}
+
+std::string Board::getNewFEN() const
+{
+	std::string nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1";
+	if (chess960Enabled) {
+		int id = 0;
+		std::string fen = Chess::getRandomLineFrom("assets/fen/chess960.txt", id);
+		if (!fen.empty()) {
+			std::cout << "Loading Chess960 Position #" << id << std::endl;
+			if (variant == Chess::ThreeCheck) {
+				nFEN = fen.substr(0, fen.size() - 3);
+				nFEN += "3+3 0 1";
+			}
+			else if (variant == Chess::FiveCheck) {
+				nFEN = fen.substr(0, fen.size() - 3);
+				nFEN += "5+5 0 1";
+			}
+			else if (variant == Chess::Horde) {
+				nFEN = fen.substr(0, 8) + "/pppppppp/8/1PP2PP1/PPPPPPPP/PPPPPPPP/PPPPPPPP/PPPPPPPP w kq - 0 1";
+			}
+			else if (variant == Chess::RacingKings) {
+				nFEN = "8/8/8/8/8/8/krbnNBRK/qrbnNBRQ w - - 0 1";
+			}
+			else if (variant == Chess::Crazyhouse) {
+				nFEN = fen;
+				nFEN.insert(43, "[]");
+			}
+			else {
+				nFEN = fen;
+			}
+		}
+		else {
+			std::cout << "Empty Chess960 string returnd!" << std::endl;
+		}
+	}
+	else if (variant == Chess::Horde) {
+		nFEN = "rnbqkbnr/pppppppp/8/1PP2PP1/PPPPPPPP/PPPPPPPP/PPPPPPPP/PPPPPPPP w kq - 0 1";
+	}
+	else if (variant == Chess::ThreeCheck) {
+		nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 3+3 0 1";
+	}
+	else if (variant == Chess::FiveCheck) {
+		nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 5+5 0 1";
+	}
+	else if (variant == Chess::RacingKings) {
+		nFEN = "8/8/8/8/8/8/krbnNBRK/qrbnNBRQ w - - 0 1";
+	}
+	else if (variant == Chess::Crazyhouse) {
+		nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1";
+	}
+	return nFEN;
+}
+
+std::string Board::getCurrentFEN() {
+	bool whiteCanNeverCastleK = true, whiteCanNeverCastleQ = true, blackCanNeverCastleK = true, blackCanNeverCastleQ = true;
+	std::optional<sf::Vector2i> enPassantTarget{};
+	std::string sideToPlayString = whiteToPlay ? "w" : "b";
+	std::string dropString = "[", checkString = "", rank = "", newFEN = "";
+	for (auto& piece : pieceList) {
+		if (piece->hasID('k')) {
+			std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
+			if (king->isWhite()) {
+				std::shared_ptr<Piece> kRook = getPieceFromCurrentPosition({ king->Krook, king->getLocalPos().y });
+				std::shared_ptr<Piece> qRook = getPieceFromCurrentPosition({ king->Qrook, king->getLocalPos().y });
+				if (!king->canNeverCastleK && !king->hasMoved && !king->inCheck && kRook && kRook->hasID('r') && !kRook->hasMoved) { whiteCanNeverCastleK = false; }
+				if (!king->canNeverCastleQ && !king->hasMoved && !king->inCheck && qRook && qRook->hasID('r') && !qRook->hasMoved) { whiteCanNeverCastleQ = false; }
+			}
+			else {
+				std::shared_ptr<Piece> kRook = getPieceFromCurrentPosition({ king->Krook, king->getLocalPos().y });
+				std::shared_ptr<Piece> qRook = getPieceFromCurrentPosition({ king->Qrook, king->getLocalPos().y });
+				if (!king->canNeverCastleK && !king->hasMoved && !king->inCheck && kRook && kRook->hasID('r') && !kRook->hasMoved) { blackCanNeverCastleK = false; }
+				if (!king->canNeverCastleQ && !king->hasMoved && !king->inCheck && qRook && qRook->hasID('r') && !qRook->hasMoved) { blackCanNeverCastleQ = false; }
+			}
+		}
+		else if (piece->hasID('p')) {
+			std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
+			if (pawn->enPassantTarget) {
+				if (pawn->isWhite()) {
+					enPassantTarget = sf::Vector2i{ pawn->getLocalPos().x, pawn->getLocalPos().y - 1 };
+				}
+				else {
+					enPassantTarget = sf::Vector2i{ pawn->getLocalPos().x, pawn->getLocalPos().y + 1 };
+				}
+			}
+		}
+	}
+	if (dropsEnabled) {
+		for (auto& piece : whiteDropPieces) {
+			if (piece->count > 0) {
+				for (int i = 0; i < piece->count; i++) {
+					dropString += (char)std::toupper(piece->id);
+				}
+			} 
+		}
+		for (auto& piece : blackDropPieces) {
+			if (piece->count > 0) {
+				for (int i = 0; i < piece->count; i++) {
+					dropString += piece->id;
+				}
+			}
+		}
+		dropString += "]";
+	}
+	if (variant == Chess::ThreeCheck) {
+		checkString = " " + std::to_string(3 - blackChecks) + "+" + std::to_string(3 - whiteChecks);
+	}
+	else if (variant == Chess::FiveCheck) {
+		checkString = " " + std::to_string(5 - blackChecks) + "+" + std::to_string(5 - whiteChecks);
+	}
+	for (int y = 8; y >= 1; y--) {
+		rank = "";
+		for (int x = 1; x <= 8; x++) {
+			sf::Vector2i pos{ x, y };
+			std::shared_ptr<Piece> piece = getPieceFromCurrentPosition(pos);
+			if (piece) {
+				if (piece->isWhite()) {
+					rank += (char)std::toupper(piece->id);
+				}
+				else {
+					rank += piece->id;
+				}
+				if (dropsEnabled && piece->promoted) { rank += '~'; }
+			}
+			else {
+				if (!std::isdigit(rank.back()) || rank.empty()) {
+					rank += '1';
+				}
+				else {
+					rank.back() = int((rank.back() - '0') + 1) + '0';
+				}
+			}
+		}
+		newFEN += rank + '/';
+	}
+	newFEN.pop_back();
+	if (dropsEnabled) { newFEN += dropString; }
+	newFEN += ' ' + sideToPlayString;
+	newFEN += ' ';
+	if (whiteCanNeverCastleK && whiteCanNeverCastleQ && blackCanNeverCastleK && blackCanNeverCastleQ) {
+		newFEN += '-';
+	}
+	else {
+		if (!whiteCanNeverCastleK) { newFEN += 'K'; }
+		if (!whiteCanNeverCastleQ) { newFEN += 'Q'; }
+		if (!blackCanNeverCastleK) { newFEN += 'k'; }
+		if (!blackCanNeverCastleQ) { newFEN += 'q'; }
+	}
+	newFEN += ' ';
+	if (enPassantTarget.has_value()) {
+		newFEN += Chess::convertPositiontoNotation(enPassantTarget.value());
+	}
+	else {
+		newFEN += "-";
+	}
+	newFEN += checkString;
+	newFEN += ' ' + std::to_string(halfMoves) + ' ' + std::to_string(fullMoves);
+	return newFEN;
 }
 
 sf::Texture& Board::getTextureFromID(char id, Chess::PColor color)

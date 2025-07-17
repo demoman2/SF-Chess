@@ -1,42 +1,46 @@
 ﻿#include "King.h"
 
 King::King(int x, int y, float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, Chess::PColor color, sf::Texture& texture, bool animated, bool promoted, bool reversed)
-	: Piece(x, y, scale, boardOffset, boardSize, boardMultiplier, color, texture, animated, promoted, reversed), canCastleK(false), canCastleQ(false), canNeverCastleK(false), canNeverCastleQ(false), inCheck(false), inDoubleCheck(false), Krook(-1), Qrook(-1),
-	castlePositions(std::make_shared<std::vector<Chess::Square>>()), captureCastlePositions(std::make_shared<std::vector<Chess::Square>>())
+	: Piece(x, y, scale, boardOffset, boardSize, boardMultiplier, color, texture, animated, promoted, reversed), canCastleK(false), canCastleQ(false), canNeverCastleK(false), canNeverCastleQ(false), inCheck(false), Krook(-1), Qrook(-1)
 {
-	positionVectors.push_back(castlePositions);
-	positionVectors.push_back(captureCastlePositions);
-	name = "King";
+	positionVectors.push_back(&castlePositions);
+	positionVectors.push_back(&captureCastlePositions);
 	id = 'k';
-	pointValue = 10000;
 }
 
 King::King(bool canNeverCastleK, bool canNeverCastleQ, int x, int y, float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, Chess::PColor color, sf::Texture& texture, bool animated, bool promoted, bool reversed)
-	: Piece(x, y, scale, boardOffset, boardSize, boardMultiplier, color, texture, animated, promoted, reversed), canCastleK(false), canCastleQ(false), inCheck(false), inDoubleCheck(false), Krook(-1), Qrook(-1),
-	castlePositions(std::make_shared<std::vector<Chess::Square>>()), captureCastlePositions(std::make_shared<std::vector<Chess::Square>>())
+	: Piece(x, y, scale, boardOffset, boardSize, boardMultiplier, color, texture, animated, promoted, reversed), canCastleK(false), canCastleQ(false), inCheck(false), Krook(-1), Qrook(-1)
 {
-	positionVectors.push_back(castlePositions);
-	positionVectors.push_back(captureCastlePositions);
-	name = "King";
+	positionVectors.push_back(&castlePositions);
+	positionVectors.push_back(&captureCastlePositions);
 	id = 'k';
 	this->canNeverCastleK = canNeverCastleK;
 	this->canNeverCastleQ = canNeverCastleQ;
-	pointValue = 10000;
+}
+
+King::King(const King& other, bool copySprite, bool copySquares) : Piece(other, copySprite, copySquares), inCheck(other.inCheck), canCastleK(other.canCastleK), canCastleQ(other.canCastleQ),
+	canNeverCastleK(other.canNeverCastleK), canNeverCastleQ(other.canNeverCastleQ), Krook(other.Krook), Qrook(other.Qrook)
+{
+	if (copySquares) {
+		castlePositions = other.castlePositions;
+		captureCastlePositions = other.captureCastlePositions;
+	}
+	positionVectors.push_back(&castlePositions);
+	positionVectors.push_back(&captureCastlePositions);
 }
 
 King::~King()
 {
 }
 
-std::shared_ptr<Piece> King::clone() const
+std::shared_ptr<Piece> King::clone(bool copySprite, bool copySquares) const
 {
-	return std::make_shared<King>(*this);
+	return std::make_shared<King>(*this, copySprite, copySquares);
 }
 
 void King::addAttacker()
 {
-	if (!inCheck) { inCheck = true; }
-	else { inDoubleCheck = true; }
+	inCheck = true;
 }
 
 bool King::isValidMove(sf::Vector2i square, const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled)
@@ -71,7 +75,7 @@ bool King::validatePosition(const pieceVector& pieceList)
 				if (Chess::isValidSquare(newPos)) {
 					if (Chess::isPieceAt(newPos, pieceList)) {
 						std::shared_ptr<Piece> p = Chess::getPieceFromPosition(newPos, pieceList);
-						if (p->IsA("King") && p->color != color) {
+						if (p->hasID('k') && p->color != color) {
 							return false;
 						}
 					}
@@ -84,49 +88,49 @@ bool King::validatePosition(const pieceVector& pieceList)
 
 void King::updateSprites(std::vector<sf::Texture>& boardTextures, sf::Vector2f mousePos, bool& mouseSelecting)
 {
-	for (auto& square : *availablePositions) {
-		if (square.sprite.has_value()) {
-			auto& sprite = square.sprite.value();
-			if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+	for (auto& square : availablePositions) {
+		if (square.sprite) {
+			auto& sprite = square.sprite;
+			if (sprite->getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 				mouseSelecting = true;
-				sprite.setTexture(boardTextures.at(4));
+				sprite->setTexture(boardTextures.at(4));
 			}
-			else { sprite.setTexture(boardTextures.at(0)); }
+			else { sprite->setTexture(boardTextures.at(0)); }
 		}
 	}
-	for (auto& square : *availableCapturePositions) {
-		if (square.sprite.has_value()) {
-			auto& sprite = square.sprite.value();
-			if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+	for (auto& square : availableCapturePositions) {
+		if (square.sprite) {
+			auto& sprite = square.sprite;
+			if (sprite->getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 				mouseSelecting = true;
-				sprite.setTexture(boardTextures.at(4));
+				sprite->setTexture(boardTextures.at(4));
 			}
-			else { sprite.setTexture(boardTextures.at(1)); }
+			else { sprite->setTexture(boardTextures.at(1)); }
 		}
 	}
-	for (auto& square : *castlePositions) {
-		auto& sprite = square.sprite.value();
-		if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+	for (auto& square : castlePositions) {
+		auto& sprite = square.sprite;
+		if (sprite->getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 			mouseSelecting = true;
-			sprite.setTexture(boardTextures.at(4));
+			sprite->setTexture(boardTextures.at(4));
 		}
-		else { sprite.setTexture(boardTextures.at(0)); }
+		else { sprite->setTexture(boardTextures.at(0)); }
 	}
 	
-	for (auto& square : *captureCastlePositions) {
-		auto& sprite = square.sprite.value();
-		if (sprite.getGlobalBounds().contains(sf::Vector2f(mousePos))) {
+	for (auto& square : captureCastlePositions) {
+		auto& sprite = square.sprite;
+		if (sprite->getGlobalBounds().contains(sf::Vector2f(mousePos))) {
 			mouseSelecting = true;
-			sprite.setTexture(boardTextures.at(4));
+			sprite->setTexture(boardTextures.at(4));
 		}
-		else { sprite.setTexture(boardTextures.at(1)); }
+		else { sprite->setTexture(boardTextures.at(1)); }
 	}
 }
 
 void King::addCastleSquare(sf::Vector2i square)
 {
 	std::string m = Chess::convertPositiontoNotation(position) + Chess::convertPositiontoNotation(square);
-	castlePositions->emplace_back(square, m);
+	castlePositions.emplace_back(square, m);
 }
 
 void King::addCastleCaptureSquare(sf::Vector2i square, bool chess960, bool kingside)
@@ -139,7 +143,7 @@ void King::addCastleCaptureSquare(sf::Vector2i square, bool chess960, bool kings
 		if (kingside) { m = Chess::convertPositiontoNotation(position) + ("g" + std::to_string(position.y)); }
 		else { m = Chess::convertPositiontoNotation(position) + ("c" + std::to_string(position.y)); }
 	}
-	captureCastlePositions->emplace_back(square, m);
+	captureCastlePositions.emplace_back(square, m);
 }
 
 void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
@@ -148,9 +152,9 @@ void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
 	if (!hasMoved && !inCheck) {
 		// Kingside
 		if (!canNeverCastleK && Krook != -1) {
-			if (Chess::getPieceFromPosition({ Krook, position.y }, pieceList) != nullptr) {
+			if (Chess::getPieceFromPosition({ Krook, position.y }, pieceList)) {
 				std::shared_ptr<Piece> rook = Chess::getPieceFromPosition({ Krook, position.y }, pieceList);
-				if (rook->IsA("Rook") && rook->color == color && !rook->hasMoved) {
+				if (rook->hasID('r') && rook->color == color && !rook->hasMoved) {
 					std::vector<sf::Vector2i> castleSquares, kingSquares;
 					sf::Vector2i target = Chess::convertChessNotationtoPosition("g" + std::to_string(position.y));
 					if (position.x > rook->getLocalPos().x) {
@@ -175,14 +179,14 @@ void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
 						castleSquares.push_back(Chess::convertChessNotationtoPosition("g" + std::to_string(position.y)));
 					}
 					for (const auto& sq : castleSquares) {
-						if (Chess::getPieceFromPosition(sq, pieceList) != nullptr) {
+						if (Chess::getPieceFromPosition(sq, pieceList)) {
 							if (sq != rook->getLocalPos() && sq != getLocalPos()) {
 								goto Queenside;
 							}
 						}
 					}
 					for (const auto& sq : kingSquares) {
-						if (Chess::getPieceFromPosition(sq, pieceList) != nullptr) {
+						if (Chess::getPieceFromPosition(sq, pieceList)) {
 							if (sq != rook->getLocalPos() && sq != getLocalPos()) {
 								goto Queenside;
 							}
@@ -198,9 +202,9 @@ void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
 		}
 	Queenside:
 		if (!canNeverCastleQ && Qrook != -1) {
-			if (Chess::getPieceFromPosition({ Qrook, position.y }, pieceList) != nullptr) {
+			if (Chess::getPieceFromPosition({ Qrook, position.y }, pieceList)) {
 				std::shared_ptr<Piece> rook = Chess::getPieceFromPosition({ Qrook, position.y }, pieceList);
-				if (rook->IsA("Rook") && rook->color == color && !rook->hasMoved) {
+				if (rook->hasID('r') && rook->color == color && !rook->hasMoved) {
 					std::vector<sf::Vector2i> castleSquares, kingSquares;
 					sf::Vector2i target = Chess::convertChessNotationtoPosition("c" + std::to_string(position.y));
 					if (position.x > rook->getLocalPos().x) {
@@ -225,14 +229,14 @@ void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
 						castleSquares.push_back(Chess::convertChessNotationtoPosition("d" + std::to_string(position.y)));
 					}
 					for (const auto& sq : castleSquares) {
-						if (Chess::getPieceFromPosition(sq, pieceList) != nullptr) {
+						if (Chess::getPieceFromPosition(sq, pieceList)) {
 							if (sq != rook->getLocalPos() && sq != getLocalPos()) {
 								return;
 							}
 						}
 					}
 					for (const auto& sq : kingSquares) {
-						if (Chess::getPieceFromPosition(sq, pieceList) != nullptr) {
+						if (Chess::getPieceFromPosition(sq, pieceList)) {
 							if (sq != rook->getLocalPos() && sq != getLocalPos()) {
 								return;
 							}
@@ -253,7 +257,7 @@ void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
 		newV.resize(pieceList.size());
 		for (size_t j = 0; j < pieceList.size(); j++)
 		{
-			newV[j] = pieceList[j]->clone();
+			newV[j] = pieceList[j]->clone(false, false);
 		}
 		for (auto& v : newV) {
 			// Rook
@@ -280,7 +284,7 @@ void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
 		newV.resize(pieceList.size());
 		for (size_t j = 0; j < pieceList.size(); j++)
 		{
-			newV[j] = pieceList[j]->clone();
+			newV[j] = pieceList[j]->clone(false, false);
 		}
 		for (auto& v : newV) {
 			// Rook
@@ -303,13 +307,13 @@ void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
 	}
 }
 
-void King::generateLegalMoves(const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled, bool castlingEnabled, bool chess960, bool hasDoubleCheck)
+void King::generateLegalMoves(const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled, bool castlingEnabled, bool chess960)
 {
 	canMove = false;
-	availablePositions->clear();
-	availableCapturePositions->clear();
-	castlePositions->clear();
-	captureCastlePositions->clear();
+	availablePositions.clear();
+	availableCapturePositions.clear();
+	castlePositions.clear();
+	captureCastlePositions.clear();
 	for (int x = -1; x <= 1; x++) {
 		for (int y = -1; y <= 1; y++) {
 			if (x != 0 || y != 0) {
@@ -353,16 +357,16 @@ void King::generateLegalMoves(const pieceVector& pieceList, Chess::Variant varia
 			}
 		}
 	}
-	if (!availablePositions->empty()) {
+	if (!availablePositions.empty()) {
 		canMove = true;
 	}
-	else if (!availableCapturePositions->empty()) {
+	else if (!availableCapturePositions.empty()) {
 		canMove = true;
 	}
-	else if (!castlePositions->empty()) {
+	else if (!castlePositions.empty()) {
 		canMove = true;
 	}
-	else if (!captureCastlePositions->empty()) {
+	else if (!captureCastlePositions.empty()) {
 		canMove = true;
 	}
 }

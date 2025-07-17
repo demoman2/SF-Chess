@@ -1,29 +1,29 @@
-#include "Board.h"
+﻿#include "Board.h"
 
 // Calculating
 void Board::generateLegalMoves(bool init) {
-	cClock.start();
+	generatingMoves = true;
+	cClock.restart();
 	if (dropsEnabled) {
 		for (auto& piece : whiteDropPieces) {
-			piece.update();
+			piece->update();
 		}
 		for (auto& piece : blackDropPieces) {
-			piece.update();
+			piece->update();
 		}
 	}
 	if (checksEnabled) {
-		hasDoubleCheck = false;
 		atomicKings = false;
 		if (variant == Chess::Atomic) {
 			for (int i = 0; i < pieceList.size(); i++) {
-				if (pieceList.at(i)->IsA("King")) {
+				if (pieceList.at(i)->hasID('k')) {
 					std::shared_ptr<Piece>& king1 = pieceList.at(i);
 					for (int x = -1; x <= 1; x++) {
 						for (int y = -1; y <= 1; y++) {
 							if (x != 0 || y != 0) {
 								sf::Vector2i newPos = { king1->getLocalPos().x + x, king1->getLocalPos().y + y };
 								if (Chess::isValidSquare(newPos)) {
-									if (Chess::isPieceAt(newPos, pieceList) && getPieceFromCurrentPosition(newPos)->IsA("King")) {
+									if (Chess::isPieceAt(newPos, pieceList) && getPieceFromCurrentPosition(newPos)->hasID('k')) {
 										atomicKings = true;
 										break;
 									}
@@ -35,22 +35,27 @@ void Board::generateLegalMoves(bool init) {
 			}
 		}
 		for (auto& p : pieceList) {
-			if (p->IsA("King")) {
+			if (p->hasID('k')) {
 				std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
 				k->inCheck = false;
-				k->inDoubleCheck = false;
 			}
 		}
-		for (auto& p : pieceList) {
-			if (whiteToPlay != p->isWhite()) {
-				if (p->name != "King") {
-					p->generateLegalMoves(pieceList, variant, atomicKings, checksEnabled, castlingEnabled, chess960Enabled, hasDoubleCheck);
-				}
-			}
+	}
+	for (auto& piece : pieceList) {
+		if (!piece->hasID('k')) {
+			piece->generateLegalMoves(pieceList, variant, atomicKings, checksEnabled, castlingEnabled, chess960Enabled);
 		}
+	}
+	for (auto& piece : pieceList) {
+		if (piece->hasID('k')) {
+			piece->generateLegalMoves(pieceList, variant, atomicKings, checksEnabled, castlingEnabled, chess960Enabled);
+		}
+	}
+	if (checksEnabled) {
+		// Checks
 		if (!atomicKings) {
 			for (auto& p : pieceList) {
-				if (p->IsA("King") && (whiteToPlay == (p->color == Chess::PColor::White))) {
+				if (p->hasID('k') && (whiteToPlay == (p->color == Chess::PColor::White))) {
 					std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
 					if (k->inCheck) {
 						hasCheck = true;
@@ -65,47 +70,22 @@ void Board::generateLegalMoves(bool init) {
 						}
 						if (variant == Chess::Atomic) { break; }
 					}
-					if (k->inDoubleCheck) { hasDoubleCheck = true; }
 					break;
 				}
-			}
-		}
-		for (auto& p : pieceList) {
-			if (whiteToPlay == p->isWhite()) {
-				if (p->name != "King") {
-					p->generateLegalMoves(pieceList, variant, atomicKings, checksEnabled, castlingEnabled, chess960Enabled, hasDoubleCheck);
-				}
-			}
-		}
-		for (int i = 0; i < pieceList.size(); i++) {
-			if (pieceList.at(i)->IsA("King")) {
-				pieceList.at(i)->generateLegalMoves(pieceList, variant, atomicKings, checksEnabled, castlingEnabled, chess960Enabled, hasDoubleCheck);
-			}
-		}
-	}
-	else {
-		for (int i = 0; i < pieceList.size(); i++) {
-			if (pieceList.at(i)->name != "King") {
-				pieceList.at(i)->generateLegalMoves(pieceList, variant, atomicKings, checksEnabled, castlingEnabled, chess960Enabled, hasDoubleCheck);
-			}
-		}
-		for (int i = 0; i < pieceList.size(); i++) {
-			if (pieceList.at(i)->IsA("King")) {
-				pieceList.at(i)->generateLegalMoves(pieceList, variant, atomicKings, checksEnabled, castlingEnabled, chess960Enabled, hasDoubleCheck);
 			}
 		}
 	}
 	if (variant == Chess::Antichess) {
 		bool hasCapture = false;
 		for (auto& p : pieceList) {
-			if (p != nullptr && whiteToPlay == p->isWhite()) {
-				if (!p->getCaptureSquares()->empty()) {
+			if (p && whiteToPlay == p->isWhite()) {
+				if (!p->getCaptureSquares().empty()) {
 					hasCapture = true;
 					break;
 				}
-				else if (p->IsA("Pawn")) {
+				else if (p->hasID('p')) {
 					std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(p);
-					if (!pawn->getEnPassantSquares()->empty()) {
+					if (!pawn->getEnPassantSquares().empty()) {
 						hasCapture = true;
 						break;
 					}
@@ -115,7 +95,7 @@ void Board::generateLegalMoves(bool init) {
 		if (hasCapture) {
 			for (auto& p : pieceList) {
 				if (whiteToPlay == p->isWhite()) {
-					p->getMoveSquares()->clear();
+					p->getMoveSquares().clear();
 				}
 			}
 		}
@@ -123,10 +103,72 @@ void Board::generateLegalMoves(bool init) {
 	if (dropsEnabled) {
 		calculateDropPositions();
 	}
-	std::cout << "Finished Calculating in: " << cClock.reset().asMilliseconds() << "ms." << std::endl;
-	cClock.stop();
-	setExtraSprites();
+	std::cout << "Finished Calculating in: " << cClock.reset().asMicroseconds() << "μs." << std::endl;
+	cClock.reset();
+	positionHistory.emplace_back(pieceList, getCurrentFEN(), moves, whiteToPlay, eighthRankWhite, halfMoves, fullMoves, whiteChecks, blackChecks, hasCheck, lastMoveStartLocal, lastMoveDestLocal, getLocalPosition(checkSprite.getPosition()), whiteTime, blackTime);
+	if (!positionHistoryF.empty()) {
+		if (positionHistory.back() == positionHistoryF.front()) {
+			positionHistoryF.erase(positionHistoryF.begin());
+		}
+		else {
+			positionHistoryF.clear();
+		}
+	}
+	setPieceSprites();
+	allPositionsPlayed.push_back(savePosition());
+	std::string sideToPlayString = whiteToPlay ? "White " : "Black ";
+	if (determineEnd() != Chess::None) {
+		switch (determineEnd()) {
+		case Chess::Endgame::Checkmate:
+		{
+			std::cout << sideToPlayString << "Lost to Checkmate!" << std::endl;
+			break;
+		}
+		case Chess::Endgame::VariantVictory:
+		{
+			std::cout << sideToPlayString << "Won! Variant Ending." << std::endl;
+			break;
+		}
+		case Chess::Endgame::VariantLoss:
+		{
+			std::cout << sideToPlayString << "Lost! Variant Ending." << std::endl;
+			break;
+		}
+		case Chess::Endgame::Stalemate:
+		{
+			std::cout << "Game Ended in Stalemate!" << std::endl;
+			break;
+		}
+		case Chess::Endgame::ThreefoldRepetition:
+		{
+			std::cout << "Game Ended by Threefold Repetition!" << std::endl;
+			break;
+		}
+		case Chess::Endgame::FiftyMoveRule:
+		{
+			std::cout << "Game Ended by 50 Move Rule!" << std::endl;
+			break;
+		}
+		}
+		gameEnded = true;
+	}
+	if (!gameEnded) {
+		int moveCount = getMoveCount();
+		int n = stockfish.getLegalMoveCount(FEN, moves);
+		if (n != moveCount && n != 0) {
+			std::cout << "===========================MISMATCH===========================" << std::endl;
+			std::cout << "Count: " << moveCount << std::endl;
+			std::cout << n << std::endl;
+			isPaused = true;
+			stockfishEnabled = false;
+		}
+	}
 	generatingMoves = false;
+}
+
+void Board::mouseModeOff()
+{
+	mouseMode = false;
 }
 
 bool Board::intersects(sf::Vector2f position)
@@ -135,43 +177,34 @@ bool Board::intersects(sf::Vector2f position)
 }
 
 void Board::calculateDropPositions() {
-	dropSquares.clear();
-	std::vector<sf::Texture>& bT = *boardTextures;
-	bool hasCheck = false;
-	for (auto& piece : pieceList) {
-		if (piece->IsA("King")) {
-			std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
-			if (king->inCheck) {
-				hasCheck = true;
-				break;
-			}
-		}
-	}
-	for (int x = 1; x <= 8; x++) {
-		for (int y = 1; y <= 8; y++) {
-			if (getPieceFromCurrentPosition({ x, y }) == nullptr) {
-				if (checksEnabled && hasCheck) {
-					Chess::PColor col = whiteToPlay ? Chess::White : Chess::Black;
-					pieceVector newV;
-					for (size_t j = 0; j < pieceList.size(); j++)
-					{
-						newV.push_back(pieceList[j]->clone());
+	std::vector<std::shared_ptr<Chess::DropPiece>>& currentDropPieces = whiteToPlay ? whiteDropPieces : blackDropPieces;
+	for (auto& piece : currentDropPieces) {
+		auto& dropSquares = piece->dropSquares;
+		dropSquares.clear();
+		if (piece->count != 0) {
+			for (int x = 1; x <= 8; x++) {
+				for (int y = 1; y <= 8; y++) {
+					sf::Vector2i localPos{ x, y };
+					if (piece->isValidSquare(localPos) && getPieceFromCurrentPosition({ x, y }) == nullptr) {
+						std::string moveString;
+						moveString += (char)std::toupper(piece->id);
+						moveString += '@' + Chess::convertPositiontoNotation(localPos);
+						if (checksEnabled && hasCheck) {
+							Chess::PColor col = whiteToPlay ? Chess::White : Chess::Black;
+							pieceVector newV;
+							for (size_t j = 0; j < pieceList.size(); j++)
+							{
+								newV.push_back(pieceList[j]->clone(false, false));
+							}
+							newV.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, col, pieceTextures.at(0), false, false, true));
+							if (isValidPosition(newV, col)) {
+								dropSquares.emplace_back(localPos, moveString);
+							}
+						}
+						else {
+							dropSquares.emplace_back(localPos, moveString);
+						}
 					}
-					newV.push_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, col, pieceTextures.at(0), false, false, true));
-					if (isValidPosition(newV, col)) {
-						sf::Sprite square{ bT.at(0) };
-						square.setOrigin(square.getLocalBounds().getCenter());
-						square.setScale(boardSprite.getScale());
-						square.setPosition(getGlobalPosition(sf::Vector2i{ x, y }));
-						dropSquares.emplace_back(square, getLocalPosition(square.getPosition()));
-					}
-				}
-				else {
-					sf::Sprite square{ bT.at(0) };
-					square.setOrigin(square.getLocalBounds().getCenter());
-					square.setScale(boardSprite.getScale());
-					square.setPosition(getGlobalPosition(sf::Vector2i{ x, y }));
-					dropSquares.emplace_back(square, getLocalPosition(square.getPosition()));
 				}
 			}
 		}
@@ -189,7 +222,7 @@ Chess::Endgame Board::determineEnd() {
 	if (variant == Chess::Standard) {
 		if (std::none_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; })) {
 			for (auto& piece : pieceList) {
-				if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->IsA("King")) {
+				if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->hasID('k')) {
 					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
 					if (king->inCheck) {
 						return Chess::Checkmate;
@@ -205,13 +238,13 @@ Chess::Endgame Board::determineEnd() {
 				return Chess::InsufficientMaterial;
 			}
 			if (pieceList.size() == 3) {
-				if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->IsA("Rook") || piece->IsA("Queen") || piece->IsA("Pawn"); })) {
+				if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->hasID('r') || piece->hasID('q') || piece->hasID('p'); })) {
 					return Chess::InsufficientMaterial;
 				}
 			}
 			else if (pieceList.size() == 4) {
 				for (auto& piece : pieceList) {
-					if (piece->IsA("Pawn")) {
+					if (piece->hasID('p')) {
 						return Chess::None;
 					}
 				}
@@ -223,10 +256,10 @@ Chess::Endgame Board::determineEnd() {
 					else { blackCount++; }
 				}
 				if (whiteCount != blackCount) {
-					if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->IsA("Rook") || piece->IsA("Queen"); })) {
+					if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->hasID('r') || piece->hasID('q'); })) {
 						int knights = 0;
 						for (auto& piece : pieceList) {
-							if (piece->name == "Knight") {
+							if (piece->hasID('n')) {
 								knights++;
 							}
 						}
@@ -236,7 +269,7 @@ Chess::Endgame Board::determineEnd() {
 					}
 				}
 				else {
-					if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->IsA("Rook") || piece->IsA("Queen") || piece->IsA("Pawn"); })) {
+					if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->hasID('r') || piece->hasID('q') || piece->hasID('p'); })) {
 						return Chess::InsufficientMaterial;
 					}
 				}
@@ -244,17 +277,19 @@ Chess::Endgame Board::determineEnd() {
 		}
 	}
 	else if (variant == Chess::Crazyhouse) {
-		if (std::none_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; })) {
+		std::vector<std::shared_ptr<Chess::DropPiece>>& currentDP = whiteToPlay ? whiteDropPieces : blackDropPieces;
+		std::vector<Chess::DropPiece> currentDropPieces;
+		for (auto& d : currentDP) { if (d->count > 0) { currentDropPieces.push_back(*d); } }
+		if (std::none_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; }) &&
+			(currentDropPieces.empty() || std::all_of(currentDropPieces.begin(), currentDropPieces.end(), [](Chess::DropPiece& dp) { return dp.dropSquares.empty(); }))) {
 			for (auto& piece : pieceList) {
-				if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->IsA("King")) {
+				if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->hasID('k')) {
 					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
 					if (king->inCheck) {
 						return Chess::Checkmate;
 					}
 					else {
-						if (dropSquares.empty() || (whiteToPlay && whiteDropPieces.empty()) || (!whiteToPlay && blackDropPieces.empty())) {
-							return Chess::Stalemate;
-						}
+						return Chess::Stalemate;
 					}
 				}
 			}
@@ -265,13 +300,13 @@ Chess::Endgame Board::determineEnd() {
 					return Chess::InsufficientMaterial;
 				}
 				if (pieceList.size() == 3) {
-					if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->IsA("Rook") || piece->IsA("Queen") || piece->IsA("Pawn"); })) {
+					if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->hasID('r') || piece->hasID('q') || piece->hasID('p'); })) {
 						return Chess::InsufficientMaterial;
 					}
 				}
 				else if (pieceList.size() == 4) {
 					for (auto& piece : pieceList) {
-						if (piece->IsA("Pawn")) {
+						if (piece->hasID('p')) {
 							return Chess::None;
 						}
 					}
@@ -283,10 +318,10 @@ Chess::Endgame Board::determineEnd() {
 						else { blackCount++; }
 					}
 					if (whiteCount != blackCount) {
-						if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->IsA("Rook") || piece->IsA("Queen"); })) {
+						if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->hasID('r') || piece->hasID('q'); })) {
 							int knights = 0;
 							for (auto& piece : pieceList) {
-								if (piece->name == "Knight") {
+								if (piece->hasID('n')) {
 									knights++;
 								}
 							}
@@ -296,7 +331,7 @@ Chess::Endgame Board::determineEnd() {
 						}
 					}
 					else {
-						if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->IsA("Rook") || piece->IsA("Queen") || piece->IsA("Pawn"); })) {
+						if (std::none_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->hasID('r') || piece->hasID('q') || piece->hasID('p'); })) {
 							return Chess::InsufficientMaterial;
 						}
 					}
@@ -312,7 +347,7 @@ Chess::Endgame Board::determineEnd() {
 			return Chess::Checkmate;
 		}
 		if (pieceList.size() == 2) {
-			if (std::all_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->IsA("Bishop"); })) {
+			if (std::all_of(pieceList.begin(), pieceList.end(), [](std::shared_ptr<Piece>& piece) { return piece->hasID('b'); })) {
 				int n = pieceList.at(0)->getLocalPos().x + pieceList.at(0)->getLocalPos().y % 2;
 				if (pieceList.at(1)->getLocalPos().x + pieceList.at(1)->getLocalPos().y % 2 != n) {
 					return Chess::InsufficientMaterial;
@@ -321,12 +356,12 @@ Chess::Endgame Board::determineEnd() {
 		}
 	}
 	else if (variant == Chess::Atomic) {
-		if (std::none_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->IsA("King"); })) {
+		if (std::none_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->hasID('k'); })) {
 			return Chess::Checkmate;
 		}
 		if (std::none_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; })) {
 			for (auto& piece : pieceList) {
-				if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->IsA("King")) {
+				if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->hasID('k')) {
 					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
 					if (king->inCheck) {
 						return Chess::Checkmate;
@@ -342,7 +377,7 @@ Chess::Endgame Board::determineEnd() {
 		if (!whiteToPlay) {
 			if (std::none_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; })) {
 				for (auto& piece : pieceList) {
-					if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->IsA("King")) {
+					if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->hasID('k')) {
 						std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
 						if (king->inCheck) {
 							return Chess::Checkmate;
@@ -390,7 +425,7 @@ Chess::Endgame Board::determineEnd() {
 	else if (variant == Chess::KOTH) {
 		if (std::none_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay == piece->isWhite()) && piece->canMove; })) {
 			for (auto& piece : pieceList) {
-				if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->IsA("King")) {
+				if (whiteToPlay == (piece->color == Chess::PColor::White) && piece->hasID('k')) {
 					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
 					if (king->inCheck) {
 						return Chess::Checkmate;
@@ -401,7 +436,7 @@ Chess::Endgame Board::determineEnd() {
 				}
 			}
 		}
-		if (std::any_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay != piece->isWhite()) && piece->IsA("King") && Chess::isInCenter(piece->getLocalPos()); })) {
+		if (std::any_of(pieceList.begin(), pieceList.end(), [whiteToPlay = this->whiteToPlay](std::shared_ptr<Piece>& piece) { return (whiteToPlay != piece->isWhite()) && piece->hasID('k') && Chess::isInCenter(piece->getLocalPos()); })) {
 			return Chess::Checkmate;
 		}
 	}
@@ -411,11 +446,11 @@ Chess::Endgame Board::determineEnd() {
 		}
 		bool white = false, black = false;
 		for (auto& piece : pieceList) {
-			if (piece->IsA("King") && piece->isWhite() && piece->getLocalPos().y == 8) {
+			if (piece->hasID('k') && piece->isWhite() && piece->getLocalPos().y == 8) {
 				white = true;
 				if (black) { break; }
 			}
-			if (piece->IsA("King") && piece->isBlack() && piece->getLocalPos().y == 8) {
+			if (piece->hasID('k') && piece->isBlack() && piece->getLocalPos().y == 8) {
 				black = true;
 				if (white) { break; }
 			}
@@ -428,9 +463,9 @@ Chess::Endgame Board::determineEnd() {
 		}
 		if (white) {
 			for (auto& piece : pieceList) {
-				if (piece->IsA("King") && piece->isBlack()) {
-					if (std::any_of(piece->getMoveSquares()->begin(), piece->getMoveSquares()->end(), [](Chess::Square& square) { return square.pos.y == 8; }) ||
-						std::any_of(piece->getCaptureSquares()->begin(), piece->getCaptureSquares()->end(), [](Chess::Square& square) { return square.pos.y == 8; })) {
+				if (piece->hasID('k') && piece->isBlack()) {
+					if (std::any_of(piece->getMoveSquares().begin(), piece->getMoveSquares().end(), [](Chess::Square& square) { return square.pos.y == 8; }) ||
+						std::any_of(piece->getCaptureSquares().begin(), piece->getCaptureSquares().end(), [](Chess::Square& square) { return square.pos.y == 8; })) {
 						if (!eighthRankWhite) {
 							eighthRankWhite = true;
 							return Chess::None;
@@ -457,7 +492,7 @@ Chess::Endgame Board::determineEnd() {
 void Board::setVariant(Chess::Variant variant)
 {
 	this->variant = variant;
-	setupFEN({}, true);
+	loadFromFEN({}, true);
 }
 
 // Move Functions
@@ -471,8 +506,13 @@ void Board::playMove(std::string moveString, bool instantMove) {
 	else {
 		hasCheck = false;
 		selectedPiece.reset();
+		capturePiece.reset();
 
-		if (moveString.back() == '\r') { std::cout << "Game Should End" << std::endl; gameShouldEnd = true; moveString.pop_back(); }
+		if (moveString.back() == '\r') {
+			std::cout << "Game Should End" << std::endl;
+			gameShouldEnd = true;
+			moveString.pop_back();
+		}
 
 		// Drop Pieces
 		if (moveString.at(1) == '@') {
@@ -485,16 +525,16 @@ void Board::playMove(std::string moveString, bool instantMove) {
 			lastMoveDest.setPosition(getGlobalPosition(dest));
 			if (whiteToPlay) {
 				for (auto& piece : whiteDropPieces) {
-					if (piece.id == std::tolower(moveString.at(0))) {
-						piece.count--;
+					if (piece->id == std::tolower(moveString.at(0))) {
+						piece->count--;
 						break;
 					}
 				}
 			}
 			else {
 				for (auto& piece : blackDropPieces) {
-					if (piece.id == std::tolower(moveString.at(0))) {
-						piece.count--;
+					if (piece->id == std::tolower(moveString.at(0))) {
+						piece->count--;
 						break;
 					}
 				}
@@ -519,6 +559,9 @@ void Board::playMove(std::string moveString, bool instantMove) {
 			std::shared_ptr<Piece> piece = getPieceFromCurrentPosition(start);
 			if (piece == nullptr) {
 				std::cout << "Piece was not found!" << std::endl;
+				std::cout << start.x << " " << start.y << std::endl;
+				std::cout << moves << std::endl;
+				std::cout << moveString << std::endl;
 				return;
 			}
 			std::shared_ptr<Piece> capture = nullptr;
@@ -531,7 +574,7 @@ void Board::playMove(std::string moveString, bool instantMove) {
 				capture = getPieceFromCurrentPosition(dest);
 				lastMoveStart.setPosition(getGlobalPosition(start));
 				lastMoveDest.setPosition(getGlobalPosition(dest));
-				if (capture != nullptr && capture->color == piece->color) {
+				if (capture && capture->color == piece->color) {
 					capture.reset();
 				}
 
@@ -542,7 +585,7 @@ void Board::playMove(std::string moveString, bool instantMove) {
 					}
 				}
 
-				if (capture != nullptr) {
+				if (capture) {
 					captureSound.play();
 					ghostSprite.setTexture(capture->getTexture());
 					ghostSprite.setPosition(capture->getGlobalPos());
@@ -565,20 +608,19 @@ void Board::playMove(std::string moveString, bool instantMove) {
 				dest = Chess::convertChessNotationtoPosition(moveString.substr(midPos));
 				capture = getPieceFromCurrentPosition(dest);
 				bool closeCastle = false;
-				if (capture != nullptr) {
+				if (capture) {
 					if (capture->color == piece->color) {
-						if (piece->IsA("King") && capture->IsA("Rook")) {
+						if (piece->hasID('k') && capture->hasID('r')) {
 							closeCastle = true;
 						}
 						capture.reset();
 					}
 				}
-
 				piece->setTarget(getGlobalPosition(dest));
 				if (instantMove) {
 					piece->setPosition(piece->getTarget());
 				}
-				if (piece->IsA("Pawn")) {
+				if (piece->hasID('p')) {
 					if (piece->color == Chess::PColor::White) {
 						if (dest.y == piece->getLocalPos().y + 2) {
 							std::shared_ptr<Pawn> pawn = std::dynamic_pointer_cast<Pawn>(piece);
@@ -619,13 +661,13 @@ void Board::playMove(std::string moveString, bool instantMove) {
 					}
 				}
 				// Castles
-				else if (piece->IsA("King")) {
+				else if (piece->hasID('k')) {
 					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
 					int pieceX = piece->getLocalPos().x;
 					if (!closeCastle) {
 						if (dest.x > pieceX + 1) {
 							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
-							if (rook != nullptr) {
+							if (rook) {
 								rook->setTarget(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
 								piece->setTarget(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
 								if (instantMove) {
@@ -638,7 +680,7 @@ void Board::playMove(std::string moveString, bool instantMove) {
 						}
 						else if (dest.x < pieceX - 1) {
 							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
-							if (rook != nullptr) {
+							if (rook) {
 								rook->setTarget(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
 								piece->setTarget(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
 								if (instantMove) {
@@ -653,7 +695,7 @@ void Board::playMove(std::string moveString, bool instantMove) {
 					else {
 						if (dest.x > pieceX) {
 							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
-							if (rook != nullptr) {
+							if (rook) {
 								rook->setTarget(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
 								piece->setTarget(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
 								if (instantMove) {
@@ -666,7 +708,7 @@ void Board::playMove(std::string moveString, bool instantMove) {
 						}
 						else if (dest.x < pieceX) {
 							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
-							if (rook != nullptr) {
+							if (rook) {
 								rook->setTarget(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
 								piece->setTarget(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
 								if (instantMove) {
@@ -680,7 +722,7 @@ void Board::playMove(std::string moveString, bool instantMove) {
 					}
 				}
 
-				if (capture != nullptr) {
+				if (capture) {
 					ghostSprite.setTexture(capture->getTexture());
 					ghostSprite.setPosition(capture->getGlobalPos());
 					setSpriteVisible(ghostSprite, true, 75);
@@ -692,7 +734,7 @@ void Board::playMove(std::string moveString, bool instantMove) {
 					moves += " " + moveString;
 					lastMoveStart.setPosition(getGlobalPosition(piece->getLocalPos()));
 					lastMoveDest.setPosition(getGlobalPosition(dest));
-					if (capture != nullptr) {
+					if (capture) {
 						captureSound.play();
 					}
 					else {
@@ -707,6 +749,11 @@ void Board::playMove(std::string moveString, bool instantMove) {
 }
 
 void Board::postMove(pieceVector movePieces) {
+	movesPlayed++;
+	if (timeEnabled && timeIncrement != sf::Time::Zero) {
+		if (whiteToPlay) { whiteTime += timeIncrement; }
+		else { blackTime += timeIncrement; }
+	}
 	whiteToPlay = !whiteToPlay;
 	hasCheck = false;
 	lastMoveStartLocal = getLocalPosition(lastMoveStart.getPosition());
@@ -717,11 +764,11 @@ void Board::postMove(pieceVector movePieces) {
 	else if (movePieces.front()->isBlack()) { fullMoves++; }
 
 	// Captures
-	if (capturePiece != nullptr) {
+	if (capturePiece) {
 		halfMoves = 0;
 		setSpriteVisible(ghostSprite, false);
 		std::shared_ptr<Piece>& piece = movePieces.front();
-		sf::Vector2i cpos = capturePiece->getLocalPos();
+		sf::Vector2i cpos = getLocalPosition(piece->getGlobalPos());
 		for (auto it = pieceList.begin(); it != pieceList.end(); it++) {
 			if (*it == capturePiece) {
 				pieceList.erase(it);
@@ -734,19 +781,17 @@ void Board::postMove(pieceVector movePieces) {
 				for (int y = -1; y <= 1; y++) {
 					sf::Vector2i newPos = { cpos.x + x, cpos.y + y };
 					if (Chess::isValidSquare(newPos)) {
-						if (Chess::isPieceAt(newPos, pieceList)) {
-							if (x != 0 || y != 0) {
-								std::shared_ptr<Piece> p = getPieceFromCurrentPosition(newPos);
-								if (p->name != "Pawn") {
-									piecePositions.push_back(newPos);
-								}
+						if ((x != 0 || y != 0) && Chess::isPieceAt(newPos, pieceList)) {
+							std::shared_ptr<Piece> p = getPieceFromCurrentPosition(newPos);
+							if (!p->hasID('p')) {
+								piecePositions.push_back(newPos);
 							}
 						}
 						sf::RectangleShape atomicRect{ {boardMultiplier, boardMultiplier } };
 						atomicRect.setOrigin(atomicRect.getLocalBounds().getCenter());
 						atomicRect.setPosition(getGlobalPosition(newPos));
 						atomicRect.setFillColor(sf::Color{ 255, 255, 255, 150 });
-						captureObjects.push_back(atomicRect);
+						captureObjects.push_back(std::move(atomicRect));
 					}
 				}
 			}
@@ -766,16 +811,16 @@ void Board::postMove(pieceVector movePieces) {
 			if (piece->isWhite()) {
 				if (capturePiece->promoted) {
 					for (auto& t : whiteDropPieces) {
-						if (t.id == 'p') {
-							t.count += 1;
+						if (t->id == 'p') {
+							t->count += 1;
 							break;
 						}
 					}
 				}
 				else {
 					for (auto& t : whiteDropPieces) {
-						if (t.id == capturePiece->id) {
-							t.count += 1;
+						if (t->id == capturePiece->id) {
+							t->count += 1;
 							break;
 						}
 					}
@@ -784,16 +829,16 @@ void Board::postMove(pieceVector movePieces) {
 			else {
 				if (capturePiece->promoted) {
 					for (auto& t : blackDropPieces) {
-						if (t.id == 'p') {
-							t.count += 1;
+						if (t->id == 'p') {
+							t->count += 1;
 							break;
 						}
 					}
 				}
 				else {
 					for (auto& t : blackDropPieces) {
-						if (t.id == capturePiece->id) {
-							t.count += 1;
+						if (t->id == capturePiece->id) {
+							t->count += 1;
 							break;
 						}
 					}
@@ -807,9 +852,8 @@ void Board::postMove(pieceVector movePieces) {
 	for (auto& mPiece : movePieces) {
 		mPiece->setTarget({});
 		mPiece->setLocalPosition(getLocalPosition(mPiece->getGlobalPos()));
-		mPiece->setPosition(mPiece->getGlobalPos());
 		if (!mPiece->hasMoved) { mPiece->hasMoved = true; }
-		if (mPiece->IsA("Pawn")) { halfMoves = 0; }
+		if (mPiece->hasID('p')) { halfMoves = 0; }
 	}
 	for (auto& p : pieceList) {
 		if (std::none_of(movePieces.begin(), movePieces.end(), [p](auto& mPiece) { return mPiece == p; })) {
@@ -817,63 +861,11 @@ void Board::postMove(pieceVector movePieces) {
 		}
 	}
 
-	if (autoFlip && (!stockfishEnabled || stockfishEnabled && isPaused) && whiteToPlay == isFlipped) {
+	if (autoFlip && stockfishEnabled && whiteToPlay == isFlipped) {
 		flipBoard();
 	}
 
 	generateLegalMoves(false);
-	allPositionsPlayed.push_back(savePosition());
-
-	std::string sideToPlayString = whiteToPlay ? "White " : "Black ";
-	if (determineEnd() != Chess::None) {
-		switch (determineEnd()) {
-		case Chess::Endgame::Checkmate:
-		{
-			std::cout << sideToPlayString << "Lost to Checkmate!" << std::endl;
-			break;
-		}
-		case Chess::Endgame::VariantVictory:
-		{
-			std::cout << sideToPlayString << "Won! Variant Ending." << std::endl;
-			break;
-		}
-		case Chess::Endgame::VariantLoss:
-		{
-			std::cout << sideToPlayString << "Lost! Variant Ending." << std::endl;
-			break;
-		}
-		case Chess::Endgame::Stalemate:
-		{
-			std::cout << "Game Ended in Stalemate!" << std::endl;
-			break;
-		}
-		case Chess::Endgame::ThreefoldRepetition:
-		{
-			std::cout << "Game Ended by Threefold Repetition!" << std::endl;
-			break;
-		}
-		case Chess::Endgame::FiftyMoveRule:
-		{
-			std::cout << "Game Ended by 50 Move Rule!" << std::endl;
-			break;
-		}
-		}
-		gameEnded = true;
-	}
-	else if (gameShouldEnd) {
-		isPaused = true;
-	}
-
-	if (!gameEnded) {
-		int moveCount = getMoveCount();
-		int n = stockfish.getLegalMoveCount(FEN, moves);
-		if (n != moveCount && n != 0) {
-			std::cout << "===========================MISMATCH===========================" << std::endl;
-			std::cout << "Count: " << moveCount << std::endl;
-			std::cout << n << std::endl;
-			isPaused = true;
-		}
-	}
-
+	std::cout << movesPlayed << " Moves Played." << std::endl;
 	calculatingPos = false;
 }

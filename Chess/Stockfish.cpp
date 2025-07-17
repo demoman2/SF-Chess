@@ -5,10 +5,11 @@ Stockfish::Stockfish(std::string path, int level) : c(path, bp::std_in < os, bp:
 void Stockfish::startStockfish() {
 	std::string line;
 	os << "uci" << std::endl;
-	os << "setoption name Threads value 11" << std::endl;
+	os << "setoption name Threads value 5" << std::endl;
 	os << "setoption name VariantPath value assets/other/variants.ini" << std::endl;
-	// os << "setoption name Slow Mover value 1000" << std::endl;
+	// os << "setoption name Slow Mover value 1000" << std::endl; 100
 	os << "setoption name Skill Level value " << std::to_string(level) << std::endl;
+	os << "setoption name Move Overhead value 10" << std::endl; // bullet 10, blitz 20, rapid 50, classical 100
 	os << "isready" << std::endl;
 	// Check for Readiness
 }
@@ -25,7 +26,29 @@ void Stockfish::getBestMove(std::string fen, std::string moves) {
 	std::string move_string;
 	os << "isready" << std::endl;
 	os << "position fen " + fen + " moves" + moves << std::endl;
-	os << "go movetime 200" << std::endl;
+	os << "go movetime 150" << std::endl;
+
+	while (getline(is, line)) {
+		if (!line.compare(0, 8, "bestmove")) {
+			move_string = line;
+			break;
+		}
+	}
+	if (move_string.empty()) { std::cout << "Stockfish Returned Empty Move!" << std::endl; return; }
+	move_string = move_string.substr(9, move_string.size() - 9);
+	std::vector<std::string> mv;
+	boost::split(mv, move_string, boost::is_any_of(" "));
+	move = mv.at(0);
+	movePlayed = true;
+}
+
+void Stockfish::getBestMoveT(std::string fen, std::string moves, sf::Time whiteTime, sf::Time blackTime, sf::Time timeIncrement)
+{
+	std::string line;
+	std::string move_string;
+	os << "isready" << std::endl;
+	os << "position fen " + fen + " moves" + moves << std::endl;
+	os << "go wtime " << whiteTime.asMilliseconds() << " btime " << blackTime.asMilliseconds() << " winc " << timeIncrement.asMilliseconds() << " binc " << timeIncrement.asMilliseconds() << std::endl;
 
 	while (getline(is, line)) {
 		if (!line.compare(0, 8, "bestmove")) {

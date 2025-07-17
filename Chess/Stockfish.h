@@ -2,7 +2,8 @@
 #include <SDKDDKVer.h>
 #include <iostream>
 #include <boost/process.hpp>
-#include "Chess.h"
+#include <SFML/System/Time.hpp>
+#include "ChessUtil.h"
 
 namespace bp = boost::process::v1;
 class Stockfish {
@@ -21,6 +22,7 @@ public:
 	void startStockfish();
 	void setVariant(const Chess::Variant variant, bool chess960);
 	void getBestMove(std::string fen, std::string moves);
+	void getBestMoveT(std::string fen, std::string moves, sf::Time whiteTime, sf::Time blackTime, sf::Time timeIncrement);
 	void printPosition();
 	std::string getFEN();
 	int getLegalMoveCount(std::string fen, std::string moves);

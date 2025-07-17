@@ -24,6 +24,12 @@
     <Filter Include="Source Files\Board">
       <UniqueIdentifier>{4ad66b32-8def-4b05-8534-5da1a5ddac5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Misc">
+      <UniqueIdentifier>{b4122fa1-ef17-4b08-8f0d-fe2295fd16ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Misc">
+      <UniqueIdentifier>{b118493a-c143-4be5-b0f2-8d06db539408}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bishop.cpp">
@@ -47,16 +53,10 @@
     <ClCompile Include="Piece.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Chess.cpp">
-      <Filter>Source Files\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="ChessUtil.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="Stockfish.cpp">
+    <ClCompile Include="ChessStructs.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
     <ClCompile Include="Board.cpp">
@@ -68,10 +68,19 @@
     <ClCompile Include="B_Utility.cpp">
       <Filter>Source Files\Board</Filter>
     </ClCompile>
-    <ClCompile Include="B_Logic.cpp">
+    <ClCompile Include="B_Update.cpp">
       <Filter>Source Files\Board</Filter>
     </ClCompile>
-    <ClCompile Include="B_Update.cpp">
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Stockfish.cpp">
+      <Filter>Source Files\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="HSV.cpp">
+      <Filter>Source Files\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="B_Logic.cpp">
       <Filter>Source Files\Board</Filter>
     </ClCompile>
   </ItemGroup>
@@ -103,13 +112,16 @@
     <ClInclude Include="Board.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Stockfish.h">
-      <Filter>Header Files\Utility</Filter>
-    </ClInclude>
     <ClInclude Include="ChessUtil.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Chess.h">
+    <ClInclude Include="HSV.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="Stockfish.h">
+      <Filter>Header Files\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="ChessStructs.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>

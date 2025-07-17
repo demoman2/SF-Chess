@@ -1,79 +1,100 @@
 #pragma once
+#include <string>
+#include <vector>
+#include <cmath>
 #include <SFML/Graphics.hpp>
-#include <iostream>
-#include "Chess.h"
+#include <fstream>
 
 class Piece;
 
 using pieceVector = std::vector<std::shared_ptr<Piece>>;
-namespace Chess {
+
+namespace Chess
+{
+
+	enum PColor {
+		White,
+		Black
+	};
+	enum Endgame {
+		None,
+		Stalemate,
+		Checkmate,
+		InsufficientMaterial,
+		FiftyMoveRule,
+		ThreefoldRepetition,
+		VariantVictory,
+		VariantLoss
+	};
+	enum Variant {
+		Standard,
+		Atomic,
+		Antichess,
+		Horde,
+		ThreeCheck,
+		FiveCheck,
+		RacingKings,
+		KOTH,
+		Crazyhouse
+	};
+	enum GameType {
+		UltraBullet,
+		Bullet,
+		Blitz,
+		Rapid,
+		Classical
+	};
+	static PColor operator!(PColor c) {
+		return static_cast<PColor>(c + 1 % 2);
+	}
 
 	struct Square {
+		std::unique_ptr<sf::Sprite> sprite;
 		sf::Vector2i pos;
-		std::optional<sf::Sprite> sprite;
 		std::string moveString;
 
 		Square(sf::Sprite& sprite, sf::Vector2i position);
 		Square(sf::Vector2i position, std::string moveString);
+		Square(const Square& other);
+		Square& operator=(const Square& other);
 		~Square() {};
 		void setupSprite(sf::Texture& texture, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, float pieceScale, bool reversed);
 		void setTexture(sf::Texture& texture);
 	};
 
-	struct DropPiece {
-		char id;
-		int count;
-		sf::Sprite sprite, background, textBG;
-		sf::Text text;
+	std::string toString(Variant variant);
 
-		DropPiece(char id, sf::Texture& texture, sf::Texture& backgroundTexture, sf::Texture& textBackgroundTexture, sf::Font& font, sf::Vector2f dropPiecePosition, float dropPieceSquareSize, float bgStart, size_t i);
-		~DropPiece() {};
-		void update();
-		void move(float x, float y);
-		void scale(float dropPieceSquareSize, sf::Sprite& dropPieceBackground, float bgStart, int i);
-		bool mouseSelecting(sf::Vector2f mousePos) const;
-		void draw(sf::RenderWindow& window) const;
-	};
-	struct SDropPiece {
-		char id;
-		sf::Sprite sprite;
+	sf::Vector2i convertChessNotationtoPosition(std::string notation);
+	std::string convertPositiontoNotation(sf::Vector2i position);
 
-		SDropPiece(char id, sf::Texture& texture);
-		~SDropPiece() {};
-		void set(sf::Texture& texture, int id);
-	};
+	int convertXtoChar(int x);
+	int convertChartoX(char c);
 
-	struct PromotePiece {
-		sf::Sprite sprite, backgroundSprite;
-		sf::Vector2f initialScale;
-		char id;
+	template<typename T> static T reverseY(T y) { return 9 - y; }
+	sf::Vector2i reversePositon(sf::Vector2i position);
+	sf::Vector2f reversePosition(sf::Vector2f position, sf::Vector2f boardOffset);
 
-		PromotePiece(sf::Texture& pieceTexture, sf::Texture& backgroundTexture, sf::Vector2i pos, char id, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, float pieceScale, sf::Vector2f boardScale, sf::Color promotionSquareColor, sf::Vector2f scale);
-		~PromotePiece() {};
-	};
-
-	std::vector<sf::Texture> makePieceSet(sf::Image spriteSheet, int pieceCount, int pieceSize);
-	void loadPieceSet(sf::Image& spriteSheet, std::vector<sf::Texture>& pieceTextures, int pieceSize);
-	void loadBoard(sf::Image& spriteSheet, sf::Sprite& board, sf::Texture& boardTexture, int boardNumber, int boardSize);
-
-	bool isPieceAt(sf::Vector2i position, const std::vector<std::shared_ptr<Piece>>& pieces);
-	std::shared_ptr<Piece> getPieceFromPosition(sf::Vector2i position, const std::vector<std::shared_ptr<Piece>>& pieces);
-	std::vector<std::shared_ptr<Piece>> makePieceVec(const std::vector<std::shared_ptr<Piece>>& pieceList, sf::Vector2i square, sf::Vector2i localPos);
-	std::vector<std::shared_ptr<Piece>> makePieceVec(const std::vector<std::shared_ptr<Piece>>& pieceList, sf::Vector2i square, sf::Vector2i localPos, const Chess::Variant variant);
+	sf::Vector2f getGlobalPosition(sf::Vector2i position, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, bool reversed = false);
+	sf::Vector2f getGlobalPosition(sf::Vector2f position, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, bool reversed = false);
+	sf::Vector2i getLocalPosition(sf::Vector2f position, sf::Vector2f boardOffset, float boardMultiplier, bool reversed = false);
 
 	bool isValidSquare(sf::Vector2i square);
-	bool isValidPosition(const std::vector<std::shared_ptr<Piece>>& position, Chess::PColor color);
-	bool isValidAtomicCapture(sf::Vector2i square, const std::vector<std::shared_ptr<Piece>>& pieces, Chess::PColor color);
-	bool canCaptureEnemyKing(sf::Vector2i square, const std::vector<std::shared_ptr<Piece>>& pieces, Chess::PColor color);
-	bool enemyKingOccupies(sf::Vector2i square, const std::vector<std::shared_ptr<Piece>>& pieces, Chess::PColor color);
+	bool isValidPosition(const pieceVector& position, Chess::PColor color);
+	bool isValidAtomicCapture(sf::Vector2i square, const pieceVector& pieces, Chess::PColor color);
+	bool canCaptureEnemyKing(sf::Vector2i square, const pieceVector& pieces, Chess::PColor color);
+	bool enemyKingOccupies(sf::Vector2i square, const pieceVector& pieces, Chess::PColor color);
 	bool isInCenter(sf::Vector2i pos);
 
-	bool isValidDropSquare(char id, sf::Vector2i pos);
+	pieceVector makePieceVec(const pieceVector& pieceList, sf::Vector2i square, sf::Vector2i localPos);
+	pieceVector makePieceVec(const pieceVector& pieceList, sf::Vector2i square, sf::Vector2i localPos, const Chess::Variant variant);
+	pieceVector copyPieceVec(const pieceVector& pieceList, bool copySprites = false, bool copySquares = true);
+
+	bool isPieceAt(sf::Vector2i position, const pieceVector& pieces);
+	std::shared_ptr<Piece> getPieceFromPosition(sf::Vector2i position, const pieceVector& pieces);
+
+	std::string getRandomLineFrom(std::string filePath);
+	std::string getRandomLineFrom(std::string filePath, int& id);
 }
-
-std::vector<std::string> split(std::string str, char del);
-size_t findNthOf(std::string str, char find, int nth);
-
 
 sf::Vector2f Interpolate(const sf::Vector2f pointA, const sf::Vector2f pointB, float factor);
 sf::Vector2f Interpolate(const sf::Vector2f pointA, const sf::Vector2f pointB, float factor, float threshold);
@@ -81,3 +102,4 @@ uint8_t Interpolate(uint8_t current, uint8_t target, float factor);
 
 void setSpriteVisible(sf::Sprite& sprite, bool visible);
 void setSpriteVisible(sf::Sprite& sprite, bool visible, uint8_t vAlpha);
+
