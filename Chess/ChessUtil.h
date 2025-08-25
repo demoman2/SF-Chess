@@ -4,6 +4,8 @@
 #include <cmath>
 #include <SFML/Graphics.hpp>
 #include <fstream>
+#include <random>
+#include <functional>
 
 class Piece;
 
@@ -94,6 +96,7 @@ namespace Chess
 
 	std::string getRandomLineFrom(std::string filePath);
 	std::string getRandomLineFrom(std::string filePath, int& id);
+	std::string getNewFEN(Chess::Variant variant, bool chess960Enabled);
 }
 
 sf::Vector2f Interpolate(const sf::Vector2f pointA, const sf::Vector2f pointB, float factor);
@@ -103,3 +106,4 @@ uint8_t Interpolate(uint8_t current, uint8_t target, float factor);
 void setSpriteVisible(sf::Sprite& sprite, bool visible);
 void setSpriteVisible(sf::Sprite& sprite, bool visible, uint8_t vAlpha);
 
+bool randomBool();

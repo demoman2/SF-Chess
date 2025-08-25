@@ -1,6 +1,6 @@
 #include "Board.h"
 
-sf::Texture Board::getBoardT()
+const sf::Texture& Board::getBoardT()
 {
 	return boardTexture;
 }
@@ -18,6 +18,16 @@ sf::Vector2f Board::getGlobalPosition(sf::Vector2i localPos) const
 sf::Vector2f Board::getGlobalPosition(sf::Vector2f localPos) const
 {
 	return Chess::getGlobalPosition(localPos, boardOffset, boardSize, boardMultiplier, isFlipped);
+}
+
+sf::Vector2f Board::getGlobalPosition(sf::Vector2i localPos, bool reversed) const
+{
+	return Chess::getGlobalPosition(localPos, boardOffset, boardSize, boardMultiplier, reversed);
+}
+
+sf::Vector2f Board::getGlobalPosition(sf::Vector2f localPos, bool reversed) const
+{
+	return Chess::getGlobalPosition(localPos, boardOffset, boardSize, boardMultiplier, reversed);
 }
 
 sf::Vector2i Board::getLocalPosition(sf::Vector2f globalPos) const
@@ -398,19 +408,19 @@ pieceVector Board::generatePositionFromFENID(std::string code) {
 				switch (std::tolower(letter)) {
 				case 'b':
 				{
-					pieces.emplace_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(0 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), isAnimated, promoted, isFlipped));
+					pieces.emplace_back(std::make_shared<Bishop>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(0 + offset), isAnimated, promoted, isFlipped));
 					break;
 				}
 				case 'k':
 				{
 					if (color == Chess::White) {
-						std::shared_ptr<King> king = std::make_shared<King>(whiteCanNeverCastleK, whiteCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(1 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), isAnimated, promoted, isFlipped);
+						std::shared_ptr<King> king = std::make_shared<King>(whiteCanNeverCastleK, whiteCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(1 + offset), isAnimated, promoted, isFlipped);
 						king->Krook = wKRook;
 						king->Qrook = wQRook;
 						pieces.push_back(king);
 					}
 					else {
-						std::shared_ptr<King> king = std::make_shared<King>(blackCanNeverCastleK, blackCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(1 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), isAnimated, promoted, isFlipped);
+						std::shared_ptr<King> king = std::make_shared<King>(blackCanNeverCastleK, blackCanNeverCastleQ, x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(1 + offset), isAnimated, promoted, isFlipped);
 						king->Krook = bKRook;
 						king->Qrook = bQRook;
 						pieces.push_back(king);
@@ -419,29 +429,29 @@ pieceVector Board::generatePositionFromFENID(std::string code) {
 				}
 				case 'n':
 				{
-					pieces.emplace_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(2 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), isAnimated, promoted, isFlipped));
+					pieces.emplace_back(std::make_shared<Knight>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(2 + offset), isAnimated, promoted, isFlipped));
 					break;
 				}
 				case 'p':
 				{
 					int off = color == Chess::White ? -1 : 1;
 					if (enPassantTarget.has_value() && enPassantTarget.value() == sf::Vector2i{ x, y + off }) {
-						std::shared_ptr<Pawn> p = std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(3 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), isAnimated, promoted, isFlipped);
+						std::shared_ptr<Pawn> p = std::make_shared<Pawn>(true, x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(3 + offset), isAnimated, promoted, isFlipped);
 						pieces.push_back(p);
 					}
 					else {
-						pieces.emplace_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(3 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), isAnimated, promoted, isFlipped));
+						pieces.emplace_back(std::make_shared<Pawn>(false, x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(3 + offset), isAnimated, promoted, isFlipped));
 					}
 					break;
 				}
 				case 'q':
 				{
-					pieces.emplace_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(4 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), isAnimated, promoted, isFlipped));
+					pieces.emplace_back(std::make_shared<Queen>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(4 + offset), isAnimated, promoted, isFlipped));
 					break;
 				}
 				case 'r':
 				{
-					pieces.emplace_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(5 + static_cast<std::vector<std::reference_wrapper<sf::Texture>, std::allocator<std::reference_wrapper<sf::Texture>>>::size_type>(offset)), isAnimated, promoted, isFlipped));
+					pieces.emplace_back(std::make_shared<Rook>(x, y, pieceScale, boardOffset, boardSize, boardMultiplier, color, pieceTextures.at(5 + offset), isAnimated, promoted, isFlipped));
 					break;
 				}
 				}
@@ -524,54 +534,7 @@ Board::BasicPosition Board::savePosition() {
 
 std::string Board::getNewFEN() const
 {
-	std::string nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1";
-	if (chess960Enabled) {
-		int id = 0;
-		std::string fen = Chess::getRandomLineFrom("assets/fen/chess960.txt", id);
-		if (!fen.empty()) {
-			std::cout << "Loading Chess960 Position #" << id << std::endl;
-			if (variant == Chess::ThreeCheck) {
-				nFEN = fen.substr(0, fen.size() - 3);
-				nFEN += "3+3 0 1";
-			}
-			else if (variant == Chess::FiveCheck) {
-				nFEN = fen.substr(0, fen.size() - 3);
-				nFEN += "5+5 0 1";
-			}
-			else if (variant == Chess::Horde) {
-				nFEN = fen.substr(0, 8) + "/pppppppp/8/1PP2PP1/PPPPPPPP/PPPPPPPP/PPPPPPPP/PPPPPPPP w kq - 0 1";
-			}
-			else if (variant == Chess::RacingKings) {
-				nFEN = "8/8/8/8/8/8/krbnNBRK/qrbnNBRQ w - - 0 1";
-			}
-			else if (variant == Chess::Crazyhouse) {
-				nFEN = fen;
-				nFEN.insert(43, "[]");
-			}
-			else {
-				nFEN = fen;
-			}
-		}
-		else {
-			std::cout << "Empty Chess960 string returnd!" << std::endl;
-		}
-	}
-	else if (variant == Chess::Horde) {
-		nFEN = "rnbqkbnr/pppppppp/8/1PP2PP1/PPPPPPPP/PPPPPPPP/PPPPPPPP/PPPPPPPP w kq - 0 1";
-	}
-	else if (variant == Chess::ThreeCheck) {
-		nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 3+3 0 1";
-	}
-	else if (variant == Chess::FiveCheck) {
-		nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 5+5 0 1";
-	}
-	else if (variant == Chess::RacingKings) {
-		nFEN = "8/8/8/8/8/8/krbnNBRK/qrbnNBRQ w - - 0 1";
-	}
-	else if (variant == Chess::Crazyhouse) {
-		nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1";
-	}
-	return nFEN;
+	return Chess::getNewFEN(variant, chess960Enabled);
 }
 
 std::string Board::getCurrentFEN() {

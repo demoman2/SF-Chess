@@ -3,11 +3,16 @@
 // FEN
 void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first)
 {
-	stockfish.setVariant(variant, chess960Enabled);
+	if (startedStockfish) { stockfish.setVariant(variant, chess960Enabled); }
+	if (stockfish.isCalculating) { stockfish.stopCalculating(); }
 	setSpriteVisible(ghostSprite, false);
 	moves = "";
-	whiteTime = startingWhiteTime;
-	blackTime = startingBlackTime;
+	if (!first) {
+		playerTime = startingPlayerTime;
+		AITime = startingAITime;
+		whiteTime = startingWhiteTime;
+		blackTime = startingBlackTime;
+	}
 	whiteChecks = 0;
 	blackChecks = 0;
 	gameEnded = false;
@@ -22,6 +27,7 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 	lastMoveDest.setPosition({ -1000, -1000 });
 	lastMoveStartLocal = { 100, 100 };
 	lastMoveDestLocal = { 100, 100 };
+	captureObjects.clear();
 	positionHistory.clear();
 	whiteDropPieces.clear();
 	blackDropPieces.clear();
@@ -64,22 +70,22 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 		dropsEnabled = true;
 	}
 
-	FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1";
+	startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1";
 	if (FEN_ID.has_value()) {
-		FEN = FEN_ID.value();
+		startingFEN = FEN_ID.value();
 		if (variant == Chess::ThreeCheck) {
-			if (FEN.find('+') == std::string::npos && findNthOf(FEN, ' ', 4) != 0) {
-				FEN.insert(findNthOf(FEN, ' ', 4), " 3+3");
+			if (startingFEN.find('+') == std::string::npos && findNthOf(startingFEN, ' ', 4) != 0) {
+				startingFEN.insert(findNthOf(startingFEN, ' ', 4), " 3+3");
 			}
 		}
 		else if (variant == Chess::FiveCheck) {
-			if (FEN.find('+') == std::string::npos && findNthOf(FEN, ' ', 4) != 0) {
-				FEN.insert(findNthOf(FEN, ' ', 4), " 5+5");
+			if (startingFEN.find('+') == std::string::npos && findNthOf(startingFEN, ' ', 4) != 0) {
+				startingFEN.insert(findNthOf(startingFEN, ' ', 4), " 5+5");
 			}
 		}
 		if (dropsEnabled) {
-			if (FEN.find('+') == std::string::npos && findNthOf(FEN, ' ', 1) != 0) {
-				FEN.insert(findNthOf(FEN, ' ', 1), "[]");
+			if (startingFEN.find('+') == std::string::npos && findNthOf(startingFEN, ' ', 1) != 0) {
+				startingFEN.insert(findNthOf(startingFEN, ' ', 1), "[]");
 			}
 		}
 	}
@@ -89,45 +95,45 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 			if (variant == Chess::Antichess) {
 				fen = Chess::getRandomLineFrom("assets/fen/antichess_endgame.txt");
 				if (variant == Chess::ThreeCheck) {
-					FEN = fen.substr(0, fen.size() - 3);
-					FEN += "3+3 0 1";
+					startingFEN = fen.substr(0, fen.size() - 3);
+					startingFEN += "3+3 0 1";
 				}
 				else if (variant == Chess::FiveCheck) {
-					FEN = fen.substr(0, fen.size() - 3);
-					FEN += "5+5 0 1";
+					startingFEN = fen.substr(0, fen.size() - 3);
+					startingFEN += "5+5 0 1";
 				}
 				else if (variant == Chess::Crazyhouse) {
-					FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1";
+					startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1";
 				}
 				else if (!fen.empty()) {
-					FEN = fen;
+					startingFEN = fen;
 				}
 			}
 			else if (variant == Chess::Standard) {
 				fen = Chess::getRandomLineFrom("assets/fen/endgame.txt");
 				if (variant == Chess::ThreeCheck) {
-					FEN = fen.substr(0, fen.size() - 3);
-					FEN += "3+3 0 1";
+					startingFEN = fen.substr(0, fen.size() - 3);
+					startingFEN += "3+3 0 1";
 				}
 				else if (variant == Chess::FiveCheck) {
-					FEN = fen.substr(0, fen.size() - 3);
-					FEN += "5+5 0 1";
+					startingFEN = fen.substr(0, fen.size() - 3);
+					startingFEN += "5+5 0 1";
 				}
 				else if (variant == Chess::Crazyhouse) {
-					FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1";
+					startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1";
 				}
 				else {
 					if (!fen.empty()) {
-						FEN = fen;
+						startingFEN = fen;
 					}
 				}
 			}
 			else {
-				FEN = getNewFEN();
+				startingFEN = getNewFEN();
 			}
 		}
 		else {
-			FEN = getNewFEN();
+			startingFEN = getNewFEN();
 		}
 	}
 
@@ -135,7 +141,7 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 		setupDropSprites();
 	}
 
-	if (timeEnabled) {
+	if (timeEnabled && !overridePieceSpeed) {
 		instantMove = false;
 		float time = std::min(whiteTime.asSeconds(), blackTime.asSeconds()) + (timeIncrement.asSeconds() * 40.0f);
 		if (time < 30) {
@@ -159,28 +165,28 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 			gameType = Chess::Classical;
 		}
 	}
-	if (!FEN.empty() && FEN.at(FEN.find_first_of(' ') + 1) == 'b') {
+	if (!startingFEN.empty() && startingFEN.at(startingFEN.find_first_of(' ') + 1) == 'b') {
 		whiteToPlay = false;
 	}
-	else if (!FEN.empty() && FEN.at(FEN.find_first_of(' ') + 1) == 'w') {
+	else if (!startingFEN.empty() && startingFEN.at(startingFEN.find_first_of(' ') + 1) == 'w') {
 		whiteToPlay = true;
 	}
 
+	std::optional<bool>& playerWhite = first ? white : newPositionWhite;
+
 	if (!endgamePosition) {
-		if (!playerWhite.has_value()) {
-			if (FEN_ID.has_value()) {
-				playerSideWhite = whiteToPlay;
-			}
-			else { playerSideWhite = std::rand() % 2; }
+		if (cycleSides && !first) {
+			playerSideWhite = !playerSideWhite;
 		}
 		else {
-			playerSideWhite = playerWhite.value();
+			if (playerWhite.has_value()) {
+				playerSideWhite = playerWhite.value();
+			}
+			else { playerSideWhite = randomBool(); }
 		}
 	}
-	else {
-		playerSideWhite = whiteToPlay;
-	}
-	if (first) { playerWhite = {}; }
+	else { playerSideWhite = whiteToPlay; }
+
 	if (stockfishEnabled && !AI_Only) {
 		if (!playerSideWhite) {
 			isFlipped = true;
@@ -198,10 +204,11 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 		}
 	}
 
-	bool s = isAnimated;
+	bool t = isAnimated;
 	if (!init) { isAnimated = false; }
-	pieceList = generatePositionFromFENID(FEN);
-	if (!init) { isAnimated = s; }
+	pieceList = generatePositionFromFENID(startingFEN);
+	if (FEN_ID.has_value()) { startingFEN = getCurrentFEN(); }
+	if (!init) { isAnimated = t; }
 	generateLegalMoves(true);
 }
 
@@ -409,18 +416,18 @@ void Board::scale(float scale)
 	ghostSprite.setScale({ pieceScale, pieceScale });
 
 	blackTimeBG.setScale({ boardScale * 1.02f, boardScale * 1.02f });
-	blackTimeBG.setPosition({ getGlobalPosition(sf::Vector2f{6.5f, 8.5f}) });
+	blackTimeBG.setPosition({ getGlobalPosition(sf::Vector2f{6.5f, 8.5f}, false) });
 	blackTimeBG.move({ 0, -(blackTimeBG.getTexture().getSize().y * blackTimeBG.getScale().y / 2.0f) - 1 });
 	blackTimeOutline.setScale({ boardScale * 1.11f, boardScale * 1.129f });
-	blackTimeOutline.setPosition({ getGlobalPosition(sf::Vector2f{6.5f, 8.5f}) });
+	blackTimeOutline.setPosition({ getGlobalPosition(sf::Vector2f{6.5f, 8.5f}, false) });
 	blackTimeOutline.move({ 0, -(blackTimeOutline.getTexture().getSize().y * blackTimeOutline.getScale().y / 2.0f) - 1 });
 	blackTimeText.setPosition({ blackTimeBG.getPosition() });
 	blackTimeText.setScale({ boardScale, boardScale });
 	whiteTimeBG.setScale({ boardScale * 1.02f, boardScale * 1.02f });
-	whiteTimeBG.setPosition({ getGlobalPosition(sf::Vector2f{2.5f, 8.5f}) });
+	whiteTimeBG.setPosition({ getGlobalPosition(sf::Vector2f{2.5f, 8.5f}, false) });
 	whiteTimeBG.move({ 0, -(whiteTimeBG.getTexture().getSize().y * whiteTimeBG.getScale().y / 2.0f) - 1 });
 	whiteTimeOutline.setScale({ boardScale * 1.11f, boardScale * 1.129f });
-	whiteTimeOutline.setPosition({ getGlobalPosition(sf::Vector2f{2.5f, 8.5f}) });
+	whiteTimeOutline.setPosition({ getGlobalPosition(sf::Vector2f{2.5f, 8.5f}, false) });
 	whiteTimeOutline.move({ 0, -(whiteTimeOutline.getTexture().getSize().y * whiteTimeOutline.getScale().y / 2.0f) - 1 });
 	whiteTimeText.setPosition({ whiteTimeBG.getPosition() });
 	whiteTimeText.setScale({ boardScale, boardScale });
@@ -461,11 +468,6 @@ void Board::setLocation(sf::Vector2f pos)
 	moveBy(pos.x - boardSprite.getPosition().x, pos.y - boardSprite.getPosition().y);
 }
 
-void Board::resetTransform() {
-	setLocation(startingOffset + sf::Vector2f{ windowSize.x / 2.0f, windowSize.y / 2.0f });
-	scale(startingScale / boardScale);
-}
-
 void Board::flipBoard()
 {
 	isFlipped = !isFlipped;
@@ -475,6 +477,16 @@ void Board::flipBoard()
 	if (hasCheck) { checkSprite.setPosition(Chess::reversePosition(checkSprite.getPosition(), boardSize) + boardOffset + boardOffset); }
 	setPieceSprites();
 	setSpritePositions();
+}
+
+void Board::resetPosition()
+{
+	setLocation(startingOffset + sf::Vector2f{ windowSize.x / 2.0f, windowSize.y / 2.0f });
+}
+
+void Board::resetScale()
+{
+	scale(startingScale / boardScale);
 }
 
 void Board::setOptionChange(std::string string)
@@ -496,12 +508,10 @@ void Board::setOptionChange(std::string string, bool v)
 	size_t at = n.find(':') + 2;
 	if (n.find(':') != std::string::npos) { n.at(at) = (char)std::toupper(n.at(at)); }
 	optionChangeText.setString(n);
-	optionChangeText.setOrigin(optionChangeText.getLocalBounds().getCenter());
-	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
+	optionChangeText.setOrigin({ optionChangeText.getLocalBounds().position.x + (optionChangeText.getLocalBounds().size.x / 2.0f), optionChangeText.getLocalBounds().position.y + (optionChangeText.getLocalBounds().size.y / 2.0f) });
 	optionChangeText.setFillColor(sf::Color(255, 255, 255, 255));
 	optionChangeOverlay.setFillColor(sf::Color(0, 0, 0, 170));
-	optionClock.reset();
-	optionClock.start();
+	optionClock.restart();
 }
 
 void Board::setOptionChange(std::string string, std::optional<bool> v)
@@ -517,23 +527,19 @@ void Board::setOptionChange(std::string string, std::optional<bool> v)
 	size_t at = n.find(':') + 2;
 	if (n.find(':') != std::string::npos) { n.at(at) = (char)std::toupper(n.at(at)); }
 	optionChangeText.setString(n);
-	optionChangeText.setOrigin(optionChangeText.getLocalBounds().getCenter());
-	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
+	optionChangeText.setOrigin({ optionChangeText.getLocalBounds().position.x + (optionChangeText.getLocalBounds().size.x / 2.0f), optionChangeText.getLocalBounds().position.y + (optionChangeText.getLocalBounds().size.y / 2.0f) });
 	optionChangeText.setFillColor(sf::Color(255, 255, 255, 255));
 	optionChangeOverlay.setFillColor(sf::Color(0, 0, 0, 170));
-	optionClock.reset();
-	optionClock.start();
+	optionClock.restart();
 }
 
 void Board::setOptionChange(std::string string, int v)
 {
 	optionChangeText.setString(string + ": " + std::to_string(v));
-	optionChangeText.setOrigin(optionChangeText.getLocalBounds().getCenter());
-	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
+	optionChangeText.setOrigin({ optionChangeText.getLocalBounds().position.x + (optionChangeText.getLocalBounds().size.x / 2.0f), optionChangeText.getLocalBounds().position.y + (optionChangeText.getLocalBounds().size.y / 2.0f) });
 	optionChangeText.setFillColor(sf::Color(255, 255, 255, 255));
 	optionChangeOverlay.setFillColor(sf::Color(0, 0, 0, 170));
-	optionClock.reset();
-	optionClock.start();
+	optionClock.restart();
 }
 
 void Board::setOptionChange(std::string string, float v)
@@ -541,12 +547,10 @@ void Board::setOptionChange(std::string string, float v)
 	std::ostringstream out;
 	out << std::fixed << std::setprecision(2) << v;
 	optionChangeText.setString(string + ": " + out.str());
-	optionChangeText.setOrigin(optionChangeText.getLocalBounds().getCenter());
-	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
+	optionChangeText.setOrigin({ optionChangeText.getLocalBounds().position.x + (optionChangeText.getLocalBounds().size.x / 2.0f), optionChangeText.getLocalBounds().position.y + (optionChangeText.getLocalBounds().size.y / 2.0f) });
 	optionChangeText.setFillColor(sf::Color(255, 255, 255, 255));
 	optionChangeOverlay.setFillColor(sf::Color(0, 0, 0, 170));
-	optionClock.reset();
-	optionClock.start();
+	optionClock.restart();
 }
 
 void Board::setOptionChange(std::string string, Chess::Variant v)
@@ -556,8 +560,7 @@ void Board::setOptionChange(std::string string, Chess::Variant v)
 	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
 	optionChangeText.setFillColor(sf::Color(255, 255, 255, 255));
 	optionChangeOverlay.setFillColor(sf::Color(0, 0, 0, 170));
-	optionClock.reset();
-	optionClock.start();
+	optionClock.restart();
 }
 
 void Board::setSpritePositions()
@@ -584,23 +587,60 @@ void Board::setPieceSheet(std::vector<sf::Image> sheets, int set)
 
 void Board::setBoardTexture(sf::Image& boardSheet, int set)
 {
-	Chess::loadBoard(boardSheet, boardSprite, boardTexture, set, boardTextureSize);
+	boardTexture = Chess::loadBoard(boardSheet, set, 1024);
 }
 
 void Board::setPreviousPosition()
 {
+	castleKing.reset();
+	castleRook.reset();
 	selectedPiece.reset();
-	bool hasGlobal = false;
-	sf::Vector2f globalPos;
-	std::shared_ptr<Piece> movePiece = nullptr;
+	setSpriteVisible(ghostSprite, false);
+	bool hasGlobal = false, hasCastle = false;
+	sf::Vector2f globalPos, globalRook, globalKing;
+	std::shared_ptr<Piece> movePiece = nullptr, moveRook = nullptr;
+	std::shared_ptr<King> moveKing = nullptr;
 	if (changingPosition) {
+		int count = 0;
 		for (auto& piece : pieceList) {
 			if (piece->hasTarget()) {
-				hasGlobal = true;
-				globalPos = piece->getGlobalPos();
-				movePiece = piece;
-				piece->setPosition(piece->getTarget());
-				piece->setTarget({});
+				count++;
+			}
+		}
+		if (count == 2) {
+			hasCastle = true;
+		}
+		if (!hasCastle) {
+			for (auto& piece : pieceList) {
+				if (piece->hasTarget()) {
+					hasGlobal = true;
+					globalPos = piece->getGlobalPos();
+					movePiece = piece;
+					piece->setPosition(piece->getTarget());
+					piece->setTarget({});
+					break;
+				}
+			}
+		}
+		else {
+			for (auto& piece : pieceList) {
+				if (piece->hasTarget()) {
+					if (piece->hasID('k')) {
+						hasGlobal = true;
+						globalKing = piece->getGlobalPos();
+						piece->setPosition(piece->getTarget());
+						piece->setTarget({});
+						movePiece = piece;
+						moveKing = std::dynamic_pointer_cast<King>(piece);
+					}
+					else if (piece->hasID('r')) {
+						hasGlobal = true;
+						globalRook = piece->getGlobalPos();
+						piece->setPosition(piece->getTarget());
+						piece->setTarget({});
+						moveRook = piece;
+					}
+				}
 			}
 		}
 		if (forwardMove) {
@@ -638,14 +678,108 @@ void Board::setPreviousPosition()
 		sf::Vector2i piecePos = Chess::convertChessNotationtoPosition(newMove.substr(0, midPos));
 		sf::Vector2i dest = Chess::convertChessNotationtoPosition(newMove.substr(midPos));
 		std::shared_ptr<Piece> piece = getPieceFromCurrentPosition(piecePos);
+		std::shared_ptr<Piece> capture = getPieceFromCurrentPosition(dest);
+		std::shared_ptr<Piece> rook;
+
 		if (piece) {
-			if (hasGlobal && *movePiece == *piece) {
-				piece->setPosition(globalPos);
+			bool closeCastle = false;
+			if (capture) {
+				if (capture->color == piece->color) {
+					if (piece->hasID('k') && capture->hasID('r')) {
+						closeCastle = true;
+					}
+					capture.reset();
+				}
 			}
-			else {
-				piece->setPosition(getGlobalPosition(dest));
+			if (piece->hasID('k')) {
+				std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
+				int pieceX = piece->getLocalPos().x;
+				if (!closeCastle) {
+					if (dest.x > pieceX + 1) {
+						rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
+						if (rook) {
+							castleKing = king;
+							castleRook = rook;
+							if (hasGlobal && hasCastle && moveRook == rook && moveKing == king) {
+								castleRook->setPosition(globalRook);									
+								castleKing->setPosition(globalKing);									
+							}
+							else {
+								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
+								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
+							}
+							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ king->Krook, piece->getLocalPos().y }));
+							castleKing->setTarget(getGlobalPosition(piecePos));
+						}
+					}
+					else if (dest.x < pieceX - 1) {
+						rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
+						if (rook) {
+							castleKing = king;
+							castleRook = rook;
+							if (hasGlobal && hasCastle && moveRook == rook && moveKing == king) {
+								castleRook->setPosition(globalRook);
+								castleKing->setPosition(globalKing);
+							}
+							else {
+								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
+								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
+							}
+							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ king->Qrook, piece->getLocalPos().y }));
+							castleKing->setTarget(getGlobalPosition(piecePos));
+						}
+					}
+				}
+				else {
+					if (dest.x > pieceX) {
+						rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
+						if (rook) {
+							castleKing = king;
+							castleRook = rook;
+							if (hasGlobal && hasCastle && moveRook == rook && moveKing == king) {
+								castleRook->setPosition(globalRook);
+								castleKing->setPosition(globalKing);
+							}
+							else {
+								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
+								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
+							}
+							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ king->Krook, piece->getLocalPos().y }));
+							castleKing->setTarget(getGlobalPosition(piecePos));
+						}
+					}
+					else if (dest.x < pieceX) {
+						rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
+						if (rook) {
+							castleKing = king;
+							castleRook = rook;
+							if (hasGlobal && hasCastle && moveRook == rook && moveKing == king) {
+								castleRook->setPosition(globalRook);
+								castleKing->setPosition(globalKing);
+							}
+							else {
+								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
+								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
+							}
+							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ king->Qrook, piece->getLocalPos().y }));
+							castleKing->setTarget(getGlobalPosition(piecePos));
+						}
+					}
+				}
 			}
-			piece->setTarget(getGlobalPosition(piecePos));
+			lastMoveStart.setPosition(getGlobalPosition(newPosition.lastMoveStartLocal));
+			lastMoveDest.setPosition(getGlobalPosition(newPosition.lastMoveDestLocal));
+			checkSprite.setPosition(getGlobalPosition(newPosition.checkPos));
+			hasCheck = newPosition.hasCheck;
+			if (!rook) { // No Castle
+				if (hasGlobal && *movePiece == *piece) {
+					piece->setPosition(globalPos);
+				}
+				else {
+					piece->setPosition(getGlobalPosition(dest));
+				}
+				piece->setTarget(getGlobalPosition(piecePos));
+			}
 		}
 		else {
 			std::cout << "Target Piece For Position Change Was Not Found at Position: " << piecePos.x << ", " << piecePos.y << std::endl;
@@ -667,36 +801,39 @@ void Board::setPreviousPosition()
 		stockfishEnabled = true;
 		ai = false;
 	}
-	cPosition = false;
 }
 
 void Board::setNextPosition()
 {
+	castleKing.reset();
+	castleRook.reset();
+	if (holdingPiece && selectedPiece) {
+		selectedPiece->setPosition(getGlobalPosition(selectedPiece->getLocalPos()));
+	}
 	selectedPiece.reset();
 	setSpriteVisible(ghostSprite, false);
 	if (changingPosition && forwardMove && positionHistoryF.size() > 1) {
 		for (auto& piece : pieceList) {
 			if (piece->hasTarget()) {
 				piece->setTarget({});
-				loadFromPosition(positionHistoryF.front());
-				if (!positionHistoryF.empty()) {
-					positionHistoryF.erase(positionHistoryF.begin());
-				}
-				allPositionsPlayed.push_back(savePosition());
-				if (playerSideWhite != whiteToPlay) {
-					if (stockfishEnabled) {
-						ai = true;
-					}
-					stockfishEnabled = false;
-				}
-				else if (ai) {
-					stockfishEnabled = true;
-					ai = false;
-				}
-				forwardMove = false;
-				break;
 			}
 		}
+		loadFromPosition(positionHistoryF.front());
+		if (!positionHistoryF.empty()) {
+			positionHistoryF.erase(positionHistoryF.begin());
+		}
+		allPositionsPlayed.push_back(savePosition());
+		if (playerSideWhite != whiteToPlay) {
+			if (stockfishEnabled) {
+				ai = true;
+			}
+			stockfishEnabled = false;
+		}
+		else if (ai) {
+			stockfishEnabled = true;
+			ai = false;
+		}
+		forwardMove = false;
 		changingPosition = false;
 	}
 	if (!positionHistoryF.empty() && !forwardMove) {
@@ -715,19 +852,78 @@ void Board::setNextPosition()
 			sf::Vector2i piecePos = Chess::convertChessNotationtoPosition(newMove.substr(0, midPos));
 			sf::Vector2i dest = Chess::convertChessNotationtoPosition(newMove.substr(midPos));
 			std::shared_ptr<Piece> piece = getPieceFromCurrentPosition(piecePos);
+			std::shared_ptr<Piece> capture = getPieceFromCurrentPosition(dest);
 			if (piece) {
+				bool closeCastle = false;
+				if (capture) {
+					if (capture->color == piece->color) {
+						if (piece->hasID('k') && capture->hasID('r')) {
+							closeCastle = true;
+						}
+						capture.reset();
+					}
+				}
+				if (piece->hasID('k')) {
+					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
+					int pieceX = piece->getLocalPos().x;
+					if (!closeCastle) {
+						if (dest.x > pieceX + 1) {
+							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
+							if (rook) {
+								castleKing = piece;
+								castleRook = rook;
+								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
+								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
+							}
+						}
+						else if (dest.x < pieceX - 1) {
+							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
+							if (rook) {
+								castleKing = piece;
+								castleRook = rook;
+								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
+								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
+							}
+						}
+					}
+					else {
+						if (dest.x > pieceX) {
+							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
+							if (rook) {
+								castleKing = piece;
+								castleRook = rook;
+								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
+								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
+							}
+						}
+						else if (dest.x < pieceX) {
+							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
+							if (rook) {
+								castleKing = piece;
+								castleRook = rook;
+								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
+								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
+							}
+						}
+					}
+				}
 				lastMoveStart.setPosition(getGlobalPosition(newPosition.lastMoveStartLocal));
 				lastMoveDest.setPosition(getGlobalPosition(newPosition.lastMoveDestLocal));
 				checkSprite.setPosition(getGlobalPosition(newPosition.checkPos));
 				hasCheck = newPosition.hasCheck;
-				piece->setTarget(getGlobalPosition(dest));
 				std::shared_ptr<Piece> capture = getPieceFromCurrentPosition(dest);
-				if (capture) {
-					captureSound.play();
-					ghostSprite.setTexture(capture->getTexture());
-					ghostSprite.setPosition(capture->getGlobalPos());
-					setSpriteVisible(ghostSprite, true, 75);
-					capture->setVisible(false);
+				if (!closeCastle) {
+					piece->setTarget(getGlobalPosition(dest));
+					if (capture) {
+						captureSound.play();
+						ghostSprite.setTexture(capture->getTexture());
+						ghostSprite.setPosition(capture->getGlobalPos());
+						setSpriteVisible(ghostSprite, true, 75);
+						capture->setVisible(false);
+					}
+					else {
+						moveSound.play();
+					}
 				}
 				else {
 					moveSound.play();
@@ -773,5 +969,186 @@ void Board::setNextPosition()
 			}
 		}
 	}
-	cPosition = false;
+}
+
+BoardSettings Board::getBoardArgs()
+{
+	float sizeM = sizeMultiplier;
+	sf::Time whiteT = whiteTime, blackT = blackTime, sWhiteT = startingWhiteTime, sBlackT = startingBlackTime;
+	if (AI_Time) {
+		whiteT = AITime;
+		blackT = playerTime;
+		sWhiteT = startingAITime;
+		sBlackT = startingPlayerTime;
+	}
+	if (timeEnabled) { sizeM *= ((float)boardTexture.getSize().y + whiteTimeOutline.getTexture().getSize().y * 1.129f) / (float)boardTexture.getSize().y; }
+	return { variant, pieceSet, boardSet, AI_Time, stockfishEnabled, AI_Only, chess960Enabled, endgamePosition,
+		repeatFEN, timeEnabled, offset.x, offset.y, sizeM, getCurrentFEN(), newPositionFEN, playerSideWhite, newPositionWhite,
+		whiteT, blackT, timeIncrement, keyBindsEnabled, optionMode, autoFlip, atomicExplosionEffect, isAnimated,
+		overridePieceSpeed, instantMove, isPaused, mouseMode, scaleMode, showMilliseconds, moveSpeed, promotionSquareSelectedColor,
+		sWhiteT, sBlackT, millisecondsTime, millisecondsCondition,
+		whiteUnit, blackUnit, incrUnit, startingWhiteUnit, startingBlackUnit, millisecondsConditionID, sharedTime, cycleSides };
+}
+
+const StockfishSettings& Board::getStockfishSettings()
+{
+	return stockfish.getSettings();
+}
+
+void Board::loadFromBoardArgs(const BoardSettings& bP, std::vector<sf::Image>& pieceSheets, sf::Image& boardSheet)
+{
+	if (stockfish.isCalculating && (!stockfish.getSettings().usesFixedTime &&
+		((variant != bP.variant) || (whiteTime != bP.whiteTime) || (blackTime != bP.blackTime) || (timeIncrement != bP.timeIncrement)))) {
+		stockfish.stopCalculating();
+	}
+	if (variant != bP.variant) {
+		variant = bP.variant;
+		if (variant == Chess::Antichess) {
+			castlingEnabled = false;
+			checksEnabled = false;
+			whitePromotePieces.emplace_back('k', sf::Vector2f{ pieceScale * 0.785f, pieceScale * 0.785f });
+			blackPromotePieces.emplace_back('k', sf::Vector2f{ pieceScale * 0.785f, pieceScale * 0.785f });
+		}
+		else if (variant == Chess::Atomic) {
+			captureSound.setVolume(9);
+			captureSound.setBuffer(soundBuffers->at(3));
+			captureThreshold = 30.0f;
+		}
+		else if (variant == Chess::RacingKings) {
+			castlingEnabled = false;
+		}
+		else if (variant == Chess::Crazyhouse) {
+			dropsEnabled = true;
+		}
+		generateLegalMoves(false);
+	}
+	AI_Time = bP.AI_Time;
+	whiteTime = bP.whiteTime;
+	blackTime = bP.blackTime;
+	if (AI_Time) {
+		AITime = bP.whiteTime;
+		playerTime = bP.blackTime;
+		startingAITime = bP.startingWhiteTime;
+		startingPlayerTime = bP.startingBlackTime;
+	}
+	pieceSet = bP.pieceSet;
+	boardSet = bP.boardSet;
+	stockfishEnabled = bP.AI;
+	AI_Only = bP.AI_Only;
+	AI_OnlyT = bP.AI_Only;
+	if (chess960Enabled != bP.chess960) {
+		chess960Enabled = bP.chess960;
+		generateLegalMoves(false);
+	}
+	endgamePosition = bP.endgamePosition;
+	isAnimated = bP.boardAnimated;
+	repeatFEN = bP.repeatFEN;
+	cycleSides = bP.cycleSides;
+	moveBy(bP.xOffset - offset.x, bP.yOffset - offset.y);
+	if (!pieceMoving) {
+		setScale(bP.boardScale * startingScale);
+		if (timeEnabled != bP.timeEnabled) {
+			timeEnabled = bP.timeEnabled;
+			if (!timeEnabled) {
+				moveSpeedI = moveSpeed;
+				instantMoveI = instantMove;
+				moveSpeed = 1.0f;
+				float scaleY = ((float)boardTexture.getSize().y + whiteTimeOutline.getTexture().getSize().y * 1.129f) / (float)boardTexture.getSize().y;
+				startingScale *= scaleY;
+				std::cout << scaleY << std::endl;
+				std::cout << startingScale << std::endl;
+				scale(scaleY);
+				moveBy(0, -int(whiteTimeOutline.getTexture().getSize().y) * 1.129f / 2.0f);
+				if (stockfish.isCalculating && !stockfish.getSettings().usesFixedTime) { stockfish.stopCalculating(); }
+			}
+			else {
+				moveSpeed = moveSpeedI;
+				instantMove = instantMoveI;
+				float scaleY = (float)boardTexture.getSize().y / ((float)boardTexture.getSize().y + whiteTimeOutline.getTexture().getSize().y * 1.129f);
+				startingScale *= scaleY;
+				scale(scaleY);
+				moveBy(0, int(whiteTimeOutline.getTexture().getSize().y) * 1.129f / 2.0f);
+				if (stockfish.isCalculating && !stockfish.getSettings().usesFixedTime) { stockfish.stopCalculating(); }
+			}
+		}
+	}
+	keyBindsEnabled = bP.keybindsEnabled;
+	optionMode = bP.showOptionChanges;
+	autoFlip = bP.autoFlip;
+	atomicExplosionEffect = bP.atomicExplosionEffect;
+	isPaused = bP.isPaused;
+	mouseMode = bP.followMouse;
+	scaleMode = bP.scaleMouse;
+	showMilliseconds = bP.showMilliseconds;
+	moveSpeed = bP.pieceSpeed;
+	promotionSquareSelectedColor = bP.promotionSquareColor;
+	startingWhiteTime = bP.startingWhiteTime;
+	startingBlackTime = bP.startingBlackTime;
+	millisecondsTime = bP.millisecondsTime;
+	millisecondsCondition = bP.millisecondsCondition;
+	millisecondsConditionID = bP.millisecondsConditionID;
+	sharedTime = bP.sharedTime;
+	overridePieceSpeed = bP.overridePieceSpeed;
+	if (!overridePieceSpeed) {
+		instantMove = false;
+		if (timeEnabled) {
+			float time = std::min(startingWhiteTime.asSeconds(), startingBlackTime.asSeconds()) + (timeIncrement.asSeconds() * 40.0f);
+			if (time < 30) {
+				instantMove = true;
+				gameType = Chess::UltraBullet;
+			}
+			else if (time < 180) {
+				instantMove = true;
+				gameType = Chess::Bullet;
+			}
+			else if (time < 480) {
+				moveSpeed = 1.5f;
+				gameType = Chess::Blitz;
+			}
+			else if (time < 1500) {
+				moveSpeed = 1.0f;
+				gameType = Chess::Rapid;
+			}
+			else {
+				moveSpeed = 0.8f;
+				gameType = Chess::Classical;
+			}
+		}
+		else {
+			moveSpeed = 1.0f;
+		}
+	}
+	else {
+		moveSpeed = bP.pieceSpeed;
+	}
+	instantMove = bP.instantPieces;
+	whiteUnit = bP.whiteUnit;
+	blackUnit = bP.blackUnit;
+	incrUnit = bP.incrUnit;
+	startingWhiteUnit = bP.startingWhiteUnit;
+	startingBlackUnit = bP.startingBlackUnit;
+	if (bP.white.has_value()) { playerSideWhite = bP.white.value(); }
+	timeIncrement = bP.timeIncrement;
+	newPositionWhite = bP.newPositionWhite;
+	boardTexture = Chess::loadBoard(boardSheet, boardSet, 1024);
+	white = bP.white;
+	newPositionFEN = bP.newPositionFEN;
+	Chess::loadPieceSet(pieceSheets.at(pieceSet), pieceTextures, pieceSize);
+	if (bP.FEN.has_value() && bP.FEN != getCurrentFEN()) {
+		loadFromFEN(bP.FEN.value(), false);
+	}
+	if (!startedStockfish) {
+		stockfish.startStockfish();
+		stockfish.setVariant(variant, chess960Enabled);
+		startedStockfish = true;
+	}
+}
+
+void Board::setStockfishSettings(const StockfishSettings& newSettings)
+{
+	const StockfishSettings& stockfishSettings = stockfish.getSettings();
+	if (stockfish.isCalculating && (stockfishSettings.usesFixedTime != newSettings.usesFixedTime || (stockfishSettings.usesFixedTime && stockfishSettings.fixedTime != newSettings.fixedTime))) {
+		stockfish.stopCalculating();
+	}
+	stockfish.loadSettings(newSettings);
 }

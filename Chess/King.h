@@ -27,7 +27,7 @@ private:
 	bool canCastleK, canCastleQ;
 	std::vector<Chess::Square> castlePositions, captureCastlePositions;
 
-	void calculateCastlingRights(pieceVector pieceList, bool checksEnabled);
+	void calculateCastlingRights(pieceVector pieceList, bool checksEnabled, bool chess960);
 	void addCastleSquare(sf::Vector2i square);
 	void addCastleCaptureSquare(sf::Vector2i square, bool chess960, bool kingside);
 	bool isValidMove(sf::Vector2i square, const pieceVector& pieceList, Chess::Variant variant, bool atomicKings, bool checksEnabled) override;

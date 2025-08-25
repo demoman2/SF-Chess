@@ -1,0 +1,86 @@
+Panel.Shadow {
+    IgnoreMouseEvents = true;
+    Size = (100%, 100%);
+
+    Renderer {
+        BackgroundColor = black;
+        BorderColor = black;
+        Opacity = 0.4;
+        OpacityDisabled = 0;
+        TextureBackground = None;
+    }
+}
+
+Panel.Panel {
+    Size = (100%, 37.04%);
+
+    Renderer {
+        BackgroundColor = transparent;
+        BorderColor = black;
+        TextureBackground = None;
+    }
+
+    BitmapButton.Engine {
+        Image = None;
+        ImageScaling = 0;
+        Position = (11.56%, 6.5%);
+        Size = (31.51%, 32.25%);
+        TextSize = 13;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BackgroundColorDisabled = None;
+            BackgroundColorDown = None;
+            BackgroundColorHover = None;
+            BorderColor = transparent;
+            BorderColorDisabled = None;
+            BorderColorDown = None;
+            BorderColorFocused = None;
+            BorderColorHover = None;
+            Borders = (0, 0, 0, 0);
+            TextColor = #3C3C3C;
+            TextColorDisabled = None;
+            TextColorDown = None;
+            TextColorHover = None;
+            Texture = None;
+            TextureDisabled = None;
+            TextureDown = None;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = None;
+        }
+    }
+
+    BitmapButton.Board {
+        Image = None;
+        ImageScaling = 0;
+        Position = (0.62%, 6.5%);
+        Size = (31.51%, 75.99%);
+        TextSize = 13;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BackgroundColorDisabled = None;
+            BackgroundColorDown = None;
+            BackgroundColorHover = None;
+            BorderColor = transparent;
+            BorderColorDisabled = None;
+            BorderColorDown = None;
+            BorderColorFocused = None;
+            BorderColorHover = None;
+            Borders = (0, 0, 0, 0);
+            TextColor = None;
+            TextColorDisabled = None;
+            TextColorDown = None;
+            TextColorHover = None;
+            Texture = None;
+            TextureDisabled = None;
+            TextureDown = None;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = None;
+        }
+    }
+}

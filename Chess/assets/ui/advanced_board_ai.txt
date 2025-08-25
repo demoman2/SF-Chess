@@ -1,0 +1,695 @@
+Renderer.1 {
+    BackgroundColor = transparent;
+    BorderColor = #3C3C3C;
+    Borders = (0, 0, 0, 0);
+    TextColor = #3C3C3C;
+    TextureBackground = None;
+
+    Scrollbar {
+        ArrowBackgroundColor = #F5F5F5;
+        ArrowBackgroundColorHover = white;
+        ArrowColor = #3C3C3C;
+        ArrowColorHover = black;
+        TextureArrowDown = None;
+        TextureArrowDownHover = None;
+        TextureArrowUp = None;
+        TextureArrowUpHover = None;
+        TextureThumb = None;
+        TextureThumbHover = None;
+        TextureTrack = None;
+        TextureTrackHover = None;
+        ThumbColor = #DCDCDC;
+        ThumbColorHover = #E6E6E6;
+        TrackColor = #F5F5F5;
+    }
+}
+
+Renderer.2 {
+}
+
+Panel.Arrows {
+    Position = (13.54%, 42.59%);
+    Size = (73.96%, 13.89%);
+
+    Renderer {
+        BackgroundColor = #FFFFFF00;
+        BorderColor = black;
+        Opacity = 1;
+        TextureBackground = None;
+    }
+
+    BitmapButton.Right {
+        Enabled = false;
+        Image = None;
+        ImageScaling = 0;
+        MouseCursor = Hand;
+        Position = (91.55%, 0%);
+        Size = (7.75%, 73.33%);
+        TextSize = 35;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BackgroundColorDisabled = transparent;
+            BackgroundColorDown = transparent;
+            BackgroundColorHover = transparent;
+            BorderColor = transparent;
+            BorderColorDisabled = transparent;
+            BorderColorDown = transparent;
+            BorderColorFocused = transparent;
+            BorderColorHover = transparent;
+            Borders = (1, 1, 1, 1);
+            TextColor = #3C3C3C;
+            TextColorDisabled = #7D7D7D;
+            TextColorDown = #DE0000;
+            TextColorDownHover = #AC0000;
+            TextColorHover = #AC0000;
+            TextStyle = Bold;
+            Texture = "textures/arrow_right.png" Smooth;
+            TextureDisabled = "textures/arrow_right_disabled.png" Smooth;
+            TextureDown = "textures/arrow_right_down.png" Smooth;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = "textures/arrow_right_hover.png" Smooth;
+        }
+    }
+
+    BitmapButton.Left {
+        Image = None;
+        ImageScaling = 0;
+        MouseCursor = Hand;
+        Position = (0.7%, 0%);
+        Size = (7.75%, 73.33%);
+        TextSize = 35;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BackgroundColorDisabled = transparent;
+            BackgroundColorDown = transparent;
+            BackgroundColorHover = transparent;
+            BorderColor = transparent;
+            BorderColorDisabled = transparent;
+            BorderColorDown = transparent;
+            BorderColorFocused = transparent;
+            BorderColorHover = transparent;
+            Borders = (1, 1, 1, 1);
+            TextColor = #3C3C3C;
+            TextColorDisabled = #7D7D7D;
+            TextColorDown = #DE0000;
+            TextColorDownHover = #AC0000;
+            TextColorHover = #AC0000;
+            TextStyle = Bold;
+            Texture = "textures/arrow_left.png" Smooth;
+            TextureDisabled = None;
+            TextureDown = "textures/arrow_left_down.png" Smooth;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = "textures/arrow_left_hover.png" Smooth;
+        }
+    }
+}
+
+Panel.Panel {
+    Position = (31.4%, 1.86%);
+    Size = (46.05%, 97.96%);
+
+    Renderer {
+        BackgroundColor = white;
+        BorderColor = black;
+        TextureBackground = "textures/rounded_rectangle_3.png" Smooth;
+    }
+
+    Panel."Round Top" {
+        Size = (101.03%, 8.51%);
+
+        Renderer {
+            BackgroundColor = transparent;
+            BorderColor = black;
+            TextureBackground = "textures/rounded_rectangle_4.png" Smooth;
+            TransparentTexture = true;
+        }
+    }
+
+    Label.Title {
+        MaximumTextWidth = 523;
+        Position = (23.84%, 2.08%);
+        ScrollbarPolicy = Never;
+        Size = (91.11%, 6.05%);
+        Text = "Advanced Settings";
+        TextSize = 45;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BorderColor = #3C3C3C;
+            Borders = (0, 0, 0, 0);
+            TextColor = #3C3C3C;
+            TextStyle = Bold;
+            TextureBackground = None;
+
+            Scrollbar {
+                ArrowBackgroundColor = #F5F5F5;
+                ArrowBackgroundColorHover = white;
+                ArrowColor = #3C3C3C;
+                ArrowColorHover = black;
+                TextureArrowDown = None;
+                TextureArrowDownHover = None;
+                TextureArrowUp = None;
+                TextureArrowUpHover = None;
+                TextureThumb = None;
+                TextureThumbHover = None;
+                TextureTrack = None;
+                TextureTrackHover = None;
+                ThumbColor = #DCDCDC;
+                ThumbColorHover = #E6E6E6;
+                TrackColor = #F5F5F5;
+            }
+        }
+    }
+
+    BitmapButton.Save {
+        Image = None;
+        ImageScaling = 0;
+        MouseCursor = Hand;
+        Position = (80.64%, 94.71%);
+        Size = (16.9%, 4.73%);
+        Text = Save;
+        TextSize = 38;
+
+        Renderer {
+            BackgroundColor = #414141;
+            BackgroundColorDown = rgba(150, 150, 150, 215);
+            BackgroundColorHover = rgba(190, 190, 190, 215);
+            BorderColor = transparent;
+            Borders = 1;
+            RoundedBorderRadius = 5;
+            TextColor = white;
+            TextColorDown = rgba(255, 255, 255, 235);
+            TextColorHover = rgba(255, 255, 255, 235);
+            Texture = "textures/dark_gradient.png" Smooth;
+            TextureDisabled = None;
+            TextureDown = "textures/dark_gradient_down.png" Smooth;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = "textures/dark_gradient_hover.png" Smooth;
+        }
+    }
+
+    BitmapButton.Cancel {
+        Image = None;
+        ImageScaling = 0;
+        MouseCursor = Hand;
+        Position = (0%, 94.62%);
+        Size = (19.16%, 4.73%);
+        Text = Cancel;
+        TextSize = 40;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BackgroundColorDown = None;
+            BackgroundColorHover = None;
+            BorderColor = transparent;
+            Borders = 1;
+            RoundedBorderRadius = 0;
+            TextColor = #414141;
+            TextColorDown = #989898;
+            TextColorHover = #707070;
+            Texture = None;
+            TextureDisabled = None;
+            TextureDown = None;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = None;
+        }
+    }
+
+    SeparatorLine.Separator {
+        Position = (0%, 8.32%);
+        Size = (100%, 0.28%);
+
+        Renderer {
+            Color = black;
+            Opacity = 0.2;
+            TransparentTexture = false;
+        }
+    }
+
+    BitmapButton."Close Button" {
+        Image = None;
+        ImageScaling = 0;
+        MouseCursor = Hand;
+        Position = (90.58%, 3.21%);
+        Size = (3.39%, 2.84%);
+        TextSize = 35;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BackgroundColorDisabled = transparent;
+            BackgroundColorDown = transparent;
+            BackgroundColorHover = transparent;
+            BorderColor = transparent;
+            BorderColorDisabled = transparent;
+            BorderColorDown = transparent;
+            BorderColorFocused = transparent;
+            BorderColorHover = transparent;
+            Borders = (1, 1, 1, 1);
+            TextColor = #3C3C3C;
+            TextColorDisabled = #7D7D7D;
+            TextColorDown = #DE0000;
+            TextColorDownHover = #AC0000;
+            TextColorHover = #AC0000;
+            TextStyle = Bold;
+            Texture = "textures/x.png" Smooth;
+            TextureDisabled = None;
+            TextureDown = "textures/x_red.png" Smooth;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = "textures/x_hred.png" Smooth;
+        }
+    }
+
+    HorizontalLayout.HorizontalLayout2 {
+        Position = (1.13%, 17.96%);
+        Size = (97.27%, 4.73%);
+
+        Renderer {
+        }
+    }
+
+    EditBox."Fixed Time" {
+        InputValidator = "[+]?[0-9]*\\.?[0-9]*";
+        Position = (41.85%, 56.24%);
+        Size = (23.75%, 4.68%);
+        Text = 100;
+        TextSize = 40;
+
+        Renderer {
+            BackgroundColor = #F5F5F5;
+            BackgroundColorDisabled = #E6E6E6;
+            BackgroundColorHover = white;
+            BorderColor = #3C3C3C;
+            BorderColorDisabled = #7D7D7D;
+            BorderColorHover = black;
+            Borders = (1, 1, 1, 1);
+            CaretColor = black;
+            CaretWidth = 1;
+            DefaultTextColor = #A0A0A0;
+            Padding = (0, 0, 0, 0);
+            SelectedTextBackgroundColor = #006EFF;
+            SelectedTextColor = white;
+            TextColor = #3C3C3C;
+            TextColorDisabled = #7D7D7D;
+            Texture = "textures/gradient.png" Smooth;
+            TextureDisabled = "textures/gradient_disabled.png" Smooth;
+            TextureFocused = None;
+            TextureHover = None;
+        }
+    }
+
+    BitmapButton."Fixed Time Unit" {
+        Image = None;
+        ImageScaling = 0;
+        Position = (67.86%, 58.13%);
+        Size = (7.13%, 2.91%);
+        Text = s;
+        TextSize = 20;
+
+        Renderer {
+            BackgroundColor = #F5F5F5;
+            BackgroundColorDisabled = #E6E6E6;
+            BackgroundColorDown = #EBEBEB;
+            BackgroundColorHover = white;
+            BorderColor = #3C3C3C;
+            BorderColorDisabled = #7D7D7D;
+            BorderColorDown = black;
+            BorderColorFocused = #1E1EB4;
+            BorderColorHover = black;
+            Borders = (1, 1, 1, 1);
+            TextColor = #3C3C3C;
+            TextColorDisabled = #7D7D7D;
+            TextColorDown = black;
+            TextColorHover = black;
+            Texture = "textures/gradient.png" Smooth;
+            TextureDisabled = "textures/gradient_disabled.png" Smooth;
+            TextureDown = "textures/gradient_down.png" Smooth;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = None;
+        }
+    }
+
+    Label."Fixed Time Label" {
+        IgnoreMouseEvents = true;
+        MaximumTextWidth = 141;
+        Position = (4.89%, 56.05%);
+        Renderer = &1;
+        ScrollbarPolicy = Never;
+        Size = (45.35%, 4.54%);
+        Text = "Fixed Time";
+        TextSize = 48;
+        UserData = "";
+    }
+
+    Label.Label3 {
+        MaximumTextWidth = 141;
+        Position = (9.41%, 11.15%);
+        Renderer = &1;
+        ScrollbarPolicy = Never;
+        Size = (53.27%, 4.54%);
+        Text = "Enable Stockfish";
+        TextSize = 48;
+    }
+
+    CheckBox."Enable Stockfish" {
+        Checked = true;
+        Position = (3.28%, 12.29%);
+        Size = (3.48%, 2.8%);
+        TextSize = 13;
+
+        Renderer {
+            BackgroundColor = #F5F5F5;
+            BackgroundColorDisabled = #E6E6E6;
+            BackgroundColorHover = white;
+            BorderColor = #3C3C3C;
+            BorderColorDisabled = #7D7D7D;
+            BorderColorFocused = #1E1EB4;
+            BorderColorHover = black;
+            Borders = (1, 1, 1, 1);
+            CheckColor = #3C3C3C;
+            CheckColorDisabled = #7D7D7D;
+            CheckColorHover = black;
+            TextColor = #3C3C3C;
+            TextColorDisabled = #7D7D7D;
+            TextColorHover = black;
+            TextDistanceRatio = 0.2;
+            TextureChecked = None;
+            TextureCheckedDisabled = None;
+            TextureCheckedFocused = None;
+            TextureCheckedHover = None;
+            TextureUnchecked = "textures/gradient_checkbox.png" Smooth;
+            TextureUncheckedDisabled = None;
+            TextureUncheckedFocused = None;
+            TextureUncheckedHover = "textures/gradient_hover_checkbox.png" Smooth;
+        }
+    }
+
+    Label."AI Only Label" {
+        MaximumTextWidth = 141;
+        Position = (9.41%, 18.72%);
+        Renderer = &1;
+        ScrollbarPolicy = Never;
+        Size = (53.27%, 5.49%);
+        Text = "AI Only Moves";
+        TextSize = 47;
+    }
+
+    CheckBox."AI Only" {
+        Position = (3.28%, 19.85%);
+        Size = (3.48%, 2.8%);
+        TextSize = 13;
+
+        Renderer {
+            BackgroundColor = #F5F5F5;
+            BackgroundColorDisabled = #E6E6E6;
+            BackgroundColorHover = white;
+            BorderColor = #3C3C3C;
+            BorderColorDisabled = #7D7D7D;
+            BorderColorFocused = #1E1EB4;
+            BorderColorHover = black;
+            Borders = (1, 1, 1, 1);
+            CheckColor = #3C3C3C;
+            CheckColorDisabled = #7D7D7D;
+            CheckColorHover = black;
+            TextColor = #3C3C3C;
+            TextColorDisabled = #7D7D7D;
+            TextColorHover = black;
+            TextDistanceRatio = 0.2;
+            TextureChecked = None;
+            TextureCheckedDisabled = None;
+            TextureCheckedFocused = None;
+            TextureCheckedHover = None;
+            TextureUnchecked = "textures/gradient_checkbox.png" Smooth;
+            TextureUncheckedDisabled = None;
+            TextureUncheckedFocused = None;
+            TextureUncheckedHover = "textures/gradient_hover_checkbox.png" Smooth;
+        }
+    }
+
+    Label.Label5 {
+        MaximumTextWidth = 141;
+        Position = (39.95%, 27.22%);
+        Renderer = &1;
+        ScrollbarPolicy = Never;
+        Size = (53.27%, 5.49%);
+        Text = "AI Side";
+        TextSize = 47;
+    }
+
+    GrowHorizontalLayout.GrowHorizontalLayout1 {
+        Position = (3.39%, 34.03%);
+        Renderer = &2;
+        Size = (804, 4.73%);
+
+        ToggleButton."AI White" {
+            Down = false;
+            Size = (407, 100%);
+            Text = White;
+            TextSize = 36;
+
+            Renderer {
+                BackgroundColor = #F5F5F5;
+                BackgroundColorDisabled = #E6E6E6;
+                BackgroundColorDown = #006EFF;
+                BackgroundColorDownHover = #008CFF;
+                BackgroundColorHover = white;
+                BorderColor = #3C3C3C;
+                BorderColorDisabled = #7D7D7D;
+                BorderColorDown = black;
+                BorderColorFocused = None;
+                BorderColorHover = black;
+                Borders = (1, 1, 1, 1);
+                TextColor = #3C3C3C;
+                TextColorDisabled = #7D7D7D;
+                TextColorDown = white;
+                TextColorHover = black;
+                Texture = "textures/gradient.png" Smooth;
+                TextureDisabled = None;
+                TextureDown = None;
+                TextureDownFocused = None;
+                TextureDownHover = None;
+                TextureFocused = None;
+                TextureHover = "textures/gradient_down.png" Smooth;
+            }
+        }
+
+        ToggleButton."AI Black" {
+            Down = false;
+            Position = (407, 0%);
+            Size = (397, 100%);
+            Text = Black;
+            TextSize = 36;
+
+            Renderer {
+                BackgroundColor = #F5F5F5;
+                BackgroundColorDisabled = #E6E6E6;
+                BackgroundColorDown = #006EFF;
+                BackgroundColorDownHover = #008CFF;
+                BackgroundColorHover = white;
+                BorderColor = #3C3C3C;
+                BorderColorDisabled = #7D7D7D;
+                BorderColorDown = black;
+                BorderColorFocused = None;
+                BorderColorHover = black;
+                Borders = (1, 1, 1, 1);
+                TextColor = #3C3C3C;
+                TextColorDisabled = #7D7D7D;
+                TextColorDown = white;
+                TextColorHover = black;
+                Texture = "textures/gradient.png" Smooth;
+                TextureDisabled = None;
+                TextureDown = None;
+                TextureDownFocused = None;
+                TextureDownHover = None;
+                TextureFocused = None;
+                TextureHover = "textures/gradient_down.png" Smooth;
+            }
+        }
+    }
+
+    Label.Label6 {
+        MaximumTextWidth = 141;
+        Position = (33.17%, 42.06%);
+        Renderer = &1;
+        ScrollbarPolicy = Never;
+        Size = (53.27%, 5.49%);
+        Text = "Playing Time";
+        TextSize = 46;
+    }
+
+    GrowHorizontalLayout.GrowHorizontalLayout2 {
+        Position = (3.39%, 48.21%);
+        Renderer = &2;
+        Size = (804, 4.73%);
+
+        ToggleButton."Time Based" {
+            Down = false;
+            Size = (402, 100%);
+            Text = "Time Based";
+            TextSize = 36;
+
+            Renderer {
+                BackgroundColor = #F5F5F5;
+                BackgroundColorDisabled = #E6E6E6;
+                BackgroundColorDown = #006EFF;
+                BackgroundColorDownHover = #008CFF;
+                BackgroundColorHover = white;
+                BorderColor = #3C3C3C;
+                BorderColorDisabled = #7D7D7D;
+                BorderColorDown = black;
+                BorderColorFocused = None;
+                BorderColorHover = black;
+                Borders = (1, 1, 1, 1);
+                TextColor = #3C3C3C;
+                TextColorDisabled = #7D7D7D;
+                TextColorDown = white;
+                TextColorHover = black;
+                Texture = "textures/gradient.png" Smooth;
+                TextureDisabled = None;
+                TextureDown = None;
+                TextureDownFocused = None;
+                TextureDownHover = None;
+                TextureFocused = None;
+                TextureHover = "textures/gradient_down.png" Smooth;
+            }
+        }
+
+        ToggleButton.Fixed {
+            Down = false;
+            Position = (402, 0%);
+            Size = (402, 100%);
+            Text = "Always Fixed";
+            TextSize = 36;
+
+            Renderer {
+                BackgroundColor = #F5F5F5;
+                BackgroundColorDisabled = #E6E6E6;
+                BackgroundColorDown = #006EFF;
+                BackgroundColorDownHover = #008CFF;
+                BackgroundColorHover = white;
+                BorderColor = #3C3C3C;
+                BorderColorDisabled = #7D7D7D;
+                BorderColorDown = black;
+                BorderColorFocused = None;
+                BorderColorHover = black;
+                Borders = (1, 1, 1, 1);
+                TextColor = #3C3C3C;
+                TextColorDisabled = #7D7D7D;
+                TextColorDown = white;
+                TextColorHover = black;
+                Texture = "textures/gradient.png" Smooth;
+                TextureDisabled = None;
+                TextureDown = None;
+                TextureDownFocused = None;
+                TextureDownHover = None;
+                TextureFocused = None;
+                TextureHover = "textures/gradient_down.png" Smooth;
+            }
+        }
+    }
+
+    Label.Label2 {
+        MaximumTextWidth = 141;
+        Position = (4.98%, 65.31%);
+        Renderer = &1;
+        ScrollbarPolicy = Never;
+        Size = (53.27%, 5.49%);
+        Text = "Skill Level";
+        TextSize = 48;
+    }
+
+    EditBox."Skill Level" {
+        DefaultText = "-20 to 20";
+        InputValidator = Int;
+        Position = (41.85%, 65.69%);
+        Size = (23.75%, 4.73%);
+        TextSize = 40;
+
+        Renderer {
+            BackgroundColor = #F5F5F5;
+            BackgroundColorDisabled = #E6E6E6;
+            BackgroundColorHover = white;
+            BorderColor = #3C3C3C;
+            BorderColorDisabled = #7D7D7D;
+            BorderColorHover = black;
+            Borders = (1, 1, 1, 1);
+            CaretColor = black;
+            CaretWidth = 1;
+            DefaultTextColor = #A0A0A0;
+            Padding = (0, 0, 0, 0);
+            SelectedTextBackgroundColor = #006EFF;
+            SelectedTextColor = white;
+            TextColor = #3C3C3C;
+            TextColorDisabled = #7D7D7D;
+            Texture = "textures/gradient.png" Smooth;
+            TextureDisabled = "textures/gradient_disabled.png" Smooth;
+            TextureFocused = None;
+            TextureHover = None;
+        }
+    }
+
+    SpinButton."Skill Spin" {
+        Maximum = 2;
+        Minimum = 0;
+        Position = (65.6%, 65.69%);
+        Size = (2.38%, 4.73%);
+        Step = 1;
+        Value = 1;
+
+        Renderer {
+            ArrowColor = #3C3C3C;
+            ArrowColorHover = black;
+            BackgroundColor = #F5F5F5;
+            BackgroundColorHover = white;
+            BorderBetweenArrows = 2;
+            BorderColor = black;
+            Borders = (1, 1, 1, 1);
+            TextureArrowDown = None;
+            TextureArrowDownHover = None;
+            TextureArrowUp = None;
+            TextureArrowUpHover = None;
+        }
+    }
+
+    BitmapButton.Main {
+        Image = None;
+        ImageScaling = 0;
+        MouseCursor = Hand;
+        Position = (44.45%, 94.71%);
+        Size = (34.95%, 4.73%);
+        Text = "Main Settings";
+        TextSize = 38;
+
+        Renderer {
+            BackgroundColor = #414141;
+            BackgroundColorDown = rgba(150, 150, 150, 215);
+            BackgroundColorHover = rgba(190, 190, 190, 215);
+            BorderColor = transparent;
+            Borders = 1;
+            RoundedBorderRadius = 5;
+            TextColor = white;
+            TextColorDown = rgba(255, 255, 255, 235);
+            TextColorHover = rgba(255, 255, 255, 235);
+            Texture = "textures/dark_gradient.png" Smooth;
+            TextureDisabled = None;
+            TextureDown = "textures/dark_gradient_down.png" Smooth;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = "textures/dark_gradient_hover.png" Smooth;
+        }
+    }
+}

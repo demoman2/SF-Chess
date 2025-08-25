@@ -1,53 +1,50 @@
 #include "Board.h"
 
-Board::Board(Chess::Variant variant, std::optional<std::string> FEN_ID, float xOffset, float yOffset, int boardSize, bool animated, sf::Vector2u windowSize, float scale, int boardSet, int pieceSet, std::vector<sf::Image> pieceSheets, sf::Image& boardSheet, sf::Font& textFont, sf::Texture& boardT,
-	bool AI, bool AI_Only, std::optional<bool> playerWhite, bool repeatFEN, bool chess960, bool endGamePosition, std::vector<sf::Texture>& pTextures, std::vector<sf::Texture>& boardTextures, std::vector<sf::SoundBuffer>& soundBuffers, bool timeEnabled, bool init, sf::Time whiteTime, sf::Time blackTime, sf::Time timeIncr) : variant(variant), whiteToPlay(true), playerSideWhite(true), holdingDropPiece(false), AI_Only(AI_Only), endgamePosition(endGamePosition), chess960Enabled(chess960), stockfishEnabled(AI),
-	calculatingPos(false), eighthRankWhite(false), mouseSelecting(false), mouseClicked(false), pieceMoving(false), hasCheck(false), isPromoting(false), scaleMode(false), mouseMode(false), pieceSet(pieceSet), boardSet(boardSet), atomicKings(false),
-	animationFinished(false), holdingPiece(false), checksEnabled(true), castlingEnabled(true), dropsEnabled(false), isPaused(false), gameEnded(false), repeatFEN(repeatFEN), selectedPiece(nullptr), capturePiece(nullptr), castleKing(nullptr), castleRook(nullptr), promotePiece(nullptr),
-	boardTexture(boardT), boardSprite(boardT), selectedPieceBackground(boardTextures.at(5)), checkSprite(boardTextures.at(2)), lastMoveStart(boardTextures.at(3)), lastMoveDest(boardTextures.at(3)), kothBackground(boardTextures.at(8)), kothShadow(boardTextures.at(9)), rankBackground(boardTextures.at(10)), rankShadowTop(boardTextures.at(11)),
-	dropPieceBackgroundW(boardTextures.at(13)), dropPieceBackgroundB(boardTextures.at(13)), whiteCheckCount(boardTextures.at(12)), blackCheckCount(boardTextures.at(12)), whiteCheckText(textFont, "3", 40U), blackCheckText(textFont, "3", 40U), soundBuffers(&soundBuffers), moveSound(soundBuffers.at(0)), captureSound(soundBuffers.at(1)), gameEndSound(soundBuffers.at(2)), lowTimeSound(soundBuffers.at(4)), captureThreshold(1.0f), pieceSize(320), boardTextureSize(boardSize), halfMoves(0), fullMoves(0), sizeMultiplier(scale), stockfish("assets/other/fairy-stockfish-largeboard_x86-64.exe", 1),
-	whiteChecks(0), blackChecks(0), isAnimated(animated), pieceTextures(pTextures), boardTextures(&boardTextures), textFont(&textFont), selectedDropPiece(' ', pieceTextures.at(0)), windowSize(windowSize), selectedPos(), lastMoveStartLocal(100, 100), lastMoveDestLocal(100, 100), shouldPostMove(true), promotionEnabled(true), gameShouldEnd(false), ghostSprite(pieceTextures.back()),
-	playingMove(false), isFlipped(false), autoFlip(false), optionMode(true), optionChangeText(textFont, "Paused: True", 70), boardSize(sf::Vector2f{ (float)boardSize, (float)boardSize }), generatingMoves(false), startedStockfish(AI), movesPlayed(0), playerWhite(playerWhite), ai(false), changingPosition(false), forwardMove(false), cPosition(false), initialMousePos(), initialBoardScale(1.0f),
-	timeClock(), timeEnabled(timeEnabled), whiteTime(whiteTime), blackTime(blackTime), startingWhiteTime(whiteTime), startingBlackTime(blackTime), whiteTimeText(textFont, "00:00", 85), blackTimeText(textFont, "00:00", 85), whiteTimeBG(boardTextures.at(16)), blackTimeBG(boardTextures.at(16)), whiteTimeOutline(boardTextures.at(16)), blackTimeOutline(boardTextures.at(16)), timeIncrement(timeIncr), boardHSV({ 0, 0, 0 }), gameType(Chess::Classical), instantMove(false), moveSpeed(1.0f), moveSpeedI(1.0f), instantMoveI(false)
+Board::Board(const BoardSettings& bA, const StockfishSettings& stockfishSettings, sf::Vector2u windowSize, std::vector<sf::Image>& pieceSheets, sf::Image& boardSheet, sf::Font& textFont, sf::Texture& boardT,
+	std::vector<sf::Texture>& pTextures, std::vector<sf::Texture>& boardTextures, std::vector<sf::SoundBuffer>& soundBuffers, bool init) : variant(bA.variant), whiteToPlay(true), playerSideWhite(true), holdingDropPiece(false), AI_Only(bA.AI_Only), endgamePosition(bA.endgamePosition), chess960Enabled(bA.chess960), stockfishEnabled(bA.AI),
+	calculatingPos(false), eighthRankWhite(false), mouseSelecting(false), mouseClicked(false), pieceMoving(false), hasCheck(false), isPromoting(false), scaleMode(bA.scaleMouse), mouseMode(bA.followMouse), pieceSet(bA.pieceSet), boardSet(bA.boardSet), atomicKings(false),
+	animationFinished(false), holdingPiece(false), checksEnabled(true), castlingEnabled(true), dropsEnabled(false), isPaused(bA.isPaused), gameEnded(false), repeatFEN(bA.repeatFEN), selectedPiece(nullptr), capturePiece(nullptr), castleKing(nullptr), castleRook(nullptr), promotePiece(nullptr),
+	boardTexture(boardT), boardSprite(boardT), selectedPieceBackground(boardTextures.at(5)), checkSprite(boardTextures.at(2)), lastMoveStart(boardTextures.at(3)), lastMoveDest(boardTextures.at(3)), kothBackground(boardTextures.at(8)), kothShadow(boardTextures.at(9)), rankBackground(boardTextures.at(10)), rankShadowTop(boardTextures.at(11)), startingOffset({ bA.xOffset, bA.yOffset }),
+	dropPieceBackgroundW(boardTextures.at(13)), dropPieceBackgroundB(boardTextures.at(13)), whiteCheckCount(boardTextures.at(12)), blackCheckCount(boardTextures.at(12)), whiteCheckText(textFont, "3", 40U), blackCheckText(textFont, "3", 40U), soundBuffers(&soundBuffers), moveSound(soundBuffers.at(0)), captureSound(soundBuffers.at(1)), gameEndSound(soundBuffers.at(2)), lowTimeSound(soundBuffers.at(4)), captureThreshold(1.0f), pieceSize(320), halfMoves(0), fullMoves(0), sizeMultiplier(bA.boardScale), stockfish("assets/other/fairy-stockfish-largeboard_x86-64.exe", stockfishSettings),
+	whiteChecks(0), blackChecks(0), isAnimated(bA.boardAnimated), pieceTextures(pTextures), boardTextures(&boardTextures), textFont(&textFont), selectedDropPiece(' ', pieceTextures.at(0)), windowSize(windowSize), selectedPos(), lastMoveStartLocal(100, 100), lastMoveDestLocal(100, 100), shouldPostMove(true), promotionEnabled(true), gameShouldEnd(false), ghostSprite(pieceTextures.back()),
+	playingMove(false), isFlipped(false), autoFlip(bA.autoFlip), optionMode(bA.showOptionChanges), optionChangeText(textFont, "Paused: True", 70), boardSize(sf::Vector2f{ 1024.0f, 1024.0f }), generatingMoves(false), startedStockfish(false), movesPlayed(0), white(bA.white), newPositionWhite(bA.newPositionWhite), ai(false), changingPosition(false), forwardMove(false), initialMousePos(), initialBoardScale(1.0f),
+	timeClock(), timeEnabled(bA.timeEnabled), whiteTime(bA.whiteTime), blackTime(bA.blackTime), startingWhiteTime(bA.startingWhiteTime), startingBlackTime(bA.startingBlackTime), whiteTimeText(textFont, "00:00", 85), blackTimeText(textFont, "00:00", 85), whiteTimeBG(boardTextures.at(16)), blackTimeBG(boardTextures.at(16)), whiteTimeOutline(boardTextures.at(16)), blackTimeOutline(boardTextures.at(16)), timeIncrement(bA.timeIncrement), boardHSV({ 0, 0, 0 }), gameType(Chess::Classical), instantMove(false), moveSpeed(1.0f), moveSpeedI(1.0f), instantMoveI(false), AI_Time(bA.AI_Time), newPositionFEN(bA.newPositionFEN),
+	millisecondsConditionID(bA.millisecondsConditionID), keyBindsEnabled(bA.keybindsEnabled), atomicExplosionEffect(bA.atomicExplosionEffect), overridePieceSpeed(bA.overridePieceSpeed), showMilliseconds(bA.showMilliseconds), millisecondsTime(bA.millisecondsTime), millisecondsCondition(bA.millisecondsCondition), whiteUnit(bA.whiteUnit), blackUnit(bA.blackUnit), incrUnit(bA.incrUnit), startingWhiteUnit(bA.startingWhiteUnit), startingBlackUnit(bA.startingBlackUnit), promotionSquareSelectedColor(bA.promotionSquareColor), promotionSquareColor(sf::Color::White), 
+	playerTime(bA.blackTime), AITime(bA.whiteTime), startingPlayerTime(bA.startingBlackTime), startingAITime(bA.startingWhiteTime), sharedTime(bA.sharedTime), cycleSides(bA.cycleSides), arrowLeft(false), arrowRight(false), AI_OnlyT(bA.AI_Only)
 {
 	// Setup
-	Chess::loadBoard(boardSheet, boardSprite, boardTexture, boardSet, boardSize);
+	boardTexture = Chess::loadBoard(boardSheet, boardSet, 1024);
 	Chess::loadPieceSet(pieceSheets.at(pieceSet), pieceTextures, pieceSize);
+	boardSprite.setTexture(boardTexture);
 
 	// Vars
 	float ScaleX = windowSize.x / (float)boardTexture.getSize().x; // + Crazyhouse
 	float ScaleY = windowSize.y / (float)boardTexture.getSize().y;
-	if (timeEnabled) {
-		ScaleY = windowSize.y / ((float)boardTexture.getSize().y + whiteTimeOutline.getTexture().getSize().y * 1.129f);
-	}
 	boardScale = std::roundf(std::min(ScaleX, ScaleY) * sizeMultiplier * 1000.0f) / 1000.0f; // Round to 0.00
-	if (timeEnabled) {
-		yOffset += whiteTimeOutline.getTexture().getSize().y * boardScale * 1.129f / 2.0f;
-	}
 	startingScale = boardScale;
 	pieceScale = boardScale * (128.0f / pieceSize);
 	boardMultiplier = boardScale * 128.0f;
-	boardOffset.x = (windowSize.x / 2.0f) - ((boardTexture.getSize().x * boardScale) / 2.0f) + xOffset;
-	boardOffset.y = (windowSize.y / 2.0f) - ((boardTexture.getSize().y * boardScale) / 2.0f) + yOffset;
+	boardOffset.x = (windowSize.x / 2.0f) - ((boardTexture.getSize().x * boardScale) / 2.0f) + startingOffset.x;
+	boardOffset.y = (windowSize.y / 2.0f) - ((boardTexture.getSize().y * boardScale) / 2.0f) + startingOffset.y;
 	this->boardSize = { (boardTexture.getSize().x * boardScale), (boardTexture.getSize().y * boardScale) };
-	startingOffset = { xOffset, yOffset };
-	offset += {xOffset, yOffset};
+	offset += startingOffset;
 	if (!stockfishEnabled) { AI_Only = false; }
 
 	// Sprite Setup
 	boardSprite.setScale({ boardScale, boardScale });
 	boardSprite.setOrigin(boardSprite.getLocalBounds().getCenter());
 	boardSprite.setPosition({ boardOffset.x + ((boardTexture.getSize().x * boardScale) / 2.0f),  boardOffset.y + ((boardTexture.getSize().y * boardScale) / 2.0f) });
-	promotionOverlay.setSize({ (float)boardSize, (float)boardSize });
+	promotionOverlay.setSize({ 1024.0f, 1024.0f });
 	promotionOverlay.setOrigin(promotionOverlay.getGlobalBounds().getCenter());
 	promotionOverlay.setScale(boardSprite.getScale());
 	promotionOverlay.setFillColor(sf::Color(35, 35, 35, 150));
-	optionChangeOverlay.setSize({ (float)boardSize, (float)boardSize });
+	optionChangeOverlay.setSize({ 1024.0f, 1024.0f });
 	optionChangeOverlay.setOrigin(optionChangeOverlay.getGlobalBounds().getCenter());
 	optionChangeOverlay.setScale(boardSprite.getScale());
 	optionChangeOverlay.setFillColor(sf::Color(0, 0, 0, 0));
-	optionChangeText.setOrigin(optionChangeText.getLocalBounds().getCenter());
 	optionChangeText.setPosition(boardSprite.getPosition());
+	optionChangeText.setOrigin({ optionChangeText.getLocalBounds().position.x + (optionChangeText.getLocalBounds().size.x / 2.0f), optionChangeText.getLocalBounds().position.y + (optionChangeText.getLocalBounds().size.y / 2.0f) });
+	optionChangeText.setScale(boardSprite.getScale());
 	optionChangeText.setFillColor(sf::Color(0, 0, 0, 0));
 
 	selectedPieceBackground.setOrigin(selectedPieceBackground.getLocalBounds().getCenter());
@@ -79,12 +76,12 @@ Board::Board(Chess::Variant variant, std::optional<std::string> FEN_ID, float xO
 	ghostSprite.setColor(sf::Color{ 255, 255, 255, 75 });
 	kothBackground.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
 	kothShadow.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
-	unsigned int square = (unsigned int)(boardSize / 8.0f) + 1U;
-	boardHSV = RGBtoHSV(boardSprite.getTexture().copyToImage().getPixel({ square, 0 }));
+	unsigned int square = (unsigned int)(1024.0f / 8.0f) + 1U;
+	boardHSV = RGBtoHSV(boardSprite.getTexture().copyToImage().getPixel({ square, 3 }));
 
 	blackTimeBG.setScale({ boardScale * 1.02f, boardScale * 1.02f });
 	blackTimeBG.setPosition({ getGlobalPosition(sf::Vector2f{6.5f, 8.5f}) });
-	blackTimeBG.move({ 0, -(blackTimeBG.getTexture().getSize().y * blackTimeBG.getScale().y / 2.0f) - 1});
+	blackTimeBG.move({ 0, -(blackTimeBG.getTexture().getSize().y * blackTimeBG.getScale().y / 2.0f) - 1 });
 	blackTimeBG.setOrigin({ blackTimeBG.getLocalBounds().size.x / 2.0f, blackTimeBG.getLocalBounds().size.y / 2.0f });
 	blackTimeBG.setColor(setHueSat(sf::Color(16, 9, 23), boardHSV));
 	blackTimeBG.setRotation(sf::degrees(180));
@@ -96,7 +93,7 @@ Board::Board(Chess::Variant variant, std::optional<std::string> FEN_ID, float xO
 	blackTimeOutline.setRotation(sf::degrees(180));
 	blackTimeText.setLetterSpacing(2);
 	blackTimeText.setPosition({ blackTimeBG.getPosition() });
-	blackTimeText.setOrigin({ blackTimeText.getLocalBounds().position.x + (blackTimeText.getLocalBounds().size.x / 2.0f), blackTimeText.getLocalBounds().position.y + (blackTimeText.getLocalBounds().size.y / 2.0f)});
+	blackTimeText.setOrigin({ blackTimeText.getLocalBounds().position.x + (blackTimeText.getLocalBounds().size.x / 2.0f), blackTimeText.getLocalBounds().position.y + (blackTimeText.getLocalBounds().size.y / 2.0f) });
 	blackTimeText.setScale({ boardScale, boardScale });
 	blackTimeText.setFillColor(sf::Color(255, 255, 255));
 
@@ -131,6 +128,13 @@ Board::Board(Chess::Variant variant, std::optional<std::string> FEN_ID, float xO
 	blackTimeText.setString(minutes + ":" + seconds);
 	setSpritePositions();
 
+	if (timeEnabled) {
+		float scaleY = (float)boardTexture.getSize().y / ((float)boardTexture.getSize().y + whiteTimeOutline.getTexture().getSize().y * 1.129f);
+		startingScale *= scaleY;
+		scale(scaleY);
+		moveBy(0, int(whiteTimeOutline.getTexture().getSize().y) * 1.129f / 2.0f);
+	}
+
 	// Audio
 	moveSound.setVolume(10);
 	captureSound.setVolume(15);
@@ -139,17 +143,14 @@ Board::Board(Chess::Variant variant, std::optional<std::string> FEN_ID, float xO
 
 	// Stockfish
 	delayClock.start();
-	if (playerWhite.has_value()) { playerSideWhite = playerWhite.value(); }
-	if (stockfishEnabled) { 
+	if (stockfishEnabled) {
 		stockfish.startStockfish();
+		startedStockfish = true;
 	}
 
 	// FEN Setup
-	loadFromFEN(FEN_ID, init, true);
+	loadFromFEN(bA.FEN, init, true);
 
-	if (!init) {
-		mouseMode = true;
-	}
 	animationClock.restart();
 }
 

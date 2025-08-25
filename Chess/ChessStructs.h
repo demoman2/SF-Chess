@@ -1,7 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <thread>
 #include "ChessUtil.h"
+#include <functional>
 
 namespace Chess {
 
@@ -69,10 +71,41 @@ namespace Chess {
 		bool operator==(const Position& other);
 	};
 
-	std::vector<sf::Texture> makePieceSet(sf::Image spriteSheet, int pieceCount, int pieceSize);
+	std::vector<sf::Texture> makePieceSet(sf::Image& spriteSheet, int pieceCount, int pieceSize);
 	void loadPieceSet(sf::Image& spriteSheet, std::vector<sf::Texture>& pieceTextures, int pieceSize);
-	void loadBoard(sf::Image& spriteSheet, sf::Sprite& board, sf::Texture& boardTexture, int boardNumber, int boardSize);
+	sf::Texture loadPieceSet(sf::Image& spriteSheet, int pieceSize);
+	sf::Texture loadBoard(sf::Image& spriteSheet, int boardNumber, int boardSize);
+	sf::Texture loadBoard(sf::Image& spriteSheet, int boardNumber, int boardSize, int multiplier);
 }
+
+struct BoardSettings {
+
+	// Normal
+	Chess::Variant variant;
+	int pieceSet, boardSet;
+	bool AI_Time, AI, AI_Only, chess960, repeatFEN, timeEnabled;
+	float xOffset, yOffset;
+	std::optional<std::string> FEN, newPositionFEN;
+	std::optional<bool> white, newPositionWhite;
+	sf::Time whiteTime, blackTime, timeIncrement;
+
+	// Advanced
+	int whiteUnit, blackUnit, incrUnit, startingWhiteUnit, startingBlackUnit, millisecondsConditionID;
+	bool keybindsEnabled, showOptionChanges, autoFlip, atomicExplosionEffect, endgamePosition, boardAnimated,
+		overridePieceSpeed, instantPieces, isPaused, followMouse, scaleMouse, showMilliseconds, sharedTime, cycleSides;
+	float pieceSpeed, boardScale;
+	sf::Color promotionSquareColor;
+	sf::Time startingWhiteTime, startingBlackTime;
+	sf::Time millisecondsTime;
+	std::function<bool(const sf::Time&)> millisecondsCondition;
+
+	BoardSettings();
+	BoardSettings(Chess::Variant variant, int pieceSet, int boardSet, bool AI_Time, bool AI, bool AI_Only, bool chess960, bool endgamePosition, bool repeatFEN, bool timeEnabled, float xOffset, float yOffset, float boardScale,
+		std::optional<std::string> FEN, std::optional<std::string> newPositionFEN, std::optional<bool> white, std::optional<bool> newPositionWhite, sf::Time whiteTime, sf::Time blackTime, sf::Time timeIncrement,
+		bool keybindsEnabled, bool showOptionChanges, bool autoFlip, bool atomicExplosionEffect, bool boardAnimated, bool overridePieceSpeed, bool instantPieces, bool isPaused, bool followMouse, bool scaleMouse, bool showMilliseconds, float pieceSpeed, sf::Color promotionSquareColor,
+		sf::Time startingWhiteTime, sf::Time startingBlackTime, sf::Time millisecondsTime, std::function<bool(const sf::Time&)> millisecondsCondition, int whiteUnit, int blackUnit, int incrUnit, int startingWhiteUnit, int startingBlackUnit, int millisecondsConditionID, bool sharedTime, bool cycleSides);
+	~BoardSettings(){};
+};
 
 std::vector<std::string> split(std::string str, char del);
 size_t findNthOf(std::string str, char find, int nth);

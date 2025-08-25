@@ -1,5 +1,7 @@
 #include "ChessStructs.h"
 #include "Piece.h"
+#include "King.h"
+#include <TGUI/Widgets/Picture.hpp>
 
 // Drop Piece
 Chess::DropPiece::DropPiece(char id, sf::Texture& texture, sf::Texture& backgroundTexture, sf::Texture& textBackgroundTexture, sf::Font& font, sf::Vector2f dropPiecePosition, float dropPieceSquareSize, float bgStart, size_t i)
@@ -117,7 +119,7 @@ size_t findNthOf(std::string str, char find, int nth)
 }
 
 // Bishop, King, Knight, Pawn, Queen, Rook
-std::vector<sf::Texture> Chess::makePieceSet(sf::Image spriteSheet, int pieceCount, int pieceSize) {
+std::vector<sf::Texture> Chess::makePieceSet(sf::Image& spriteSheet, int pieceCount, int pieceSize) {
 	int s = std::ceil((pieceCount / 4.0f));
 	std::vector<sf::Texture> pieceTextures;
 	for (int i = 0; i < pieceCount; i++) {
@@ -127,6 +129,7 @@ std::vector<sf::Texture> Chess::makePieceSet(sf::Image spriteSheet, int pieceCou
 	}
 	return pieceTextures;
 };
+
 void Chess::loadPieceSet(sf::Image& spriteSheet, std::vector<sf::Texture>& pieceTextures, int pieceSize) {
 	int s = std::ceil((pieceTextures.size()) / 4.0f);
 	for (int i = 0; i < pieceTextures.size(); i++) {
@@ -135,11 +138,21 @@ void Chess::loadPieceSet(sf::Image& spriteSheet, std::vector<sf::Texture>& piece
 		pieceTextures.at(i).loadFromImage(spriteSheet, false, sf::IntRect({ pieceSize * x, pieceSize * y }, { pieceSize, pieceSize }));
 	}
 };
-void Chess::loadBoard(sf::Image& spriteSheet, sf::Sprite& board, sf::Texture& boardTexture, int boardNumber, int boardSize) {
+
+sf::Texture Chess::loadPieceSet(sf::Image& spriteSheet, int pieceSize) {
+	return sf::Texture(spriteSheet, false, sf::IntRect({ pieceSize * 2, pieceSize * 1 }, { pieceSize, pieceSize }));
+};
+
+sf::Texture Chess::loadBoard(sf::Image& spriteSheet, int boardNumber, int boardSize) {
+	int x = boardNumber % 4;
+	int y = std::floor(boardNumber / 4.0f);
+	return sf::Texture(spriteSheet, false, sf::IntRect({ x * boardSize, y * boardSize }, { boardSize, boardSize }));
+}
+
+sf::Texture Chess::loadBoard(sf::Image& spriteSheet, int boardNumber, int boardSize, int multiplier) {
 	int y = std::floor(boardNumber / 4.0f);
 	int x = boardNumber % 4;
-	boardTexture.loadFromImage(spriteSheet, false, sf::IntRect({ x * boardSize, y * boardSize }, { boardSize, boardSize }));
-	board.setTexture(boardTexture);
+	return sf::Texture(spriteSheet, false, sf::IntRect({ x * boardSize, y * boardSize }, { 128 * multiplier, 128 * multiplier }));
 }
 
 Chess::SDropPiece::SDropPiece(char id, sf::Texture& texture) : id(id), sprite(texture), sDropSquares(nullptr)
@@ -222,14 +235,16 @@ Chess::Position::Position(pieceVector& pieceList, std::string FEN, std::string m
 	: whiteToPlay(whiteToPlay), eighthRankWhite(eighthRankWhite), FEN(FEN), moves(moves), halfMoves(halfMoves), fullMoves(fullMoves), whiteChecks(whiteChecks), blackChecks(blackChecks), hasCheck(hasCheck), lastMoveStartLocal(lastMoveStartLocal), lastMoveDestLocal(lastMoveDestLocal), checkPos(checkPos), whiteTime(whiteTime), blackTime(blackTime),
 	pieceList(Chess::copyPieceVec(pieceList, false, true))
 {
-	size_t last = 0;
-	for (size_t i = 0; i < moves.size(); i++) {
-		if (moves.at(i) == ' ' && i != (moves.size() - 1)) {
-			last = i;
+	if (!moves.empty()) {
+		size_t last = 0;
+		for (size_t i = 0; i < moves.size(); i++) {
+			if (moves.at(i) == ' ' && i != (moves.size() - 1)) {
+				last = i;
+			}
 		}
-	}
-	if (moves.size() > (last + 1)) {
-		move = moves.substr((last + 1));
+		if (moves.size() > (last + 1)) {
+			move = moves.substr((last + 1));
+		}
 	}
 }
 
@@ -269,5 +284,27 @@ bool Chess::Position::operator==(const Position& other)
 }
 
 Chess::IPromotePiece::IPromotePiece(char id, sf::Vector2f scale) : id(id), initialScale(scale)
+{
+}
+
+BoardSettings::BoardSettings() : variant(Chess::Variant::Standard), pieceSet(1), boardSet(19), AI_Time(false), AI(false), AI_Only(false), chess960(false),
+	endgamePosition(false), boardAnimated(true), repeatFEN(false), timeEnabled(false), xOffset(0), yOffset(0), boardScale(1.0f), FEN(std::nullopt), newPositionFEN(std::nullopt), white(true), newPositionWhite(true),
+	whiteTime(sf::seconds(300)), blackTime(sf::seconds(300)), timeIncrement(sf::seconds(5)), keybindsEnabled(true),
+	showOptionChanges(true), autoFlip(false), atomicExplosionEffect(true), overridePieceSpeed(false), instantPieces(false), isPaused(false), followMouse(false), scaleMouse(false), showMilliseconds(true),
+	pieceSpeed(1.0f), promotionSquareColor({ 255, 30, 0 }), startingWhiteTime(sf::seconds(300)), startingBlackTime(sf::seconds(300)), millisecondsTime(sf::seconds(10)),
+	millisecondsCondition([millisecondsTime = millisecondsTime](const sf::Time& t) { return t < millisecondsTime; }), whiteUnit(1), blackUnit(1), incrUnit(0), startingWhiteUnit(1), startingBlackUnit(1), millisecondsConditionID(0), sharedTime(false), cycleSides(false)
+{
+}
+
+BoardSettings::BoardSettings(Chess::Variant variant, int pieceSet, int boardSet, bool AI_Time, bool AI, bool AI_Only, bool chess960, bool endgamePosition, bool repeatFEN, bool timeEnabled, float xOffset, float yOffset, float boardScale,
+	std::optional<std::string> FEN, std::optional<std::string> newPositionFEN, std::optional<bool> white, std::optional<bool> newPositionWhite, sf::Time whiteTime, sf::Time blackTime, sf::Time timeIncrement,
+	bool keybindsEnabled, bool showOptionChanges, bool autoFlip, bool atomicExplosionEffect, bool boardAnimated, bool overridePieceSpeed, bool instantPieces, bool isPaused, bool followMouse, bool scaleMouse, bool showMilliseconds, float pieceSpeed, sf::Color promotionSquareColor,
+	sf::Time startingWhiteTime, sf::Time startingBlackTime, sf::Time millisecondsTime, std::function<bool(const sf::Time&)> millisecondsCondition, int whiteUnit, int blackUnit, int incrUnit, int startingWhiteUnit, int startingBlackUnit, int millisecondsConditionID, bool sharedTime, bool cycleSides)
+	: variant(variant), pieceSet(pieceSet), boardSet(boardSet), AI_Time(AI_Time), overridePieceSpeed(overridePieceSpeed), AI(AI), AI_Only(AI_Only), chess960(chess960), showMilliseconds(showMilliseconds),
+	endgamePosition(endgamePosition), repeatFEN(repeatFEN), timeEnabled(timeEnabled), xOffset(xOffset), yOffset(yOffset), boardScale(boardScale), FEN(FEN),
+	newPositionFEN(newPositionFEN), white(white), newPositionWhite(newPositionWhite), whiteTime(whiteTime), blackTime(blackTime), timeIncrement(timeIncrement),
+	keybindsEnabled(keybindsEnabled), showOptionChanges(showOptionChanges), autoFlip(autoFlip), atomicExplosionEffect(atomicExplosionEffect), boardAnimated(boardAnimated), instantPieces(instantPieces),
+	isPaused(isPaused), followMouse(followMouse), scaleMouse(scaleMouse), pieceSpeed(pieceSpeed), promotionSquareColor(promotionSquareColor), startingWhiteTime(startingWhiteTime),
+	startingBlackTime(startingBlackTime), millisecondsTime(millisecondsTime), millisecondsCondition(millisecondsCondition), whiteUnit(whiteUnit), blackUnit(blackUnit), incrUnit(incrUnit), startingWhiteUnit(startingWhiteUnit), startingBlackUnit(startingBlackUnit), millisecondsConditionID(millisecondsConditionID), sharedTime(sharedTime), cycleSides(cycleSides)
 {
 }

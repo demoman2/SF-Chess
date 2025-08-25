@@ -146,12 +146,13 @@ void King::addCastleCaptureSquare(sf::Vector2i square, bool chess960, bool kings
 	captureCastlePositions.emplace_back(square, m);
 }
 
-void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
+void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled, bool chess960) {
 	canCastleK = false;
 	canCastleQ = false;
 	if (!hasMoved && !inCheck) {
 		// Kingside
 		if (!canNeverCastleK && Krook != -1) {
+			if (!chess960 && Krook != 8) { goto Queenside; }
 			if (Chess::getPieceFromPosition({ Krook, position.y }, pieceList)) {
 				std::shared_ptr<Piece> rook = Chess::getPieceFromPosition({ Krook, position.y }, pieceList);
 				if (rook->hasID('r') && rook->color == color && !rook->hasMoved) {
@@ -202,6 +203,7 @@ void King::calculateCastlingRights(pieceVector pieceList, bool checksEnabled) {
 		}
 	Queenside:
 		if (!canNeverCastleQ && Qrook != -1) {
+			if (!chess960 && Qrook != 1) { return; }
 			if (Chess::getPieceFromPosition({ Qrook, position.y }, pieceList)) {
 				std::shared_ptr<Piece> rook = Chess::getPieceFromPosition({ Qrook, position.y }, pieceList);
 				if (rook->hasID('r') && rook->color == color && !rook->hasMoved) {
@@ -336,7 +338,7 @@ void King::generateLegalMoves(const pieceVector& pieceList, Chess::Variant varia
 		}
 	}
 	if (castlingEnabled) {
-		calculateCastlingRights(pieceList, checksEnabled);
+		calculateCastlingRights(pieceList, checksEnabled, chess960);
 		sf::Vector2i castlePos, rookPos;
 		if (canCastleK) {
 			rookPos = Chess::convertChessNotationtoPosition("f" + std::to_string(position.y));

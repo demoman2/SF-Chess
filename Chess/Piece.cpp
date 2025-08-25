@@ -57,6 +57,12 @@ void Piece::setLocalPosition(sf::Vector2i pos)
 void Piece::reversePosition(sf::Vector2f boardOffset, sf::Vector2f boardSize)
 {
 	setPosition(Chess::reversePosition(getGlobalPos(), boardSize) + boardOffset + boardOffset);
+	if (targetPos.has_value()) {
+		targetPos = Chess::reversePosition(targetPos.value(), boardSize) + boardOffset + boardOffset;
+	}
+	if (animationTarget.has_value()) {
+		animationTarget = Chess::reversePosition(animationTarget.value(), boardSize) + boardOffset + boardOffset;
+	}
 }
 
 void Piece::setPosition(sf::Vector2f pos)

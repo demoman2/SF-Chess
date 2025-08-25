@@ -55,7 +55,7 @@ void Board::generateLegalMoves(bool init) {
 		// Checks
 		if (!atomicKings) {
 			for (auto& p : pieceList) {
-				if (p->hasID('k') && (whiteToPlay == (p->color == Chess::PColor::White))) {
+				if (p->hasID('k') && (whiteToPlay == (p->isWhite()))) {
 					std::shared_ptr<King> k = std::dynamic_pointer_cast<King>(p);
 					if (k->inCheck) {
 						hasCheck = true;
@@ -154,7 +154,7 @@ void Board::generateLegalMoves(bool init) {
 	}
 	if (!gameEnded) {
 		int moveCount = getMoveCount();
-		int n = stockfish.getLegalMoveCount(FEN, moves);
+		int n = stockfish.getLegalMoveCount(startingFEN, moves);
 		if (n != moveCount && n != 0) {
 			std::cout << "===========================MISMATCH===========================" << std::endl;
 			std::cout << "Count: " << moveCount << std::endl;
@@ -721,7 +721,6 @@ void Board::playMove(std::string moveString, bool instantMove) {
 						}
 					}
 				}
-
 				if (capture) {
 					ghostSprite.setTexture(capture->getTexture());
 					ghostSprite.setPosition(capture->getGlobalPos());
@@ -787,11 +786,13 @@ void Board::postMove(pieceVector movePieces) {
 								piecePositions.push_back(newPos);
 							}
 						}
-						sf::RectangleShape atomicRect{ {boardMultiplier, boardMultiplier } };
-						atomicRect.setOrigin(atomicRect.getLocalBounds().getCenter());
-						atomicRect.setPosition(getGlobalPosition(newPos));
-						atomicRect.setFillColor(sf::Color{ 255, 255, 255, 150 });
-						captureObjects.push_back(std::move(atomicRect));
+						if (atomicExplosionEffect) {
+							sf::RectangleShape atomicRect{ {boardMultiplier, boardMultiplier } };
+							atomicRect.setOrigin(atomicRect.getLocalBounds().getCenter());
+							atomicRect.setPosition(getGlobalPosition(newPos));
+							atomicRect.setFillColor(sf::Color{ 255, 255, 255, 150 });
+							captureObjects.push_back(std::move(atomicRect));
+						}
 					}
 				}
 			}
@@ -804,7 +805,7 @@ void Board::postMove(pieceVector movePieces) {
 					}
 				}
 			}
-			atomicClock.start();
+			if (atomicExplosionEffect) { atomicClock.restart(); }
 		}
 
 		if (dropsEnabled) {

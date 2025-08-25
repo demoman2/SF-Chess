@@ -361,4 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/Chess/Chess.vcxproj
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+vcpkg.json
+vcpkg-configuration.json

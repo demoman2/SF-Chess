@@ -1,0 +1,31 @@
+Panel.Panel {
+    Size = (100%, 37.04%);
+
+    Renderer {
+        BackgroundColor = transparent;
+        BorderColor = black;
+        TextureBackground = None;
+    }
+
+    Panel."Show Shadow" {
+        Size = (100%, 8.75%);
+
+        Renderer {
+            BackgroundColor = black;
+            BorderColor = black;
+            Opacity = 0.3;
+            TextureBackground = None;
+        }
+    }
+
+    Panel.Shadow {
+        Size = (100%, 8.75%);
+
+        Renderer {
+            BackgroundColor = black;
+            BorderColor = black;
+            Opacity = 0;
+            TextureBackground = None;
+        }
+    }
+}

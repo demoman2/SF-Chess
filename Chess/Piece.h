@@ -56,6 +56,8 @@ public:
 	void setTarget(std::optional<sf::Vector2f> target) { targetPos = target; };
 	void move(float x, float y) {
 		if (sprite) { sprite->move({ x, y }); }
+		if (targetPos.has_value()) { targetPos.value() += sf::Vector2f{x, y}; }
+		if (animationTarget.has_value()) { animationTarget.value() += sf::Vector2f{ x, y }; }
 	}
 	void draw(sf::RenderWindow& window) {
 		if (sprite) { window.draw(*sprite); }

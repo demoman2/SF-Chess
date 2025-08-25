@@ -1,0 +1,1772 @@
+Renderer.1 {
+}
+
+Renderer.2 {
+    BackgroundColor = transparent;
+    BorderColor = #3C3C3C;
+    Borders = (0, 0, 0, 0);
+    TextColor = #EBEBEB;
+    TextureBackground = None;
+
+    Scrollbar {
+        ArrowBackgroundColor = #F5F5F5;
+        ArrowBackgroundColorHover = white;
+        ArrowColor = #3C3C3C;
+        ArrowColorHover = black;
+        TextureArrowDown = None;
+        TextureArrowDownHover = None;
+        TextureArrowUp = None;
+        TextureArrowUpHover = None;
+        TextureThumb = None;
+        TextureThumbHover = None;
+        TextureTrack = None;
+        TextureTrackHover = None;
+        ThumbColor = #DCDCDC;
+        ThumbColorHover = #E6E6E6;
+        TrackColor = #F5F5F5;
+    }
+}
+
+Renderer.3 {
+    BackgroundColor = transparent;
+    BackgroundColorDisabled = transparent;
+    BackgroundColorDown = #7D7D7D;
+    BackgroundColorHover = #F5F5F5;
+    BorderColor = transparent;
+    BorderColorDisabled = transparent;
+    BorderColorDown = transparent;
+    BorderColorFocused = transparent;
+    BorderColorHover = transparent;
+    Borders = (1, 1, 1, 1);
+    Opacity = 0.2;
+    TextColor = #3C3C3C;
+    TextColorDisabled = #7D7D7D;
+    TextColorDown = black;
+    TextColorHover = black;
+    Texture = None;
+    TextureDisabled = None;
+    TextureDown = None;
+    TextureDownFocused = None;
+    TextureDownHover = None;
+    TextureFocused = None;
+    TextureHover = None;
+}
+
+Panel.Panel {
+    Size = (100%, 37.04%);
+
+    Renderer {
+        BackgroundColor = transparent;
+        BorderColor = black;
+        TextureBackground = None;
+    }
+
+    Group.Engine {
+        Enabled = false;
+        Position = (10.94%, 0.75%);
+        Size = (100%, 100%);
+
+        Renderer {
+            Opacity = 1;
+            OpacityDisabled = 0;
+        }
+
+        BitmapButton.BitmapButton12 {
+            IgnoreMouseEvents = true;
+            Image = None;
+            ImageScaling = 0;
+            Position = (0.62%, 5.75%);
+            Size = (31.51%, 32.25%);
+            TextSize = 13;
+
+            Renderer {
+                BackgroundColor = #2D2D2D;
+                BackgroundColorDisabled = None;
+                BackgroundColorDown = None;
+                BackgroundColorHover = None;
+                BorderColor = #E1E1E1;
+                BorderColorDisabled = None;
+                BorderColorDown = None;
+                BorderColorFocused = None;
+                BorderColorHover = None;
+                Borders = (2, 2, 2, 2);
+                TextColor = #3C3C3C;
+                TextColorDisabled = None;
+                TextColorDown = None;
+                TextColorHover = None;
+                Texture = None;
+                TextureDisabled = None;
+                TextureDown = None;
+                TextureDownFocused = None;
+                TextureDownHover = None;
+                TextureFocused = None;
+                TextureHover = None;
+            }
+        }
+
+        GrowVerticalLayout.GrowVerticalLayout4 {
+            IgnoreMouseEvents = true;
+            Position = (1.04%, 8.5%);
+            Renderer = &1;
+            Size = (19.27%, 117);
+
+            Label.Label13 {
+                ScrollbarPolicy = Never;
+                Size = (369.984, 27);
+                Text = "New Board Engine Settings...";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Selected Board Engine Text" {
+                Position = (0, 27);
+                ScrollbarPolicy = Never;
+                Size = (369.984, 36);
+                Text = "Board Engine Settings...\n";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label.Label17 {
+                Position = (0, 63);
+                ScrollbarPolicy = Never;
+                Size = (369.984, 27);
+                Text = "New Engine Advanced Settings...";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Selected Engine Advanced Text" {
+                Position = (0, 90);
+                ScrollbarPolicy = Never;
+                Size = (369.984, 27);
+                Text = "Engine Advanced Settings...";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+        }
+
+        Panel.Panel2 {
+            IgnoreMouseEvents = true;
+            Position = (1.3%, 22%);
+            Size = (30.16%, 0.5%);
+
+            Renderer {
+                BackgroundColor = #666666;
+                BorderColor = black;
+                TextureBackground = None;
+            }
+        }
+
+        GrowVerticalLayout.GrowVerticalLayout5 {
+            IgnoreMouseEvents = true;
+            Position = (19.32%, 8.25%);
+            Renderer = &1;
+            Size = (12.5%, 118);
+
+            Label.Label {
+                HorizontalAlignment = Right;
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = "Ctrl+A";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Selected Board Engine Shortcut" {
+                HorizontalAlignment = Right;
+                Position = (0%, 27);
+                ScrollbarPolicy = Never;
+                Size = (100%, 37);
+                Text = "Shift+A";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label.Label23 {
+                HorizontalAlignment = Right;
+                Position = (0%, 64);
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = "Ctrl+L";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Selected Engine Advanced Shortcut" {
+                HorizontalAlignment = Right;
+                Position = (0%, 91);
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = "Shift+L";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+        }
+
+        GrowVerticalLayout.GrowVerticalLayout6 {
+            Position = (0.57%, 7.25%);
+            Size = (31.56%, 120);
+
+            Renderer {
+                Padding = (0, 0, 0, 0);
+            }
+
+            BitmapButton."New Board Engine" {
+                Image = None;
+                ImageScaling = 0;
+                Size = (100%, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."Selected Board Engine" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0%, 28);
+                Size = (100%, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton.BitmapButton20 {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0%, 56);
+                Size = (100%, 8);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = #F5F5F500;
+                    BackgroundColorDisabled = #E6E6E6;
+                    BackgroundColorDown = #EBEBEB;
+                    BackgroundColorHover = white;
+                    BorderColor = transparent;
+                    BorderColorDisabled = #7D7D7D;
+                    BorderColorDown = black;
+                    BorderColorFocused = #1E1EB4;
+                    BorderColorHover = black;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."New Engine Advanced" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0%, 64);
+                Size = (100%, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."Selected Engine Advanced" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0%, 92);
+                Size = (100%, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+        }
+    }
+
+    Group.Board {
+        Enabled = false;
+        Position = (0%, 0.75%);
+        Size = (100%, 100%);
+
+        Renderer {
+            Opacity = 1;
+            OpacityDisabled = 0;
+        }
+
+        BitmapButton.BitmapButton8 {
+            IgnoreMouseEvents = true;
+            Image = None;
+            ImageScaling = 0;
+            Position = (0.62%, 5.75%);
+            Size = (31.51%, 75.99%);
+            TextSize = 13;
+
+            Renderer {
+                BackgroundColor = #2D2D2D;
+                BackgroundColorDisabled = None;
+                BackgroundColorDown = None;
+                BackgroundColorHover = white;
+                BorderColor = #E1E1E1;
+                BorderColorDisabled = None;
+                BorderColorDown = None;
+                BorderColorFocused = None;
+                BorderColorHover = None;
+                Borders = (2, 2, 2, 2);
+                TextColor = None;
+                TextColorDisabled = None;
+                TextColorDown = None;
+                TextColorHover = None;
+                Texture = None;
+                TextureDisabled = None;
+                TextureDown = None;
+                TextureDownFocused = None;
+                TextureDownHover = None;
+                TextureFocused = None;
+                TextureHover = None;
+            }
+        }
+
+        GrowVerticalLayout.GrowVerticalLayout2 {
+            IgnoreMouseEvents = true;
+            Position = (1.04%, 8.25%);
+            Renderer = &1;
+            Size = (21.35%, 292);
+
+            Label.Label3 {
+                ScrollbarPolicy = Never;
+                Size = (100%, 28);
+                Text = "Create Board";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label.Label4 {
+                Position = (0%, 28);
+                ScrollbarPolicy = Never;
+                Size = (100%, 33);
+                Text = "Create Board With Settings...";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label.Label1 {
+                Position = (0%, 61);
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = "New Board Settings...";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Selected Board Text" {
+                Position = (0%, 88);
+                ScrollbarPolicy = Never;
+                Size = (100%, 32);
+                Text = "Board Settings...";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label.Label2 {
+                Position = (0%, 120);
+                ScrollbarPolicy = Never;
+                Size = (100%, 28);
+                Text = "New Board Advanced Settings...";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Selected Board Advanced Text" {
+                Position = (0%, 148);
+                ScrollbarPolicy = Never;
+                Size = (100%, 33);
+                Text = "Board Advanced Settings...";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Copy FEN Text" {
+                Position = (0%, 181);
+                ScrollbarPolicy = Never;
+                Size = (100%, 28);
+                Text = "Copy Board FEN";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Load FEN Text" {
+                Position = (0%, 209);
+                ScrollbarPolicy = Never;
+                Size = (100%, 28);
+                Text = "Load FEN";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Delete Selected Board Text" {
+                Position = (0%, 237);
+                ScrollbarPolicy = Never;
+                Size = (100%, 28);
+                Text = "Delete Board";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Delete All Boards Label" {
+                Position = (0%, 265);
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = "Delete All Boards";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+        }
+
+        Panel.Panel1 {
+            IgnoreMouseEvents = true;
+            Position = (1.3%, 85);
+            Size = (30.16%, 2);
+
+            Renderer {
+                BackgroundColor = #686868;
+                BorderColor = black;
+                TextureBackground = None;
+            }
+        }
+
+        GrowVerticalLayout.GrowVerticalLayout1 {
+            IgnoreMouseEvents = true;
+            Position = (19.32%, 8.25%);
+            Renderer = &1;
+            Size = (12.5%, 292);
+
+            Label.Label7 {
+                HorizontalAlignment = Right;
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = E;
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label.Label8 {
+                HorizontalAlignment = Right;
+                Position = (0%, 27);
+                ScrollbarPolicy = Never;
+                Size = (100%, 34);
+                Text = "Ctrl+E";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label.Label9 {
+                HorizontalAlignment = Right;
+                Position = (0%, 61);
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = "Ctrl+S";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Selected Board Shortcut" {
+                HorizontalAlignment = Right;
+                Position = (0%, 88);
+                ScrollbarPolicy = Never;
+                Size = (100%, 34);
+                Text = "Shift+S";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label.Label11 {
+                HorizontalAlignment = Right;
+                Position = (0%, 122);
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = "Ctrl+D";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Selected Board Advanced Shortcut" {
+                HorizontalAlignment = Right;
+                Position = (0%, 149);
+                ScrollbarPolicy = Never;
+                Size = (100%, 33);
+                Text = "Shift+D";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Copy FEN Shortcut" {
+                HorizontalAlignment = Right;
+                Position = (0%, 182);
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = "Control+F";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Load FEN Shortcut" {
+                HorizontalAlignment = Right;
+                Position = (0%, 209);
+                ScrollbarPolicy = Never;
+                Size = (100%, 28);
+                Text = "Shift+F";
+                TextSize = 15;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BorderColor = #3C3C3C;
+                    Borders = (0, 0, 0, 0);
+                    TextColor = #EBEBEB;
+                    TextureBackground = None;
+
+                    Scrollbar {
+                        ArrowBackgroundColor = #F5F5F5;
+                        ArrowBackgroundColorHover = white;
+                        ArrowColor = #3C3C3C;
+                        ArrowColorHover = black;
+                        TextureArrowDown = None;
+                        TextureArrowDownHover = None;
+                        TextureArrowUp = None;
+                        TextureArrowUpHover = None;
+                        TextureThumb = None;
+                        TextureThumbHover = None;
+                        TextureTrack = None;
+                        TextureTrackHover = None;
+                        ThumbColor = #DCDCDC;
+                        ThumbColorHover = #E6E6E6;
+                        TrackColor = #F5F5F5;
+                    }
+                }
+            }
+
+            Label."Delete Board Shortcut" {
+                HorizontalAlignment = Right;
+                Position = (0%, 237);
+                Renderer = &2;
+                ScrollbarPolicy = Never;
+                Size = (100%, 28);
+                Text = Del;
+                TextSize = 15;
+            }
+
+            Label."Delete All Boards Shortcut" {
+                HorizontalAlignment = Right;
+                Position = (0%, 265);
+                Renderer = &2;
+                ScrollbarPolicy = Never;
+                Size = (100%, 27);
+                Text = "Ctrl+Del";
+                TextSize = 15;
+            }
+        }
+
+        GrowVerticalLayout.GrowVerticalLayout3 {
+            Position = (0.57%, 7%);
+            Size = (31.56%, 295);
+
+            Renderer {
+                Padding = (0, 0, 0, 0);
+            }
+
+            BitmapButton."Create Board" {
+                Image = None;
+                ImageScaling = 0;
+                Size = (605.952, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."Create Board With Settings" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 28);
+                Size = (605.952, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton.BitmapButton7 {
+                IgnoreMouseEvents = true;
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 56);
+                Size = (605.952, 5);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = #F5F5F500;
+                    BackgroundColorDisabled = #E6E6E6;
+                    BackgroundColorDown = #EBEBEB;
+                    BackgroundColorHover = white;
+                    BorderColor = transparent;
+                    BorderColorDisabled = #7D7D7D;
+                    BorderColorDown = black;
+                    BorderColorFocused = #1E1EB4;
+                    BorderColorHover = black;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."New Board Settings" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 61);
+                Size = (605.952, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."Selected Board" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 89);
+                Size = (605.952, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton.BitmapButton9 {
+                IgnoreMouseEvents = true;
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 117);
+                Size = (605.952, 5);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = #F5F5F500;
+                    BackgroundColorDisabled = #E6E6E6;
+                    BackgroundColorDown = #EBEBEB;
+                    BackgroundColorHover = white;
+                    BorderColor = transparent;
+                    BorderColorDisabled = #7D7D7D;
+                    BorderColorDown = black;
+                    BorderColorFocused = #1E1EB4;
+                    BorderColorHover = black;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."New Board Advanced" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 122);
+                Size = (605.952, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."Selected Board Advanced" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 150);
+                Size = (605.952, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton.BitmapButton18 {
+                IgnoreMouseEvents = true;
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 178);
+                Size = (605.952, 5);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = #F5F5F500;
+                    BackgroundColorDisabled = #E6E6E6;
+                    BackgroundColorDown = #EBEBEB;
+                    BackgroundColorHover = white;
+                    BorderColor = transparent;
+                    BorderColorDisabled = #7D7D7D;
+                    BorderColorDown = black;
+                    BorderColorFocused = #1E1EB4;
+                    BorderColorHover = black;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."Copy FEN" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 183);
+                Size = (605.952, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."Load FEN" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 211);
+                Size = (605.952, 28);
+                TextSize = 13;
+
+                Renderer {
+                    BackgroundColor = transparent;
+                    BackgroundColorDisabled = transparent;
+                    BackgroundColorDown = #7D7D7D;
+                    BackgroundColorHover = #F5F5F5;
+                    BorderColor = transparent;
+                    BorderColorDisabled = transparent;
+                    BorderColorDown = transparent;
+                    BorderColorFocused = transparent;
+                    BorderColorHover = transparent;
+                    Borders = (1, 1, 1, 1);
+                    Opacity = 0.2;
+                    TextColor = #3C3C3C;
+                    TextColorDisabled = #7D7D7D;
+                    TextColorDown = black;
+                    TextColorHover = black;
+                    Texture = None;
+                    TextureDisabled = None;
+                    TextureDown = None;
+                    TextureDownFocused = None;
+                    TextureDownHover = None;
+                    TextureFocused = None;
+                    TextureHover = None;
+                }
+            }
+
+            BitmapButton."Delete Selected Board" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 239);
+                Renderer = &3;
+                Size = (605.952, 28);
+                TextSize = 13;
+            }
+
+            BitmapButton."Delete All Boards" {
+                Image = None;
+                ImageScaling = 0;
+                Position = (0, 267);
+                Renderer = &3;
+                Size = (605.952, 28);
+                TextSize = 13;
+            }
+        }
+
+        Panel.Panel3 {
+            Position = (1.3%, 36.25%);
+            Size = (30.16%, 0.5%);
+
+            Renderer {
+                BackgroundColor = #686868;
+                BorderColor = black;
+                TextureBackground = None;
+            }
+        }
+
+        Panel.Panel4 {
+            Position = (1.3%, 51.5%);
+            Size = (30.16%, 0.5%);
+
+            Renderer {
+                BackgroundColor = #686868;
+                BorderColor = black;
+                TextureBackground = None;
+            }
+        }
+    }
+
+    ToggleButton."Engine Settings" {
+        Down = false;
+        Position = (11.51%, 0%);
+        Size = (10.16%, 7.5%);
+        Text = "Engine Settings";
+        TextSize = 18;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BackgroundColorDisabled = None;
+            BackgroundColorDown = None;
+            BackgroundColorDownHover = None;
+            BackgroundColorHover = None;
+            BorderColor = transparent;
+            BorderColorDisabled = None;
+            BorderColorDown = None;
+            BorderColorFocused = None;
+            BorderColorHover = None;
+            Borders = (1, 1, 1, 1);
+            TextColor = #EBEBEB;
+            TextColorDisabled = #EBEBEB;
+            TextColorDown = #EBEBEB;
+            TextColorDownFocused = #EBEBEB;
+            TextColorDownHover = #EBEBEB;
+            TextColorHover = #EBEBEB;
+            Texture = None;
+            TextureDisabled = None;
+            TextureDown = "textures/button.png" Smooth;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = "textures/button_2.png" Smooth;
+        }
+    }
+
+    ToggleButton."Board Settings" {
+        Down = false;
+        Position = (0.57%, 0%);
+        Size = (10.16%, 7.5%);
+        Text = "Board Settings";
+        TextSize = 18;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BackgroundColorDisabled = None;
+            BackgroundColorDown = None;
+            BackgroundColorDownHover = None;
+            BackgroundColorHover = None;
+            BorderColor = transparent;
+            BorderColorDisabled = None;
+            BorderColorDown = None;
+            BorderColorFocused = None;
+            BorderColorHover = None;
+            Borders = (1, 1, 1, 1);
+            TextColor = #EBEBEB;
+            TextColorDisabled = #EBEBEB;
+            TextColorDown = #EBEBEB;
+            TextColorDownFocused = #EBEBEB;
+            TextColorDownHover = #EBEBEB;
+            TextColorHover = #EBEBEB;
+            Texture = None;
+            TextureDisabled = None;
+            TextureDown = "textures/button.png" Smooth;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = "textures/button_2.png" Smooth;
+        }
+    }
+}

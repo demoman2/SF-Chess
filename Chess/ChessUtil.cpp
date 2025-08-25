@@ -262,6 +262,57 @@ sf::Vector2f Interpolate(const sf::Vector2f pointA, const sf::Vector2f pointB, f
 	return (pointA * (1 - factor) + pointB * factor);
 }
 
+std::string Chess::getNewFEN(Chess::Variant variant, bool chess960Enabled)
+{
+	std::string nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1";
+	if (chess960Enabled) {
+		int id = 0;
+		std::string fen = Chess::getRandomLineFrom("assets/fen/chess960.txt", id);
+		if (!fen.empty()) {
+			if (variant == Chess::ThreeCheck) {
+				nFEN = fen.substr(0, fen.size() - 3);
+				nFEN += "3+3 0 1";
+			}
+			else if (variant == Chess::FiveCheck) {
+				nFEN = fen.substr(0, fen.size() - 3);
+				nFEN += "5+5 0 1";
+			}
+			else if (variant == Chess::Horde) {
+				nFEN = fen.substr(0, 8) + "/pppppppp/8/1PP2PP1/PPPPPPPP/PPPPPPPP/PPPPPPPP/PPPPPPPP w kq - 0 1";
+			}
+			else if (variant == Chess::RacingKings) {
+				nFEN = "8/8/8/8/8/8/krbnNBRK/qrbnNBRQ w - - 0 1";
+			}
+			else if (variant == Chess::Crazyhouse) {
+				nFEN = fen;
+				nFEN.insert(43, "[]");
+			}
+			else {
+				nFEN = fen;
+			}
+		}
+		else {
+			std::cout << "Empty Chess960 string returnd!" << std::endl;
+		}
+	}
+	else if (variant == Chess::Horde) {
+		nFEN = "rnbqkbnr/pppppppp/8/1PP2PP1/PPPPPPPP/PPPPPPPP/PPPPPPPP/PPPPPPPP w kq - 0 1";
+	}
+	else if (variant == Chess::ThreeCheck) {
+		nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 3+3 0 1";
+	}
+	else if (variant == Chess::FiveCheck) {
+		nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 5+5 0 1";
+	}
+	else if (variant == Chess::RacingKings) {
+		nFEN = "8/8/8/8/8/8/krbnNBRK/qrbnNBRQ w - - 0 1";
+	}
+	else if (variant == Chess::Crazyhouse) {
+		nFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1";
+	}
+	return nFEN;
+}
+
 uint8_t Interpolate(uint8_t current, uint8_t target, float factor)
 {
 	return (uint8_t)current + (target - current) * factor;
@@ -319,4 +370,9 @@ std::string Chess::getRandomLineFrom(std::string filePath, int& id)
 	}
 	readFile.close();
 	return line;
+}
+
+bool randomBool() {
+	static auto gen = std::bind(std::uniform_int_distribution<>(0, 1), std::default_random_engine());
+	return gen();
 }
