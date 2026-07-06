@@ -32,7 +32,7 @@ int main()
 	mouseCursors.emplace_back(sf::Cursor::createFromSystem(sf::Cursor::Type::SizeAll).value());
 	mouseCursors.emplace_back(sf::Cursor::createFromSystem(sf::Cursor::Type::NotAllowed).value());
 
-	auto mode = sf::VideoMode::getDesktopMode();
+	auto mode = sf::VideoMode::getFullscreenModes().front();
 	const unsigned int hardwareConcurrency = std::thread::hardware_concurrency();
 	sf::RenderWindow window(mode, "SF Chess", sf::Style::None, sf::State::Windowed);
 	window.setKeyRepeatEnabled(false);
@@ -3323,6 +3323,9 @@ int main()
 										break;
 									}
 								}
+							}
+							else if (keyPressed->code == sf::Keyboard::Key::Escape) {
+								window.close();
 							}
 						}
 					}
