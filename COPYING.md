@@ -24,6 +24,7 @@ assets/ui/svg/normal/cburnett|[Wikimedia Commons](https://commons.wikimedia.org/
 assets/ui/svg/normal/merida|The [lila repository](https://github.com/ornicar/lila/tree/master/public/piece/merida), the [pychess-variants](https://github.com/gbtami/pychess-variants/tree/master/static/images/pieces/merida) repository, [ffish-test](https://github.com/thearst3rd/ffish-test)|Armando Hernandez Marroquin|[GPLv2+], see [lila's COPYING.md](https://github.com/lichess-org/lila/blob/master/COPYING.md)|-
 assets/ui/svg/normal/disguised|The [lila repository](https://github.com/ornicar/lila/tree/master/public/piece/disguised)|danegraphics|[CC BY-NC-SA 4.0]|-
 assets/ui/svg/variants|[pychess-variants](https://github.com/gbtami/pychess-variants)|pychess-variants contributors|[GPLv3+]|-
+assets/ui/textures/board.png|The [lila repository](https://github.com/lichess-org/lila/tree/master/public/images/board)|[lila repository](https://github.com/ornicar/lila/tree/master/public/piece/merida) authors and contributors|[AGPLv3+]|Renamed.
 external/clip|The [clip repository](https://github.com/dacap/clip)|clip library authors and contributors|[MIT](https://github.com/dacap/clip/blob/main/LICENSE.txt)|-
 
 [CC0]: https://creativecommons.org/share-your-work/public-domain/cc0/
