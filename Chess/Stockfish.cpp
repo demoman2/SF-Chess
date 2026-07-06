@@ -1,6 +1,24 @@
+/*
+	SF Chess, a Chess GUI which supports many chess variants
+	Copyright (C) 2026  demoman2 (https://github.com/demoman2)
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as
+	published by the Free Software Foundation, either version 3 of the
+	License, or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "Stockfish.h"
 
-Stockfish::Stockfish(std::string path, const StockfishSettings& stockfishSettings) : c(path, bp::std_in < os, bp::std_out > is), move(""), movePlayed(false), isCalculating(false), stoppedCalculating(false), settings(stockfishSettings)
+Stockfish::Stockfish(const std::string& path, const StockfishSettings& stockfishSettings) : c(path, bp::std_in < os, bp::std_out > is, boost::process::v1::windows::hide), move(""), movePlayed(false), isCalculating(false), stoppedCalculating(false), settings(stockfishSettings)
 {
 	os.boolalpha;
 }
@@ -12,10 +30,15 @@ Stockfish::~Stockfish()
 void Stockfish::startStockfish() {
 	std::string line;
 	os << "uci" << std::endl;
+	while (getline(is, line)) {
+		if (line.find("uciok") != line.npos) { break; }
+	}
 	os << "setoption name Clear Hash" << std::endl;
 	loadSettings(settings);
 	os << "isready" << std::endl;
-	// Check for Readiness
+	while (getline(is, line)) {
+		if (line.find("readyok") != line.npos) { break; }
+	}
 }
 
 void Stockfish::loadSettings(const StockfishSettings& stockfishSettings) {
@@ -46,22 +69,27 @@ void Stockfish::loadSettings(const StockfishSettings& stockfishSettings) {
 	os << "setoption name Use NNUE value " << stockfishSettings.useNNUE << std::endl;
 	os << "setoption name EvalFile value " << stockfishSettings.EvalFile << std::endl;
 	os << "setoption name TsumeMode value " << stockfishSettings.TsumeMode << std::endl;
-	os << "setoption name VariantPath value " << stockfishSettings.VariantPath << std::endl;
+	if (!stockfishSettings.VariantPath.empty()) {
+		os << "setoption name VariantPath value " << stockfishSettings.VariantPath << std::endl;
+	}
 }
 
-void Stockfish::setVariant(const Chess::Variant variant, bool chess960) {
+void Stockfish::setVariant(const std::string& vName, bool chess960) {
 	std::string chess960String = chess960 ? "true" : "false";
-	os << "setoption name UCI_Variant value " << Chess::toString(variant) << std::endl;
+	os << "setoption name UCI_Variant value " << vName << std::endl;
 	os << "setoption name UCI_Chess960 value " << chess960String << std::endl;
 	os << "ucinewgame" << std::endl;
 }
 
-void Stockfish::getBestMove(std::string fen, std::string moves)
+void Stockfish::getBestMove(const std::string& fen, const std::string& moves)
 {
 	stoppedCalculating = false;
 	std::string line;
 	std::string move_string;
 	os << "isready" << std::endl;
+	while (getline(is, line)) {
+		if (line.find("readyok") != line.npos) { break; }
+	}
 	os << "position fen " + fen + " moves" + moves << std::endl;
 	os << "go movetime " << settings.fixedTime.asMilliseconds() << std::endl;
 
@@ -87,12 +115,15 @@ void Stockfish::getBestMove(std::string fen, std::string moves)
 	isCalculating = false;
 }
 
-void Stockfish::getBestMoveT(std::string fen, std::string moves, sf::Time whiteTime, sf::Time blackTime, sf::Time timeIncrement)
+void Stockfish::getBestMoveT(const std::string& fen, const std::string& moves, sf::Time whiteTime, sf::Time blackTime, sf::Time timeIncrement)
 {
 	stoppedCalculating = false;
 	std::string line;
 	std::string move_string;
 	os << "isready" << std::endl;
+	while (getline(is, line)) {
+		if (line.find("readyok") != line.npos) { break; }
+	}
 	os << "position fen " + fen + " moves" + moves << std::endl;
 	if (settings.usesFixedTime) {
 		os << "go movetime " << settings.fixedTime.asMilliseconds() << std::endl;
@@ -178,7 +209,7 @@ std::string Stockfish::getFEN()
 	return "";
 }
 
-int Stockfish::getLegalMoveCount(std::string fen, std::string moves)
+int Stockfish::getLegalMoveCount(const std::string& fen, const std::string& moves)
 {
 	std::string line;
 	os << "position fen " + fen + " moves" + moves << std::endl;
@@ -191,7 +222,7 @@ int Stockfish::getLegalMoveCount(std::string fen, std::string moves)
 	return -1;
 }
 
-int Stockfish::getLegalMoveCount(std::string fen)
+int Stockfish::getLegalMoveCount(const std::string& fen)
 {
 	std::string line;
 	os << "position fen " + fen << std::endl;
@@ -205,7 +236,7 @@ int Stockfish::getLegalMoveCount(std::string fen)
 }
 
 
-std::vector<std::string> Stockfish::getLegalMoves(std::string fen, std::string moves)
+std::vector<std::string> Stockfish::getLegalMoves(const std::string& fen, const std::string& moves)
 {
 	std::string line;
 	std::vector<std::string> lines;
@@ -220,16 +251,32 @@ std::vector<std::string> Stockfish::getLegalMoves(std::string fen, std::string m
 	return lines;
 }
 
-const StockfishSettings& Stockfish::getSettings()
+std::vector<std::string> Stockfish::getLegalMoves()
+{
+	std::string line;
+	std::vector<std::string> lines;
+	os << "go perft 1" << std::endl;
+	while (getline(is, line)) {
+		if (!line.empty() && std::isalpha(line.front()) && line.front() == std::tolower(line.front())) {
+			lines.push_back(line.substr(0, line.find(':')));
+		}
+		if (line.compare(0, 5, "Nodes") == 0) {
+			break;
+		}
+	}
+	return lines;
+}
+
+const StockfishSettings& Stockfish::getSettings() const
 {
 	return settings;
 }
 
 StockfishSettings::StockfishSettings() :
-	sfThreads((std::thread::hardware_concurrency() / 2) - 1), sfMemory(16), usesFixedTime(false), fixedTime(sf::seconds(2)), ponder(false),
+	sfThreads(1), sfMemory(16), usesFixedTime(true), fixedTime(sf::seconds(2)), ponder(false),
 	multiPV(1), UCI_Chess960(false), UCI_AnalyseMode(false), UCI_LimitStrength(false), UCI_ShowWDL(false), Syzygy50MoveRule(true), useNNUE(true),
-	TsumeMode(false), skillLevel(20), moveOverhead(10), slowMover(100), nodestime(0), UCI_Elo(1350), SyzygyProbeDepth(1), SyzygyProbeLimit(7),
-	debugLogFile(""), UCI_Variant("chess"), SyzygyPath(""), EvalFile(""), VariantPath("")
+	TsumeMode(false), skillLevel(8), moveOverhead(10), slowMover(100), nodestime(0), UCI_Elo(1350), SyzygyProbeDepth(1), SyzygyProbeLimit(7),
+	debugLogFile(""), UCI_Variant("chess"), SyzygyPath(""), EvalFile(""), VariantPath(std::filesystem::current_path().string() + "\\assets\\other\\variants.ini")
 {
 }
 

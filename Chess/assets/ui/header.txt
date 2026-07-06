@@ -267,7 +267,7 @@ Panel.Panel {
             Label.Label {
                 HorizontalAlignment = Right;
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (240, 27);
                 Text = "Ctrl+A";
                 TextSize = 15;
 
@@ -300,9 +300,9 @@ Panel.Panel {
 
             Label."Selected Board Engine Shortcut" {
                 HorizontalAlignment = Right;
-                Position = (0%, 27);
+                Position = (0, 27);
                 ScrollbarPolicy = Never;
-                Size = (100%, 37);
+                Size = (240, 37);
                 Text = "Shift+A";
                 TextSize = 15;
 
@@ -335,9 +335,9 @@ Panel.Panel {
 
             Label.Label23 {
                 HorizontalAlignment = Right;
-                Position = (0%, 64);
+                Position = (0, 64);
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (240, 27);
                 Text = "Ctrl+L";
                 TextSize = 15;
 
@@ -370,9 +370,9 @@ Panel.Panel {
 
             Label."Selected Engine Advanced Shortcut" {
                 HorizontalAlignment = Right;
-                Position = (0%, 91);
+                Position = (0, 91);
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (240, 27);
                 Text = "Shift+L";
                 TextSize = 15;
 
@@ -415,7 +415,7 @@ Panel.Panel {
             BitmapButton."New Board Engine" {
                 Image = None;
                 ImageScaling = 0;
-                Size = (100%, 28);
+                Size = (605.952, 28);
                 TextSize = 13;
 
                 Renderer {
@@ -447,8 +447,8 @@ Panel.Panel {
             BitmapButton."Selected Board Engine" {
                 Image = None;
                 ImageScaling = 0;
-                Position = (0%, 28);
-                Size = (100%, 28);
+                Position = (0, 28);
+                Size = (605.952, 28);
                 TextSize = 13;
 
                 Renderer {
@@ -480,8 +480,8 @@ Panel.Panel {
             BitmapButton.BitmapButton20 {
                 Image = None;
                 ImageScaling = 0;
-                Position = (0%, 56);
-                Size = (100%, 8);
+                Position = (0, 56);
+                Size = (605.952, 8);
                 TextSize = 13;
 
                 Renderer {
@@ -513,8 +513,8 @@ Panel.Panel {
             BitmapButton."New Engine Advanced" {
                 Image = None;
                 ImageScaling = 0;
-                Position = (0%, 64);
-                Size = (100%, 28);
+                Position = (0, 64);
+                Size = (605.952, 28);
                 TextSize = 13;
 
                 Renderer {
@@ -546,8 +546,8 @@ Panel.Panel {
             BitmapButton."Selected Engine Advanced" {
                 Image = None;
                 ImageScaling = 0;
-                Position = (0%, 92);
-                Size = (100%, 28);
+                Position = (0, 92);
+                Size = (605.952, 28);
                 TextSize = 13;
 
                 Renderer {
@@ -629,7 +629,7 @@ Panel.Panel {
 
             Label.Label3 {
                 ScrollbarPolicy = Never;
-                Size = (100%, 28);
+                Size = (409.92, 28);
                 Text = "Create Board";
                 TextSize = 15;
 
@@ -661,9 +661,9 @@ Panel.Panel {
             }
 
             Label.Label4 {
-                Position = (0%, 28);
+                Position = (0, 28);
                 ScrollbarPolicy = Never;
-                Size = (100%, 33);
+                Size = (409.92, 33);
                 Text = "Create Board With Settings...";
                 TextSize = 15;
 
@@ -695,9 +695,9 @@ Panel.Panel {
             }
 
             Label.Label1 {
-                Position = (0%, 61);
+                Position = (0, 61);
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (409.92, 27);
                 Text = "New Board Settings...";
                 TextSize = 15;
 
@@ -729,9 +729,9 @@ Panel.Panel {
             }
 
             Label."Selected Board Text" {
-                Position = (0%, 88);
+                Position = (0, 88);
                 ScrollbarPolicy = Never;
-                Size = (100%, 32);
+                Size = (409.92, 32);
                 Text = "Board Settings...";
                 TextSize = 15;
 
@@ -763,9 +763,9 @@ Panel.Panel {
             }
 
             Label.Label2 {
-                Position = (0%, 120);
+                Position = (0, 120);
                 ScrollbarPolicy = Never;
-                Size = (100%, 28);
+                Size = (409.92, 28);
                 Text = "New Board Advanced Settings...";
                 TextSize = 15;
 
@@ -797,9 +797,9 @@ Panel.Panel {
             }
 
             Label."Selected Board Advanced Text" {
-                Position = (0%, 148);
+                Position = (0, 148);
                 ScrollbarPolicy = Never;
-                Size = (100%, 33);
+                Size = (409.92, 33);
                 Text = "Board Advanced Settings...";
                 TextSize = 15;
 
@@ -831,9 +831,9 @@ Panel.Panel {
             }
 
             Label."Copy FEN Text" {
-                Position = (0%, 181);
+                Position = (0, 181);
                 ScrollbarPolicy = Never;
-                Size = (100%, 28);
+                Size = (409.92, 28);
                 Text = "Copy Board FEN";
                 TextSize = 15;
 
@@ -865,9 +865,9 @@ Panel.Panel {
             }
 
             Label."Load FEN Text" {
-                Position = (0%, 209);
+                Position = (0, 209);
                 ScrollbarPolicy = Never;
-                Size = (100%, 28);
+                Size = (409.92, 28);
                 Text = "Load FEN";
                 TextSize = 15;
 
@@ -899,9 +899,9 @@ Panel.Panel {
             }
 
             Label."Delete Selected Board Text" {
-                Position = (0%, 237);
+                Position = (0, 237);
                 ScrollbarPolicy = Never;
-                Size = (100%, 28);
+                Size = (409.92, 28);
                 Text = "Delete Board";
                 TextSize = 15;
 
@@ -933,9 +933,9 @@ Panel.Panel {
             }
 
             Label."Delete All Boards Label" {
-                Position = (0%, 265);
+                Position = (0, 265);
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (409.92, 27);
                 Text = "Delete All Boards";
                 TextSize = 15;
 
@@ -988,7 +988,7 @@ Panel.Panel {
             Label.Label7 {
                 HorizontalAlignment = Right;
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (240, 27);
                 Text = E;
                 TextSize = 15;
 
@@ -1021,9 +1021,9 @@ Panel.Panel {
 
             Label.Label8 {
                 HorizontalAlignment = Right;
-                Position = (0%, 27);
+                Position = (0, 27);
                 ScrollbarPolicy = Never;
-                Size = (100%, 34);
+                Size = (240, 34);
                 Text = "Ctrl+E";
                 TextSize = 15;
 
@@ -1056,9 +1056,9 @@ Panel.Panel {
 
             Label.Label9 {
                 HorizontalAlignment = Right;
-                Position = (0%, 61);
+                Position = (0, 61);
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (240, 27);
                 Text = "Ctrl+S";
                 TextSize = 15;
 
@@ -1091,9 +1091,9 @@ Panel.Panel {
 
             Label."Selected Board Shortcut" {
                 HorizontalAlignment = Right;
-                Position = (0%, 88);
+                Position = (0, 88);
                 ScrollbarPolicy = Never;
-                Size = (100%, 34);
+                Size = (240, 34);
                 Text = "Shift+S";
                 TextSize = 15;
 
@@ -1126,9 +1126,9 @@ Panel.Panel {
 
             Label.Label11 {
                 HorizontalAlignment = Right;
-                Position = (0%, 122);
+                Position = (0, 122);
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (240, 27);
                 Text = "Ctrl+D";
                 TextSize = 15;
 
@@ -1161,9 +1161,9 @@ Panel.Panel {
 
             Label."Selected Board Advanced Shortcut" {
                 HorizontalAlignment = Right;
-                Position = (0%, 149);
+                Position = (0, 149);
                 ScrollbarPolicy = Never;
-                Size = (100%, 33);
+                Size = (240, 33);
                 Text = "Shift+D";
                 TextSize = 15;
 
@@ -1196,9 +1196,9 @@ Panel.Panel {
 
             Label."Copy FEN Shortcut" {
                 HorizontalAlignment = Right;
-                Position = (0%, 182);
+                Position = (0, 182);
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (240, 27);
                 Text = "Control+F";
                 TextSize = 15;
 
@@ -1231,9 +1231,9 @@ Panel.Panel {
 
             Label."Load FEN Shortcut" {
                 HorizontalAlignment = Right;
-                Position = (0%, 209);
+                Position = (0, 209);
                 ScrollbarPolicy = Never;
-                Size = (100%, 28);
+                Size = (240, 28);
                 Text = "Shift+F";
                 TextSize = 15;
 
@@ -1266,20 +1266,20 @@ Panel.Panel {
 
             Label."Delete Board Shortcut" {
                 HorizontalAlignment = Right;
-                Position = (0%, 237);
+                Position = (0, 237);
                 Renderer = &2;
                 ScrollbarPolicy = Never;
-                Size = (100%, 28);
+                Size = (240, 28);
                 Text = Del;
                 TextSize = 15;
             }
 
             Label."Delete All Boards Shortcut" {
                 HorizontalAlignment = Right;
-                Position = (0%, 265);
+                Position = (0, 265);
                 Renderer = &2;
                 ScrollbarPolicy = Never;
-                Size = (100%, 27);
+                Size = (240, 27);
                 Text = "Ctrl+Del";
                 TextSize = 15;
             }
@@ -1740,6 +1740,41 @@ Panel.Panel {
         Position = (0.57%, 0%);
         Size = (10.16%, 7.5%);
         Text = "Board Settings";
+        TextSize = 18;
+
+        Renderer {
+            BackgroundColor = transparent;
+            BackgroundColorDisabled = None;
+            BackgroundColorDown = None;
+            BackgroundColorDownHover = None;
+            BackgroundColorHover = None;
+            BorderColor = transparent;
+            BorderColorDisabled = None;
+            BorderColorDown = None;
+            BorderColorFocused = None;
+            BorderColorHover = None;
+            Borders = (1, 1, 1, 1);
+            TextColor = #EBEBEB;
+            TextColorDisabled = #EBEBEB;
+            TextColorDown = #EBEBEB;
+            TextColorDownFocused = #EBEBEB;
+            TextColorDownHover = #EBEBEB;
+            TextColorHover = #EBEBEB;
+            Texture = None;
+            TextureDisabled = None;
+            TextureDown = "textures/button.png" Smooth;
+            TextureDownFocused = None;
+            TextureDownHover = None;
+            TextureFocused = None;
+            TextureHover = "textures/button_2.png" Smooth;
+        }
+    }
+
+    ToggleButton."Change Background" {
+        Down = false;
+        Position = (420.992, 0);
+        Size = (235.072, 7.5%);
+        Text = "Change Background";
         TextSize = 18;
 
         Renderer {

@@ -1,32 +1,30 @@
+/*
+    SF Chess, a Chess GUI which supports many chess variants
+    Copyright (C) 2026  demoman2 (https://github.com/demoman2)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as
+    published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #pragma once
 #include <iostream>
 #include <thread>
 #include <vector>
 #include "Board.h"
+#include "GUIBoard.h"
 #include <TGUI/TGUI.hpp>
 #include <TGUI/Backend/SFML-Graphics.hpp>
-#include <clipboardxx.hpp>
-
-class SVGPiece {
-	tgui::Picture::Ptr pieceImage;
-public:
-	SVGPiece(const tgui::Texture& texture, int x, int y, float scale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, bool reversed);
-	void addGUI(tgui::Gui& gui);
-	void draw(sf::RenderWindow& window);
-};
-
-struct GUIBoard {
-	tgui::Gui* gui;
-	std::vector<SVGPiece> previewPieces;
-	float boardScale, pieceScale, boardMultiplier;
-	sf::Vector2f boardOffset, boardSize, startingOffset;
-	GUIBoard(const tgui::Picture::Ptr& boardPicture, tgui::Gui& gui, std::vector<tgui::Texture>& pieceTextures);
-	void setPieces(std::string fen, std::vector<tgui::Texture>& pieceTextures, bool reversed = false);
-};
-
-std::vector<tgui::Texture> loadSVGSet(std::string path);
-
-static void block_until_gained_focus(sf::Window& window);
+#include <clip/clip.h>
 
 void addTexture(std::vector<sf::Texture>& textures, const std::string& path, bool smooth = false);
 
@@ -34,13 +32,15 @@ void addImage(std::vector<sf::Image>& images, const std::string& path);
 
 void addSoundBuffer(std::vector<sf::SoundBuffer>& soundBuffers, const std::string& path);
 
-std::vector<sf::Image> makeBoardIcons(sf::Image& boardSpriteSheet, sf::RenderTexture& renderTexture, sf::Sprite& iconTexture);
+sf::Image makeBoardIcon(const sf::Image& boardSpriteSheet, sf::RenderTexture& renderTexture, const sf::Sprite& iconTexture);
 
-void makeBoard(std::shared_ptr<Board>& selectedBoard, const BoardSettings& boardSettings, const StockfishSettings& stockfishSettings, sf::Vector2u windowSize, std::vector<sf::Image>& pieceSpriteSheets, sf::Image& boardSpriteSheet, sf::Font& textFont, sf::Texture& boardTexture, std::vector<sf::Texture>& pieceTextures, std::vector<sf::Texture>& boardTextures, std::vector<sf::SoundBuffer>& soundBuffers, std::vector<std::shared_ptr<Board>>& boardList, bool& makingBoard);
+sf::Image makeAIStrengthTexture(const sf::Texture& gradient, sf::Color color);
 
-sf::Image makeAIStrengthTexture(sf::Texture& gradient, sf::Color color);
+std::vector<Chess::VariantType> loadVariantTypes(const std::string& path, const std::vector<std::shared_ptr<Chess::Variant>>& variantList);
 
-std::vector<SVGPiece> generatePositionFromFENID(std::string code, std::vector<tgui::Texture>& pieceTextures, float pieceScale, sf::Vector2f boardOffset, sf::Vector2f boardSize, float boardMultiplier, bool reversed = false);
+void makeBoard(std::shared_ptr<Board>& selectedBoard, const BoardSettings& boardSettings, const StockfishSettings& stockfishSettings, const std::vector<std::map<char, sf::Texture>>& pieceTextures,
+	const std::map<std::string, std::map<char, sf::Texture>>& variantPieceTextures, sf::Vector2u windowSize,
+	const sf::Image& boardSpriteSheet, const sf::Font& textFont, const std::vector<sf::Texture>& boardTextures, const std::vector<sf::SoundBuffer>& soundBuffers, const std::set<std::string>& endgameVariants, std::vector<std::shared_ptr<Board>>& boardList, bool& makingBoard);
 
 std::string timeToStr(const sf::Time& time, std::ostringstream& oss, float multiplier = 1.0f);
 

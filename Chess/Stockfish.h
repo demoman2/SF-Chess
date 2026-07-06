@@ -1,7 +1,26 @@
+/*
+	SF Chess, a Chess GUI which supports many chess variants
+	Copyright (C) 2026  demoman2 (https://github.com/demoman2)
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as
+	published by the Free Software Foundation, either version 3 of the
+	License, or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #pragma once
 #include <SDKDDKVer.h>
 #include <iostream>
 #include <boost/process.hpp>
+#include <boost/process/v1/windows.hpp>
 #include <SFML/System/Time.hpp>
 #include "ChessUtil.h"
 
@@ -34,13 +53,13 @@ public:
 	bool isCalculating, movePlayed;
 	std::string move;
 
-	Stockfish(std::string path, const StockfishSettings& stockfishSettings);
+	Stockfish(const std::string& path, const StockfishSettings& stockfishSettings);
 	~Stockfish();
 	void startStockfish();
 	void loadSettings(const StockfishSettings& stockfishSettings);
-	void setVariant(const Chess::Variant variant, bool chess960);
-	void getBestMove(std::string fen, std::string moves);
-	void getBestMoveT(std::string fen, std::string moves, sf::Time whiteTime, sf::Time blackTime, sf::Time timeIncrement);
+	void setVariant(const std::string& vName, bool chess960);
+	void getBestMove(const std::string& fen, const std::string& moves);
+	void getBestMoveT(const std::string& fen, const std::string& moves, sf::Time whiteTime, sf::Time blackTime, sf::Time timeIncrement);
 	void stopCalculating();
 	void stopCalculatingAndPlay();
 	void printPosition();
@@ -48,10 +67,11 @@ public:
 	void runCommand(const std::string& command);
 	void quit();
 	std::string getFEN();
-	int getLegalMoveCount(std::string fen, std::string moves);
-	int getLegalMoveCount(std::string fen);
-	std::vector<std::string> getLegalMoves(std::string fen, std::string moves); // Debug
-	const StockfishSettings& getSettings();
+	int getLegalMoveCount(const std::string& fen, const std::string& moves);
+	int getLegalMoveCount(const std::string& fen);
+	std::vector<std::string> getLegalMoves(const std::string& fen, const std::string& moves); // Debug
+	std::vector<std::string> getLegalMoves();
+	const StockfishSettings& getSettings() const;
 
 	std::string getMove() const { return move; };
 	void resetMove() { move.clear(); };

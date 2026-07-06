@@ -128,10 +128,9 @@ Panel.Panel {
     }
 
     Label.Title {
-        MaximumTextWidth = 523;
+        AutoSize = true;
         Position = (23.84%, 2.08%);
-        ScrollbarPolicy = Never;
-        Size = (91.11%, 6.05%);
+        Size = (448, 58);
         Text = "Advanced Settings";
         TextSize = 45;
 
@@ -164,11 +163,10 @@ Panel.Panel {
     }
 
     Label."Variant Text" {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (35.43%, 11.63%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (35.17%, 4.54%);
+        Size = (276, 62);
         Text = "Time Mode";
         TextSize = 48;
     }
@@ -450,22 +448,20 @@ Panel.Panel {
     }
 
     Label."White Label" {
+        AutoSize = true;
         IgnoreMouseEvents = true;
-        MaximumTextWidth = 141;
         Position = (9.41%, 28.07%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (52.14%, 4.54%);
+        Size = (296, 61);
         Text = "White Time:";
         TextSize = 47;
     }
 
     Label.Label2 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (9.41%, 48.96%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (45.35%, 4.54%);
+        Size = (287, 62);
         Text = "Pause Time";
         TextSize = 48;
     }
@@ -534,11 +530,10 @@ Panel.Panel {
     }
 
     Label."Black Label" {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (9.41%, 34.69%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (35.17%, 4.54%);
+        Size = (287, 61);
         Text = "Black Time:";
         TextSize = 47;
     }
@@ -604,12 +599,11 @@ Panel.Panel {
     }
 
     Label.Label5 {
+        AutoSize = true;
         IgnoreMouseEvents = true;
-        MaximumTextWidth = 141;
         Position = (9.41%, 41.31%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (46.48%, 4.54%);
+        Size = (269, 61);
         Text = "Increment:";
         TextSize = 47;
     }
@@ -681,45 +675,43 @@ Panel.Panel {
     }
 
     Label."Initial White Label" {
+        AutoSize = true;
         IgnoreMouseEvents = true;
-        MaximumTextWidth = 141;
         Position = (8.28%, 57.37%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (60.06%, 4.54%);
+        Size = (281, 61);
         Text = "White Time";
         TextSize = 47;
     }
 
     Label."Initial Black Label" {
+        AutoSize = true;
         IgnoreMouseEvents = true;
-        MaximumTextWidth = 141;
         Position = (8.28%, 63.99%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (35.17%, 4.54%);
+        Size = (272, 61);
         Text = "Black Time";
         TextSize = 47;
     }
 
     Label."Initial White" {
+        AutoSize = true;
         IgnoreMouseEvents = true;
         MaximumTextWidth = 141;
         Position = (39.93%, 59.26%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (60.06%, 4.54%);
+        Size = (141, 37);
         Text = "(restart)";
         TextSize = 28;
     }
 
     Label."Initial Black" {
+        AutoSize = true;
         IgnoreMouseEvents = true;
         MaximumTextWidth = 141;
         Position = (38.82%, 65.88%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (60.06%, 4.54%);
+        Size = (141, 37);
         Text = "(restart)";
         TextSize = 28;
     }
@@ -851,12 +843,11 @@ Panel.Panel {
     }
 
     Label.Label14 {
+        AutoSize = true;
         IgnoreMouseEvents = true;
-        MaximumTextWidth = 141;
         Position = (9.41%, 74.01%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (54.4%, 4.54%);
+        Size = (437, 58);
         Text = "Show Milliseconds:";
         TextSize = 45;
     }
@@ -959,12 +950,11 @@ Panel.Panel {
     }
 
     Label.Label15 {
+        AutoSize = true;
         IgnoreMouseEvents = true;
-        MaximumTextWidth = 141;
         Position = (9.41%, 83.46%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (54.4%, 4.54%);
+        Size = (356, 58);
         Text = "Animate Pieces";
         TextSize = 45;
     }
@@ -1043,12 +1033,11 @@ Panel.Panel {
     }
 
     Label.Label17 {
+        AutoSize = true;
         IgnoreMouseEvents = true;
-        MaximumTextWidth = 141;
         Position = (50.13%, 84.79%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (60.06%, 4.54%);
+        Size = (144, 37);
         Text = "(override)";
         TextSize = 28;
     }

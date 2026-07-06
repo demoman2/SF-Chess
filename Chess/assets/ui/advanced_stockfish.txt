@@ -38,6 +38,17 @@ Renderer.2 {
     TextureArrowUpHover = None;
 }
 
+Panel.Panel1 {
+    Size = (100%, 100%);
+
+    Renderer {
+        BackgroundColor = black;
+        BorderColor = black;
+        Opacity = 0.4;
+        TextureBackground = None;
+    }
+}
+
 Panel.Arrows {
     Position = (13.54%, 42.59%);
     Size = (73.96%, 13.89%);
@@ -107,10 +118,9 @@ Panel.Panel {
     }
 
     Label.Title {
-        MaximumTextWidth = 523;
+        AutoSize = true;
         Position = (8.03%, 2.08%);
-        ScrollbarPolicy = Never;
-        Size = (91.11%, 6.05%);
+        Size = (684, 58);
         Text = "Advanced Stockfish Settings";
         TextSize = 45;
 
@@ -143,11 +153,10 @@ Panel.Panel {
     }
 
     Label."Variant Text" {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 11.82%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (38.58%, 5.49%);
+        Size = (326, 55);
         Text = "Debug Log File";
         TextSize = 43;
     }
@@ -299,11 +308,10 @@ Panel.Panel {
     }
 
     Label.Label1 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 18.43%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (38.58%, 5.49%);
+        Size = (181, 55);
         Text = Threads;
         TextSize = 43;
     }
@@ -340,11 +348,10 @@ Panel.Panel {
     }
 
     Label.Label2 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 25.05%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (38.58%, 5.49%);
+        Size = (117, 55);
         Text = Hash;
         TextSize = 43;
     }
@@ -412,11 +419,10 @@ Panel.Panel {
     }
 
     Label.Label4 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (8.29%, 31.66%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (38.58%, 5.49%);
+        Size = (158, 55);
         Text = Ponder;
         TextSize = 43;
     }
@@ -454,11 +460,10 @@ Panel.Panel {
     }
 
     Label.Label5 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 38.28%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (38.58%, 5.49%);
+        Size = (171, 55);
         Text = MultiPV;
         TextSize = 43;
     }
@@ -504,11 +509,10 @@ Panel.Panel {
     }
 
     Label.Label7 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 44.9%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (38.58%, 5.49%);
+        Size = (224, 55);
         Text = "Skill Level";
         TextSize = 43;
     }
@@ -544,11 +548,10 @@ Panel.Panel {
     }
 
     Label.Label3 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 51.42%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (44.23%, 5.49%);
+        Size = (346, 55);
         Text = "Move Overhead";
         TextSize = 43;
     }
@@ -635,11 +638,10 @@ Panel.Panel {
     }
 
     Label.Label9 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 58.04%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (44.23%, 5.49%);
+        Size = (256, 55);
         Text = "Slow Mover";
         TextSize = 43;
     }
@@ -696,11 +698,10 @@ Panel.Panel {
     }
 
     Label.Label11 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 64.65%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (44.23%, 5.48%);
+        Size = (235, 55);
         Text = nodestime;
         TextSize = 43;
     }
@@ -736,31 +737,28 @@ Panel.Panel {
     }
 
     Label.Label12 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (8.29%, 71.27%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (44.23%, 5.49%);
+        Size = (314, 55);
         Text = UCI_Chess960;
         TextSize = 43;
     }
 
     Label.Label13 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 77.89%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (44.23%, 5.49%);
+        Size = (258, 55);
         Text = UCI_Variant;
         TextSize = 43;
     }
 
     Label.Label14 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (8.29%, 84.5%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (45.36%, 5.49%);
+        Size = (389, 55);
         Text = UCI_AnalyseMode;
         TextSize = 43;
     }

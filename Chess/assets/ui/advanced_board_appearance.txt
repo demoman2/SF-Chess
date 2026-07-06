@@ -120,10 +120,9 @@ Panel.Panel {
     }
 
     Label.Title {
-        MaximumTextWidth = 523;
+        AutoSize = true;
         Position = (23.84%, 2.08%);
-        ScrollbarPolicy = Never;
-        Size = (91.11%, 6.05%);
+        Size = (448, 58);
         Text = "Advanced Settings";
         TextSize = 45;
 
@@ -260,11 +259,10 @@ Panel.Panel {
     }
 
     Label.Label2 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (9.41%, 10.49%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (62.32%, 5.49%);
+        Size = (527, 58);
         Text = "Enable Board Keybinds";
         TextSize = 45;
     }
@@ -303,11 +301,10 @@ Panel.Panel {
     }
 
     Label.Label3 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (9.61%, 36.96%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (71.37%, 5.49%);
+        Size = (509, 58);
         Text = "Show Option Changes";
         TextSize = 45;
     }
@@ -348,11 +345,10 @@ Panel.Panel {
     }
 
     Label.Label8 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (9.61%, 44.05%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (62.32%, 5.49%);
+        Size = (354, 58);
         Text = "Auto Flip Board";
         TextSize = 45;
     }
@@ -390,21 +386,19 @@ Panel.Panel {
     }
 
     Label.Label4 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (13.8%, 57.75%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (58.93%, 5.49%);
+        Size = (502, 58);
         Text = "Promote Square Color";
         TextSize = 45;
     }
 
     Label.Label9 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.36%, 64.84%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (62.32%, 5.49%);
+        Size = (292, 58);
         Text = "Board Offset";
         TextSize = 45;
     }
@@ -490,11 +484,10 @@ Panel.Panel {
     }
 
     Label.Label12 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (1.5%, 71.93%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (62.32%, 5.49%);
+        Size = (276, 58);
         Text = "Board Scale";
         TextSize = 45;
     }
@@ -530,11 +523,10 @@ Panel.Panel {
     }
 
     Label.Label5 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (9.41%, 51.04%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (62.32%, 5.49%);
+        Size = (539, 58);
         Text = "Atomic Explosion Effect";
         TextSize = 45;
     }
@@ -572,21 +564,19 @@ Panel.Panel {
     }
 
     Label.Label14 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (13.94%, 79.49%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (62.32%, 5.49%);
+        Size = (225, 57);
         Text = "Board Set";
         TextSize = 44;
     }
 
     Label.Label15 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (13.94%, 86.58%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (62.32%, 5.95%);
+        Size = (212, 57);
         Text = "Piece Set";
         TextSize = 44;
     }
@@ -1005,11 +995,10 @@ Panel.Panel {
     }
 
     Label.Label1 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (33.17%, 24.29%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (62.32%, 5.49%);
+        Size = (293, 58);
         Text = "Mouse Mode";
         TextSize = 45;
     }
@@ -1240,6 +1229,7 @@ Panel.Panel {
     Panel.Panel2 {
         IgnoreMouseEvents = true;
         Size = (100%, 100%);
+        Visible = false;
 
         Renderer {
             BackgroundColor = black;

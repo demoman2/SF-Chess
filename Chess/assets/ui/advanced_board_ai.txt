@@ -132,10 +132,9 @@ Panel.Panel {
     }
 
     Label.Title {
-        MaximumTextWidth = 523;
+        AutoSize = true;
         Position = (23.84%, 2.08%);
-        ScrollbarPolicy = Never;
-        Size = (91.11%, 6.05%);
+        Size = (448, 58);
         Text = "Advanced Settings";
         TextSize = 45;
 
@@ -343,23 +342,21 @@ Panel.Panel {
     }
 
     Label."Fixed Time Label" {
+        AutoSize = true;
         IgnoreMouseEvents = true;
-        MaximumTextWidth = 141;
         Position = (4.89%, 56.05%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (45.35%, 4.54%);
+        Size = (271, 62);
         Text = "Fixed Time";
         TextSize = 48;
         UserData = "";
     }
 
     Label.Label3 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (9.41%, 11.15%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (53.27%, 4.54%);
+        Size = (411, 62);
         Text = "Enable Stockfish";
         TextSize = 48;
     }
@@ -398,11 +395,10 @@ Panel.Panel {
     }
 
     Label."AI Only Label" {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (9.41%, 18.72%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (53.27%, 5.49%);
+        Size = (347, 61);
         Text = "AI Only Moves";
         TextSize = 47;
     }
@@ -440,11 +436,10 @@ Panel.Panel {
     }
 
     Label.Label5 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (39.95%, 27.22%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (53.27%, 5.49%);
+        Size = (175, 61);
         Text = "AI Side";
         TextSize = 47;
     }
@@ -456,7 +451,7 @@ Panel.Panel {
 
         ToggleButton."AI White" {
             Down = false;
-            Size = (407, 100%);
+            Size = (407, 50.0419);
             Text = White;
             TextSize = 36;
 
@@ -488,8 +483,8 @@ Panel.Panel {
 
         ToggleButton."AI Black" {
             Down = false;
-            Position = (407, 0%);
-            Size = (397, 100%);
+            Position = (407, 0);
+            Size = (397, 50.0419);
             Text = Black;
             TextSize = 36;
 
@@ -521,11 +516,10 @@ Panel.Panel {
     }
 
     Label.Label6 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (33.17%, 42.06%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (53.27%, 5.49%);
+        Size = (307, 60);
         Text = "Playing Time";
         TextSize = 46;
     }
@@ -537,7 +531,7 @@ Panel.Panel {
 
         ToggleButton."Time Based" {
             Down = false;
-            Size = (402, 100%);
+            Size = (402, 50.0419);
             Text = "Time Based";
             TextSize = 36;
 
@@ -569,8 +563,8 @@ Panel.Panel {
 
         ToggleButton.Fixed {
             Down = false;
-            Position = (402, 0%);
-            Size = (402, 100%);
+            Position = (402, 0);
+            Size = (402, 50.0419);
             Text = "Always Fixed";
             TextSize = 36;
 
@@ -602,11 +596,10 @@ Panel.Panel {
     }
 
     Label.Label2 {
-        MaximumTextWidth = 141;
+        AutoSize = true;
         Position = (4.98%, 65.31%);
         Renderer = &1;
-        ScrollbarPolicy = Never;
-        Size = (53.27%, 5.49%);
+        Size = (255, 62);
         Text = "Skill Level";
         TextSize = 48;
     }

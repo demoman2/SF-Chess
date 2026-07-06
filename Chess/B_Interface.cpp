@@ -1,9 +1,27 @@
+/*
+	SF Chess, a Chess GUI which supports many chess variants
+	Copyright (C) 2026  demoman2 (https://github.com/demoman2)
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU Affero General Public License as
+	published by the Free Software Foundation, either version 3 of the
+	License, or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU Affero General Public License for more details.
+
+	You should have received a copy of the GNU Affero General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 #include "Board.h"
 
 // FEN
-void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first)
+void Board::loadFromFEN(const std::optional<std::string>& FEN_ID, bool init, bool first)
 {
-	if (startedStockfish) { stockfish.setVariant(variant, chess960Enabled); }
+	stockfish.setVariant(variant->name, position.hasChess960);
 	if (stockfish.isCalculating) { stockfish.stopCalculating(); }
 	setSpriteVisible(ghostSprite, false);
 	moves = "";
@@ -13,15 +31,11 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 		whiteTime = startingWhiteTime;
 		blackTime = startingBlackTime;
 	}
-	whiteChecks = 0;
-	blackChecks = 0;
-	gameEnded = false;
+	whiteChecksLeft = 0;
+	blackChecksLeft = 0;
+	position.gameEnded = false;
 	hasCheck = false;
-	eighthRankWhite = false;
-	dropsEnabled = false;
-	castlingEnabled = true;
-	promotionEnabled = true;
-	checksEnabled = true;
+	position.extraFlagMove = false;
 	timeClock.reset();
 	lastMoveStart.setPosition({ -1000, -1000 });
 	lastMoveDest.setPosition({ -1000, -1000 });
@@ -33,99 +47,32 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 	blackDropPieces.clear();
 	selectedPiece.reset();
 	capturePiece.reset();
-	pieceList.clear();
+	position.pieceList.clear();
 	allPositionsPlayed.clear();
-	whitePromotePieces.clear();
-	blackPromotePieces.clear();
+	position.enPassantTarget = {};
 	captureSound.setVolume(15);
 	captureSound.setBuffer(soundBuffers->at(1));
 	captureThreshold = 1.0f;
 
 	// Variant Setup
-	whitePromotePieces.emplace_back('q', sf::Vector2f{ pieceScale * 0.82f, pieceScale * 0.82f });
-	whitePromotePieces.emplace_back('n', sf::Vector2f{ pieceScale * 0.775f, pieceScale * 0.775f });
-	whitePromotePieces.emplace_back('b', sf::Vector2f{ pieceScale * 0.8f, pieceScale * 0.8f });
-	whitePromotePieces.emplace_back('r', sf::Vector2f{ pieceScale * 0.785f, pieceScale * 0.785f });
-
-	blackPromotePieces.emplace_back('q', sf::Vector2f{ pieceScale * 0.82f, pieceScale * 0.82f });
-	blackPromotePieces.emplace_back('n', sf::Vector2f{ pieceScale * 0.775f, pieceScale * 0.775f });
-	blackPromotePieces.emplace_back('b', sf::Vector2f{ pieceScale * 0.8f, pieceScale * 0.8f });
-	blackPromotePieces.emplace_back('r', sf::Vector2f{ pieceScale * 0.785f, pieceScale * 0.785f });
-
-	if (variant == Chess::Antichess) {
-		castlingEnabled = false;
-		checksEnabled = false;
-		whitePromotePieces.emplace_back('k', sf::Vector2f{ pieceScale * 0.785f, pieceScale * 0.785f });
-		blackPromotePieces.emplace_back('k', sf::Vector2f{ pieceScale * 0.785f, pieceScale * 0.785f });
-	}
-	else if (variant == Chess::Atomic) {
+	if (variant->atomicExplosions) {
 		captureSound.setVolume(9);
 		captureSound.setBuffer(soundBuffers->at(3));
 		captureThreshold = 30.0f;
 	}
-	else if (variant == Chess::RacingKings) {
-		castlingEnabled = false;
-	}
-	else if (variant == Chess::Crazyhouse) {
-		dropsEnabled = true;
-	}
 
-	startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w AHah - 0 1";
+	startingFEN = variant->startingFEN;
 	if (FEN_ID.has_value()) {
 		startingFEN = FEN_ID.value();
-		if (variant == Chess::ThreeCheck) {
-			if (startingFEN.find('+') == std::string::npos && findNthOf(startingFEN, ' ', 4) != 0) {
-				startingFEN.insert(findNthOf(startingFEN, ' ', 4), " 3+3");
-			}
-		}
-		else if (variant == Chess::FiveCheck) {
-			if (startingFEN.find('+') == std::string::npos && findNthOf(startingFEN, ' ', 4) != 0) {
-				startingFEN.insert(findNthOf(startingFEN, ' ', 4), " 5+5");
-			}
-		}
-		if (dropsEnabled) {
-			if (startingFEN.find('+') == std::string::npos && findNthOf(startingFEN, ' ', 1) != 0) {
-				startingFEN.insert(findNthOf(startingFEN, ' ', 1), "[]");
-			}
-		}
 	}
 	else {
 		if (endgamePosition) {
-			std::string fen;
-			if (variant == Chess::Antichess) {
-				fen = Chess::getRandomLineFrom("assets/fen/antichess_endgame.txt");
-				if (variant == Chess::ThreeCheck) {
-					startingFEN = fen.substr(0, fen.size() - 3);
-					startingFEN += "3+3 0 1";
-				}
-				else if (variant == Chess::FiveCheck) {
-					startingFEN = fen.substr(0, fen.size() - 3);
-					startingFEN += "5+5 0 1";
-				}
-				else if (variant == Chess::Crazyhouse) {
-					startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1";
-				}
-				else if (!fen.empty()) {
+			if (endgameVariants->count(variant->name) > 0) {
+				std::string path = "assets/fen/endgame/";
+				path += variant->name + ".txt";
+				std::string fen = Chess::getRandomLineFrom(path);
+				if (!fen.empty()) {
 					startingFEN = fen;
-				}
-			}
-			else if (variant == Chess::Standard) {
-				fen = Chess::getRandomLineFrom("assets/fen/endgame.txt");
-				if (variant == Chess::ThreeCheck) {
-					startingFEN = fen.substr(0, fen.size() - 3);
-					startingFEN += "3+3 0 1";
-				}
-				else if (variant == Chess::FiveCheck) {
-					startingFEN = fen.substr(0, fen.size() - 3);
-					startingFEN += "5+5 0 1";
-				}
-				else if (variant == Chess::Crazyhouse) {
-					startingFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1";
-				}
-				else {
-					if (!fen.empty()) {
-						startingFEN = fen;
-					}
 				}
 			}
 			else {
@@ -136,33 +83,30 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 			startingFEN = getNewFEN();
 		}
 	}
-
-	if (dropsEnabled) {
-		setupDropSprites();
-	}
+	setupDropSprites();
 
 	if (timeEnabled && !overridePieceSpeed) {
 		instantMove = false;
 		float time = std::min(whiteTime.asSeconds(), blackTime.asSeconds()) + (timeIncrement.asSeconds() * 40.0f);
 		if (time < 30) {
 			instantMove = true;
-			gameType = Chess::UltraBullet;
+			gameType = Chess::GameType::UltraBullet;
 		}
 		else if (time < 180) {
 			instantMove = true;
-			gameType = Chess::Bullet;
+			gameType = Chess::GameType::Bullet;
 		}
 		else if (time < 480) {
 			moveSpeed = 1.5f;
-			gameType = Chess::Blitz;
+			gameType = Chess::GameType::Blitz;
 		}
 		else if (time < 1500) {
 			moveSpeed = 1.0f;
-			gameType = Chess::Rapid;
+			gameType = Chess::GameType::Rapid;
 		}
 		else {
 			moveSpeed = 0.8f;
-			gameType = Chess::Classical;
+			gameType = Chess::GameType::Classical;
 		}
 	}
 	if (!startingFEN.empty() && startingFEN.at(startingFEN.find_first_of(' ') + 1) == 'b') {
@@ -206,96 +150,217 @@ void Board::loadFromFEN(std::optional<std::string> FEN_ID, bool init, bool first
 
 	bool t = isAnimated;
 	if (!init) { isAnimated = false; }
-	pieceList = generatePositionFromFENID(startingFEN);
+	position.pieceList = generatePositionFromFENID(startingFEN);
 	if (FEN_ID.has_value()) { startingFEN = getCurrentFEN(); }
 	if (!init) { isAnimated = t; }
 	generateLegalMoves(true);
 }
 
-void Board::loadFromPosition(const Chess::Position& position)
+void Board::loadFromPosition(const Chess::SavePosition& loadPosition)
 {
-	pieceList = Chess::copyPieceVec(position.pieceList, false, true);
-	whiteChecks = position.whiteChecks;
-	blackChecks = position.blackChecks;
-	whiteToPlay = position.whiteToPlay;
-	hasCheck = position.hasCheck;
-	eighthRankWhite = position.eighthRankWhite;
-	fullMoves = position.fullMoves;
-	halfMoves = position.halfMoves;
-	lastMoveStartLocal = position.lastMoveStartLocal;
-	lastMoveDestLocal = position.lastMoveDestLocal;
-	moves = position.moves;
+	position.pieceList = Chess::copyPieceVec(loadPosition.pieceList, false, true, true);
+	whiteChecksLeft = loadPosition.whiteChecksLeft;
+	blackChecksLeft = loadPosition.blackChecksLeft;
+	whiteToPlay = loadPosition.whiteToPlay;
+	hasCheck = loadPosition.hasCheck;
+	position.extraFlagMove = loadPosition.extraFlagMove;
+	fullMoves = loadPosition.fullMoves;
+	halfMoves = loadPosition.halfMoves;
+	lastMoveStartLocal = loadPosition.lastMoveStartLocal;
+	lastMoveDestLocal = loadPosition.lastMoveDestLocal;
+	moves = loadPosition.moves;
+	position.enPassantTarget = loadPosition.enPassantTarget;
+	position.enPassantTripleTarget = loadPosition.enPassantTripleTarget;
+	position.castlePieces = loadPosition.castlePieces;
+	position.castlingRights = loadPosition.castlingRights;
+	position.gameEnded = loadPosition.gameEnded;
+	std::cout << position.gameEnded << "\n";
 	lastMoveStart.setPosition(getGlobalPosition(lastMoveStartLocal));
 	lastMoveDest.setPosition(getGlobalPosition(lastMoveDestLocal));
+	checkSprites.clear();
 	if (hasCheck) {
-		checkSprite.setPosition(getGlobalPosition(position.checkPos));
+		for (auto& pos : loadPosition.checkPositions) {
+			sf::Sprite checkSprite(boardTextures->at(2));
+			checkSprite.setOrigin(checkSprite.getLocalBounds().getCenter());
+			checkSprite.setScale(boardSprite.getScale());
+			checkSprite.setPosition(getGlobalPosition(pos));
+			checkSprites.push_back(std::move(checkSprite));
+		}
 	}
 	if (timeEnabled) {
-		whiteTime = position.whiteTime;
-		blackTime = position.blackTime;
+		whiteTime = loadPosition.whiteTime;
+		blackTime = loadPosition.blackTime;
 		timeClock.reset();
 	}
+	for (auto& p : whiteDropPieces) { p.count = 0; }
+	for (auto& p : blackDropPieces) { p.count = 0; }
+	std::vector<std::string> splitString = split(loadPosition.FEN, ' ');
+	std::vector<std::string> ranks = split(splitString.front(), '/');
+	std::string back = ranks.back();
+	size_t dropBegin = back.find('['), dropEnd = back.find(']');
+	if (dropBegin != std::string::npos && dropEnd != std::string::npos) {
+		std::string drop = ranks.back().substr(dropBegin + 1, dropEnd);
+		drop.pop_back();
+		for (auto& l : drop) {
+			std::vector<Chess::DropPiece>& currentDropPieces = std::isupper(l) ? whiteDropPieces : blackDropPieces;
+			for (auto& piece : currentDropPieces) {
+				if (piece.id == std::tolower(l)) {
+					piece.count += 1;
+					break;
+				}
+			}
+		}
+	}
+	for (auto& piece : whiteDropPieces) {
+		piece.update();
+	}
+	for (auto& piece : blackDropPieces) {
+		piece.update();
+	}
 	setPieceSprites(true);
+	if (position.gameEnded && determineEnd() != Chess::Endgame::None) {
+		std::string sideToPlayString = whiteToPlay ? "White " : "Black ";
+		switch (determineEnd()) {
+		case Chess::Endgame::Checkmate:
+		{
+			setGameEndText(sideToPlayString + "Lost to Checkmate!");
+			break;
+		}
+		case Chess::Endgame::VariantVictory:
+		{
+			setGameEndText(sideToPlayString + "Won! Variant Ending.");
+			break;
+		}
+		case Chess::Endgame::VariantLoss:
+		{
+			setGameEndText(sideToPlayString + "Lost! Variant Ending.");
+			break;
+		}
+		case Chess::Endgame::Draw:
+		{
+			setGameEndText("Game Ended in a Draw!");
+			break;
+		}
+		case Chess::Endgame::ThreefoldRepetition:
+		{
+			setGameEndText("Game Ended by Threefold Repetition!");
+			break;
+		}
+		case Chess::Endgame::FiftyMoveRule:
+		{
+			setGameEndText("Game Ended by 50 Move Rule!");
+			break;
+		}
+		}
+	}
 	delayClock.restart();
+
 }
 
 // Sprite Setup
 void Board::setupDropSprites() {
+	std::set<char> whiteDrop, blackDrop;
+	std::size_t start = startingFEN.find('['), end = startingFEN.find(']');
+	whiteDrop.insert(variant->whiteDropPieces.begin(), variant->whiteDropPieces.end());
+	blackDrop.insert(variant->blackDropPieces.begin(), variant->blackDropPieces.end());
+	if (start != startingFEN.npos && end != startingFEN.npos) {
+		for (auto p : startingFEN.substr(start + 1)) {
+			if (!std::isalpha(p)) {
+				break;
+			}
+			if (std::isupper(p)) {
+				whiteDrop.insert(std::tolower(p));
+			}
+			else {
+				blackDrop.insert(p);
+			}
+		}
+	}
+
+	dropPieceCount.x = whiteDrop.size();
+	dropPieceCount.y = blackDrop.size();
+
 	selectedDropPiece.sprite.setOrigin(selectedDropPiece.sprite.getLocalBounds().getCenter());
 	selectedDropPiece.sprite.setScale(sf::Vector2f(pieceScale, pieceScale));
 	float boardX = boardTexture.getSize().x * boardScale;
 	float boardY = boardTexture.getSize().y * boardScale;
-	dropPieceCount.x = 5;
-	if (dropPieceCount.x >= 8) {
-		dropPieceSquareSize.x = (boardY - 15.0f) / (float)dropPieceCount.x;
-	}
-	else if (dropPieceCount.x < 4) {
-		dropPieceSquareSize.x = ((boardY - 15.0f) / 8.0f) + (60.0f / (float)dropPieceCount.x);
-	}
-	else {
-		dropPieceSquareSize.x = ((boardY - 15.0f) / 8.0f) + (85.0f / (float)dropPieceCount.x);
-	}
-	dropPieceWidth.x = dropPieceSquareSize.x;
-	dropPieceHeight.x = dropPieceSquareSize.x * dropPieceCount.x;
+	if (dropPieceCount.x != 0) {
+		setSpriteVisible(dropPieceBackgroundW, true);
+		if (dropPieceCount.x >= 8) {
+			dropPieceSquareSize.x = (boardY - 15.0f) / (float)dropPieceCount.x;
+		}
+		else if (dropPieceCount.x < 4) {
+			dropPieceSquareSize.x = ((boardY - 15.0f) / 8.0f) + (60.0f / (float)dropPieceCount.x);
+		}
+		else {
+			dropPieceSquareSize.x = ((boardY - 15.0f) / 8.0f) + (85.0f / (float)dropPieceCount.x);
+		}
+		dropPieceWidth.x = dropPieceSquareSize.x;
+		dropPieceHeight.x = dropPieceSquareSize.x * dropPieceCount.x;
 
-	dropPieceBackgroundW.setColor(sf::Color(210, 210, 210));
-	dropPieceBackgroundW.setScale({ dropPieceWidth.x / dropPieceBackgroundW.getTexture().getSize().x, dropPieceHeight.x / dropPieceBackgroundW.getTexture().getSize().y });
-	dropPieceBackgroundW.setOrigin(dropPieceBackgroundW.getLocalBounds().getCenter());
-	dropPieceBackgroundW.setPosition({ boardOffset.x - (dropPieceSquareSize.x / 1.25f), (boardY / 2.0f) + boardOffset.y });
-
-	dropPieceCount.y = 5;
-	if (dropPieceCount.y >= 8) {
-		dropPieceSquareSize.y = (boardY - 15.0f) / (float)dropPieceCount.y;
-	}
-	else if (dropPieceCount.y < 4) {
-		dropPieceSquareSize.y = ((boardY - 15.0f) / 8.0f) + (60.0f * 1.0f / (float)dropPieceCount.y);
+		dropPieceBackgroundW.setColor(sf::Color(210, 210, 210));
+		dropPieceBackgroundW.setScale({ dropPieceWidth.x / dropPieceBackgroundW.getTexture().getSize().x, dropPieceHeight.x / dropPieceBackgroundW.getTexture().getSize().y });
+		dropPieceBackgroundW.setOrigin(dropPieceBackgroundW.getLocalBounds().getCenter());
+		dropPieceBackgroundW.setPosition({ boardOffset.x - (dropPieceSquareSize.x / 1.25f), (boardY / 2.0f) + boardOffset.y });
 	}
 	else {
-		dropPieceSquareSize.y = ((boardY - 15.0f) / 8.0f) + (85.0f * 1.0f / (float)dropPieceCount.y);
+		setSpriteVisible(dropPieceBackgroundW, false);
 	}
-	dropPieceWidth.y = dropPieceSquareSize.y;
-	dropPieceHeight.y = dropPieceSquareSize.y * dropPieceCount.y;
+	if (dropPieceCount.y != 0) {
+		setSpriteVisible(dropPieceBackgroundB, true);
+		if (dropPieceCount.y >= 8) {
+			dropPieceSquareSize.y = (boardY - 15.0f) / (float)dropPieceCount.y;
+		}
+		else if (dropPieceCount.y < 4) {
+			dropPieceSquareSize.y = ((boardY - 15.0f) / 8.0f) + (60.0f / (float)dropPieceCount.y);
+		}
+		else {
+			dropPieceSquareSize.y = ((boardY - 15.0f) / 8.0f) + (85.0f / (float)dropPieceCount.y);
+		}
+		dropPieceWidth.y = dropPieceSquareSize.y;
+		dropPieceHeight.y = dropPieceSquareSize.y * dropPieceCount.y;
 
-	dropPieceBackgroundB.setColor(sf::Color(210, 210, 210));
-	dropPieceBackgroundB.setScale({ dropPieceWidth.y / dropPieceBackgroundB.getTexture().getSize().x, dropPieceHeight.y / dropPieceBackgroundB.getTexture().getSize().y });
-	dropPieceBackgroundB.setOrigin(dropPieceBackgroundB.getLocalBounds().getCenter());
-	dropPieceBackgroundB.setPosition({ boardOffset.x + (dropPieceSquareSize.y / 1.25f + boardX), (boardY / 2.0f) + boardOffset.y });
+		dropPieceBackgroundB.setColor(sf::Color(210, 210, 210));
+		dropPieceBackgroundB.setScale({ dropPieceWidth.y / dropPieceBackgroundB.getTexture().getSize().x, dropPieceHeight.y / dropPieceBackgroundB.getTexture().getSize().y });
+		dropPieceBackgroundB.setOrigin(dropPieceBackgroundB.getLocalBounds().getCenter());
+		dropPieceBackgroundB.setPosition({ boardOffset.x + (dropPieceSquareSize.y / 1.25f + boardX), (boardY / 2.0f) + boardOffset.y });
+	}
+	else {
+		setSpriteVisible(dropPieceBackgroundB, false);
+	}
 
-	sf::Vector2f bgStart = { dropPieceBackgroundW.getPosition().y - (dropPieceBackgroundW.getTexture().getSize().y * dropPieceBackgroundW.getScale().y / 2.0f) + (dropPieceSquareSize.y / 2.0f), dropPieceBackgroundB.getPosition().y - (dropPieceBackgroundB.getTexture().getSize().y * dropPieceBackgroundB.getScale().y / 2.0f) + (dropPieceSquareSize.y / 2.0f) };
+	sf::Vector2f bgStart;
+	bgStart.x = dropPieceBackgroundW.getPosition().y - (dropPieceBackgroundW.getTexture().getSize().y * dropPieceBackgroundW.getScale().y / 2.0f) + (dropPieceSquareSize.x / 2.0f),
+	bgStart.y = dropPieceBackgroundB.getPosition().y - (dropPieceBackgroundB.getTexture().getSize().y * dropPieceBackgroundB.getScale().y / 2.0f) + (dropPieceSquareSize.y / 2.0f);
 
-	std::vector<sf::Texture>& bT = *boardTextures;
-	if (variant == Chess::Crazyhouse) {
-		whiteDropPieces.emplace_back(std::make_shared<Chess::DropPawn>('p', getTextureFromID('p', Chess::White), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundW.getPosition(), dropPieceSquareSize.x, bgStart.x, whiteDropPieces.size()));
-		whiteDropPieces.emplace_back(std::make_shared<Chess::DropPiece>('n', getTextureFromID('n', Chess::White), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundW.getPosition(), dropPieceSquareSize.x, bgStart.x, whiteDropPieces.size()));
-		whiteDropPieces.emplace_back(std::make_shared<Chess::DropPiece>('b', getTextureFromID('b', Chess::White), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundW.getPosition(), dropPieceSquareSize.x, bgStart.x, whiteDropPieces.size()));
-		whiteDropPieces.emplace_back(std::make_shared<Chess::DropPiece>('r', getTextureFromID('r', Chess::White), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundW.getPosition(), dropPieceSquareSize.x, bgStart.x, whiteDropPieces.size()));
-		whiteDropPieces.emplace_back(std::make_shared<Chess::DropPiece>('q', getTextureFromID('q', Chess::White), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundW.getPosition(), dropPieceSquareSize.x, bgStart.x, whiteDropPieces.size()));
+	const std::vector<sf::Texture>& bT = *boardTextures;
+	std::for_each(variant->whiteDropPieces.begin(), variant->whiteDropPieces.end(), [&](char pieceID) {
+		whiteDropPieces.emplace_back(pieceID, getTextureFromID(pieceID, Chess::PColor::White), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundW.getPosition(), dropPieceSquareSize.x, bgStart.x, whiteDropPieces.size());
+	});
+	std::for_each(variant->blackDropPieces.begin(), variant->blackDropPieces.end(), [&](char pieceID) {
+		blackDropPieces.emplace_back(pieceID, getTextureFromID(pieceID, Chess::PColor::Black), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundB.getPosition(), dropPieceSquareSize.y, bgStart.y, blackDropPieces.size());
+	});
 
-		blackDropPieces.emplace_back(std::make_shared<Chess::DropPawn>('p', getTextureFromID('p', Chess::Black), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundB.getPosition(), dropPieceSquareSize.y, bgStart.y, blackDropPieces.size()));
-		blackDropPieces.emplace_back(std::make_shared<Chess::DropPiece>('n', getTextureFromID('n', Chess::Black), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundB.getPosition(), dropPieceSquareSize.y, bgStart.y, blackDropPieces.size()));
-		blackDropPieces.emplace_back(std::make_shared<Chess::DropPiece>('b', getTextureFromID('b', Chess::Black), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundB.getPosition(), dropPieceSquareSize.y, bgStart.y, blackDropPieces.size()));
-		blackDropPieces.emplace_back(std::make_shared<Chess::DropPiece>('r', getTextureFromID('r', Chess::Black), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundB.getPosition(), dropPieceSquareSize.y, bgStart.y, blackDropPieces.size()));
-		blackDropPieces.emplace_back(std::make_shared<Chess::DropPiece>('q', getTextureFromID('q', Chess::Black), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundB.getPosition(), dropPieceSquareSize.y, bgStart.y, blackDropPieces.size()));
+	// add pieces that are in pocket if they dont exist
+	if (start != startingFEN.npos && end != startingFEN.npos) {
+		for (auto p : startingFEN.substr(start + 1)) {
+			if (p == ']') {
+				break;
+			}
+			if (std::isupper(p)) {
+				p = std::tolower(p);
+				if (std::none_of(whiteDropPieces.cbegin(), whiteDropPieces.cend(),
+					[p](const Chess::DropPiece& pPiece) { return pPiece.id == p; })) {
+					whiteDropPieces.emplace_back(p, getTextureFromID(p, Chess::PColor::White), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundW.getPosition(), dropPieceSquareSize.x, bgStart.x, whiteDropPieces.size());
+				}
+			}
+			else {
+				if (std::none_of(blackDropPieces.cbegin(), blackDropPieces.cend(),
+					[p](const Chess::DropPiece& pPiece) { return pPiece.id == p; })) {
+					blackDropPieces.emplace_back(p, getTextureFromID(p, Chess::PColor::Black), bT.at(15), bT.at(14), *textFont, dropPieceBackgroundB.getPosition(), dropPieceSquareSize.y, bgStart.y, blackDropPieces.size());
+				}
+			}
+		}
 	}
 }
 
@@ -303,36 +368,101 @@ void Board::setupPromoteSprites()
 {
 	promotePieces.clear();
 	if (promotePiece) {
-		int x = getLocalPosition(promotePiece->getGlobalPos()).x;
-		if (promotePiece->isWhite()) {
-			for (int y = 0; y < whitePromotePieces.size(); y++) {
-				Chess::IPromotePiece& initialPiece = whitePromotePieces.at(y);
-				promotePieces.emplace_back(initialPiece, getTextureFromID(initialPiece.id, Chess::White), boardTextures->at(6), sf::Vector2i{ x, Chess::reverseY(y + 1) }, boardOffset, boardSize, boardMultiplier, pieceScale, boardSprite.getScale(), isFlipped, promotionSquareColor);
+		sf::Vector2i pos = getLocalPosition(promotePiece->getGlobalPos());
+		Chess::PieceType* validTypes = nullptr;
+		for (auto& sq : promotePiece->getMoveSquares()) {
+			if (sq.promoteSquare && sq.pos == pos) {
+				validTypes = &sq.validPromotionTypes;
+				break;
 			}
-			promotePiece->setTarget({});
 		}
-		else {
-			for (int y = 0; y < blackPromotePieces.size(); y++) {
-				Chess::IPromotePiece& initialPiece = blackPromotePieces.at(y);
-				promotePieces.emplace_back(initialPiece, getTextureFromID(initialPiece.id, Chess::Black), boardTextures->at(6), sf::Vector2i{ x, y + 1 }, boardOffset, boardSize, boardMultiplier, pieceScale, boardSprite.getScale(), isFlipped, promotionSquareColor);
+		if (!validTypes) {
+			for (auto& sq : promotePiece->getCaptureSquares()) {
+				if (sq.promoteSquare && sq.pos == pos) {
+					validTypes = &sq.validPromotionTypes;
+					break;
+				}
 			}
-			promotePiece->setTarget({});
 		}
+		if (validTypes) {
+			int y = 0;
+			for (auto& type : *validTypes) {
+				promotePieces.emplace_back(type, promotePieceSize, promotePiece->color, type == promotePiece->id ? boardTextures->at(17) : getTextureFromID(type, promotePiece->color), boardTextures->at(6),
+					sf::Vector2i{ pos.x, promotePiece->isWhite() ? Chess::reverseY(y + 1, variant->boardSize) : y + 1 }, boardOffset, boardSize, boardMultiplier, pieceScale, boardSprite.getScale(),
+					variant->boardSize, isFlipped, promotionSquareColor, false);
+				y++;
+			}
+		}
+		promotePiece->setTarget({});
+	}
+}
+
+void Board::setupGatingSprites()
+{
+	gatingPieces.clear();
+	gatingKingPieces.clear();
+	gatingRookPieces.clear();
+	if (gatingKing && gatingRook) {
+		sf::Vector2i pos = gatingKing->getLocalPos();
+		auto& currentDropPieces = whiteToPlay ? whiteDropPieces : blackDropPieces;
+		int y = 0;
+		for (auto& piece : currentDropPieces) {
+			if (piece.count > 0 && !variant->pawnPieces.has(piece.id)) {
+				gatingKingPieces.emplace_back(piece.id, promotePieceSize, gatingKing->color, getTextureFromID(piece.id, gatingKing->color), boardTextures->at(6),
+					sf::Vector2i{ pos.x, gatingKing->isBlack() ? Chess::reverseY(y + 1, variant->boardSize) : y + 1 }, boardOffset, boardSize, boardMultiplier, pieceScale, boardSprite.getScale(),
+					variant->boardSize, isFlipped, promotionSquareColor, false);
+				y++;
+			}
+		}
+		gatingKingPieces.emplace_back( gatingKing->id, promotePieceSize, gatingKing->color, boardTextures->at(17), boardTextures->at(6),
+			sf::Vector2i{ pos.x, gatingKing->isBlack() ? Chess::reverseY(y + 1, variant->boardSize) : y + 1 }, boardOffset, boardSize, boardMultiplier, pieceScale, boardSprite.getScale(),
+			variant->boardSize, isFlipped, promotionSquareColor, true);
+		gatingKing->setTarget({});
+
+		pos = gatingRook->getLocalPos();
+		y = 0;
+		for (auto& piece : currentDropPieces) {
+			if (piece.count > 0 && !variant->pawnPieces.has(piece.id)) {
+				gatingRookPieces.emplace_back(piece.id, promotePieceSize, gatingRook->color, getTextureFromID(piece.id, gatingRook->color), boardTextures->at(6),
+					sf::Vector2i{ pos.x, gatingRook->isBlack() ? Chess::reverseY(y + 1, variant->boardSize) : y + 1 }, boardOffset, boardSize, boardMultiplier, pieceScale, boardSprite.getScale(),
+					variant->boardSize, isFlipped, promotionSquareColor, false);
+				y++;
+			}
+		}
+		gatingRookPieces.emplace_back( gatingRook->id, promotePieceSize, gatingRook->color, boardTextures->at(17), boardTextures->at(6),
+			sf::Vector2i{ pos.x, gatingRook->isBlack() ? Chess::reverseY(y + 1, variant->boardSize) : y + 1 }, boardOffset, boardSize, boardMultiplier, pieceScale, boardSprite.getScale(),
+			variant->boardSize, isFlipped, promotionSquareColor, true);
+		gatingRook->setTarget({});
+	}
+	else if (gatingPiece) {
+		sf::Vector2i pos = gatingPiece->getLocalPos();
+		auto& currentDropPieces = whiteToPlay ? whiteDropPieces : blackDropPieces;
+		int y = 0;
+		for (auto& piece : currentDropPieces) {
+			if (piece.count > 0 && !variant->pawnPieces.has(piece.id)) {
+				gatingPieces.emplace_back(piece.id, promotePieceSize, gatingPiece->color, getTextureFromID(piece.id, gatingPiece->color), boardTextures->at(6),
+					sf::Vector2i{ pos.x, gatingPiece->isBlack() ? Chess::reverseY(y + 1, variant->boardSize) : y + 1 }, boardOffset, boardSize, boardMultiplier, pieceScale, boardSprite.getScale(),
+					variant->boardSize, isFlipped, promotionSquareColor, false);
+				y++;
+			}
+		}
+		gatingPieces.emplace_back( gatingPiece->id, promotePieceSize, gatingPiece->color, boardTextures->at(17), boardTextures->at(6),
+			sf::Vector2i{ pos.x, gatingPiece->isBlack() ? Chess::reverseY(y + 1, variant->boardSize) : y + 1 }, boardOffset, boardSize, boardMultiplier, pieceScale, boardSprite.getScale(),
+			variant->boardSize, isFlipped, promotionSquareColor, true);
+		gatingPiece->setTarget({});
 	}
 }
 
 void Board::setPieceSprites(bool makePieceSprites) {
 	if (makePieceSprites) {
-		for (auto& piece : pieceList) {
-			piece->makeSprite(getTextureFromID(piece->id, piece->color), pieceScale, boardOffset, boardSize, boardMultiplier, isFlipped);
+		for (auto& piece : position.pieceList) {
+			piece->makeSprite(getTextureFromID(piece->id, piece->color), pieceScale, boardOffset, boardSize, variant->boardSize, boardMultiplier, isFlipped);
 		}
 	}
-	for (auto& piece : pieceList) { piece->setSprites(boardTextures->at(0), boardOffset, boardSize, boardMultiplier, pieceScale, isFlipped); }
-	if (dropsEnabled) {
-		std::vector<std::shared_ptr<Chess::DropPiece>>& currentDropPieces = whiteToPlay ? whiteDropPieces : blackDropPieces;
-		for (auto& piece : currentDropPieces) {
-			piece->setupSprites(boardTextures->at(0), boardOffset, boardSize, boardMultiplier, pieceScale, isFlipped);
-		}
+	for (auto& piece : position.pieceList) { piece->setSprites(boardTextures->at(0), boardOffset, boardSize, variant->boardSize, boardMultiplier, pieceScale, isFlipped); }
+	std::vector<Chess::DropPiece>& currentDropPieces = whiteToPlay ? whiteDropPieces : blackDropPieces;
+	for (auto& piece : currentDropPieces) {
+		piece.setupSprites(boardTextures->at(0), boardOffset, boardSize, variant->boardSize, boardMultiplier, isFlipped);
 	}
 }
 
@@ -343,11 +473,13 @@ void Board::moveBy(float x, float y)
 	offset.y += y;
 	boardOffset.x += x;
 	boardOffset.y += y;
-	for (auto& piece : pieceList) {
+	for (auto& piece : position.pieceList) {
 		piece->move(x, y);
 	}
 	boardSprite.move({ x, y });
-	checkSprite.move({ x, y });
+	for (auto& s : checkSprites) {
+		s.move({ x, y });
+	}
 	selectedPieceBackground.move({ x, y });
 	lastMoveStart.move({ x, y });
 	lastMoveDest.move({ x, y });
@@ -362,6 +494,8 @@ void Board::moveBy(float x, float y)
 	promotionOverlay.move({ x, y });
 	optionChangeOverlay.move({ x, y });
 	optionChangeText.move({ x, y });
+	gameEndText.move({ x, y });
+	gameEndOverlay.move({ x, y });
 	ghostSprite.move({ x, y });
 	whiteTimeBG.move({ x, y });
 	whiteTimeText.move({ x, y });
@@ -369,33 +503,37 @@ void Board::moveBy(float x, float y)
 	blackTimeText.move({ x, y });
 	whiteTimeOutline.move({ x, y });
 	blackTimeOutline.move({ x, y });
-	if (dropsEnabled) {
-		for (auto& piece : whiteDropPieces) {
-			piece->move(x, y);
-		}
-		for (auto& piece : blackDropPieces) {
-			piece->move(x, y);
-		}
+	for (auto& piece : whiteDropPieces) {
+		piece.move(x, y);
+	}
+	for (auto& piece : blackDropPieces) {
+		piece.move(x, y);
 	}
 	setPieceSprites();
 }
 
 void Board::scale(float scale)
 {
+	std::vector<sf::Vector2i> checkPositions;
+	for (auto& s : checkSprites) { checkPositions.push_back(getLocalPosition(s.getPosition())); }
 	boardScale *= scale;
 	boardMultiplier *= scale;
 	pieceScale *= scale;
 	dropPieceSquareSize.x *= scale;
 	dropPieceSquareSize.y *= scale;
+	promotePieceSize.x *= scale;
+	promotePieceSize.y *= scale;
 	sizeMultiplier *= scale;
 	boardSprite.setScale({ boardScale, boardScale });
 	boardOffset.x = (windowSize.x / 2.0f) - ((boardTexture.getSize().x * boardScale) / 2.0f) + offset.x;
 	boardOffset.y = (windowSize.y / 2.0f) - ((boardTexture.getSize().y * boardScale) / 2.0f) + offset.y;
 	boardSize = { (boardTexture.getSize().x * boardScale), (boardTexture.getSize().y * boardScale) };
-	for (auto& piece : pieceList) {
-		piece->updateScale(pieceScale, boardOffset, boardSize, boardMultiplier, isFlipped);
+	for (auto& piece : position.pieceList) {
+		piece->updateScale(pieceScale, boardOffset, boardSize, variant->boardSize, boardMultiplier, isFlipped);
 	}
-	checkSprite.setScale({ boardScale, boardScale });
+	for (auto& s : checkSprites) {
+		s.setScale({ boardScale, boardScale });
+	}
 	selectedPieceBackground.setScale({ boardScale, boardScale });
 	lastMoveStart.setScale({ boardScale, boardScale });
 	lastMoveDest.setScale({ boardScale, boardScale });
@@ -406,9 +544,19 @@ void Board::scale(float scale)
 	whiteCheckCount.setScale({ boardScale / 3.0f, boardScale / 3.0f });
 	blackCheckCount.setScale({ boardScale / 3.0f, boardScale / 3.0f });
 	optionChangeText.setScale(boardSprite.getScale());
-	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
+	optionChangeText.setOrigin({ optionChangeText.getLocalBounds().position.x + (optionChangeText.getLocalBounds().size.x / 2.0f), optionChangeText.getLocalBounds().position.y + (optionChangeText.getLocalBounds().size.y / 2.0f) });
+	whiteCheckText.setScale({ boardScale, boardScale });
+	blackCheckText.setScale({ boardScale, boardScale });
+	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ variant->boardSize.x / 2.0f + 0.5f, variant->boardSize.y / 2.0f + 0.5f }));
 	optionChangeOverlay.setScale(boardSprite.getScale());
 	optionChangeOverlay.setPosition(boardSprite.getPosition());
+	promotionOverlay.setScale(boardSprite.getScale());
+	promotionOverlay.setPosition(boardSprite.getPosition());
+	gameEndText.setScale(boardSprite.getScale());
+	gameEndText.setOrigin({ gameEndText.getLocalBounds().position.x + (gameEndText.getLocalBounds().size.x / 2.0f), gameEndText.getLocalBounds().position.y + (gameEndText.getLocalBounds().size.y / 2.0f) });
+	gameEndText.setPosition(getGlobalPosition(sf::Vector2f{ variant->boardSize.x / 2.0f + 0.5f, variant->boardSize.y / 2.0f + 0.5f }));
+	gameEndOverlay.setScale(boardSprite.getScale());
+	gameEndOverlay.setPosition(boardSprite.getPosition());
 	dropPieceBackgroundW.setScale({ dropPieceBackgroundW.getScale().x * scale, dropPieceBackgroundW.getScale().y * scale });
 	dropPieceBackgroundB.setScale({ dropPieceBackgroundB.getScale().x * scale, dropPieceBackgroundB.getScale().y * scale });
 	dropPieceBackgroundW.setPosition({ boardOffset.x - (dropPieceSquareSize.x / 1.25f), dropPieceBackgroundW.getPosition().y });
@@ -416,43 +564,39 @@ void Board::scale(float scale)
 	ghostSprite.setScale({ pieceScale, pieceScale });
 
 	blackTimeBG.setScale({ boardScale * 1.02f, boardScale * 1.02f });
-	blackTimeBG.setPosition({ getGlobalPosition(sf::Vector2f{6.5f, 8.5f}, false) });
+	blackTimeBG.setPosition({ getGlobalPosition(sf::Vector2f{variant->boardSize.x * 6.5f / 8.0f, variant->boardSize.y + 0.5f}, false) });
 	blackTimeBG.move({ 0, -(blackTimeBG.getTexture().getSize().y * blackTimeBG.getScale().y / 2.0f) - 1 });
 	blackTimeOutline.setScale({ boardScale * 1.11f, boardScale * 1.129f });
-	blackTimeOutline.setPosition({ getGlobalPosition(sf::Vector2f{6.5f, 8.5f}, false) });
+	blackTimeOutline.setPosition({ getGlobalPosition(sf::Vector2f{variant->boardSize.x * 6.5f / 8.0f, variant->boardSize.y + 0.5f}, false) });
 	blackTimeOutline.move({ 0, -(blackTimeOutline.getTexture().getSize().y * blackTimeOutline.getScale().y / 2.0f) - 1 });
 	blackTimeText.setPosition({ blackTimeBG.getPosition() });
 	blackTimeText.setScale({ boardScale, boardScale });
 	whiteTimeBG.setScale({ boardScale * 1.02f, boardScale * 1.02f });
-	whiteTimeBG.setPosition({ getGlobalPosition(sf::Vector2f{2.5f, 8.5f}, false) });
+	whiteTimeBG.setPosition({ getGlobalPosition(sf::Vector2f{variant->boardSize.x * 2.5f / 8.0f, variant->boardSize.y + 0.5f}, false) });
 	whiteTimeBG.move({ 0, -(whiteTimeBG.getTexture().getSize().y * whiteTimeBG.getScale().y / 2.0f) - 1 });
 	whiteTimeOutline.setScale({ boardScale * 1.11f, boardScale * 1.129f });
-	whiteTimeOutline.setPosition({ getGlobalPosition(sf::Vector2f{2.5f, 8.5f}, false) });
+	whiteTimeOutline.setPosition({ getGlobalPosition(sf::Vector2f{variant->boardSize.x * 2.5f / 8.0f, variant->boardSize.y + 0.5f}, false) });
 	whiteTimeOutline.move({ 0, -(whiteTimeOutline.getTexture().getSize().y * whiteTimeOutline.getScale().y / 2.0f) - 1 });
 	whiteTimeText.setPosition({ whiteTimeBG.getPosition() });
 	whiteTimeText.setScale({ boardScale, boardScale });
 
 	if (hasCheck) {
-		for (auto& piece : pieceList) {
-			if (piece->hasID('k')) {
-				std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
-				if (king->inCheck) { checkSprite.setPosition(getGlobalPosition(king->getLocalPos())); }
-			}
+		for (size_t i = 0; i < checkSprites.size(); i++) {
+			auto& sprite = checkSprites.at(i);
+			sprite.setPosition(getGlobalPosition(checkPositions.at(i)));
 		}
 	}
 
-	if (variant == Chess::Crazyhouse) {
-		sf::Vector2f bgStart = { dropPieceBackgroundW.getPosition().y - (dropPieceBackgroundW.getTexture().getSize().y * dropPieceBackgroundW.getScale().y / 2.0f) + (dropPieceSquareSize.y / 2.0f), dropPieceBackgroundB.getPosition().y - (dropPieceBackgroundB.getTexture().getSize().y * dropPieceBackgroundB.getScale().y / 2.0f) + (dropPieceSquareSize.y / 2.0f) };
-		int i = 0;
-		for (auto& piece : whiteDropPieces) {
-			piece->scale(dropPieceSquareSize.x, dropPieceBackgroundW, bgStart.x, i);
-			i++;
-		}
-		i = 0;
-		for (auto& piece : blackDropPieces) {
-			piece->scale(dropPieceSquareSize.y, dropPieceBackgroundB, bgStart.y, i);
-			i++;
-		}
+	sf::Vector2f bgStart = { dropPieceBackgroundW.getPosition().y - (dropPieceBackgroundW.getTexture().getSize().y * dropPieceBackgroundW.getScale().y / 2.0f) + (dropPieceSquareSize.y / 2.0f), dropPieceBackgroundB.getPosition().y - (dropPieceBackgroundB.getTexture().getSize().y * dropPieceBackgroundB.getScale().y / 2.0f) + (dropPieceSquareSize.y / 2.0f) };
+	int i = 0;
+	for (auto& piece : whiteDropPieces) {
+		piece.scale(dropPieceSquareSize.x, dropPieceBackgroundW, bgStart.x, i);
+		i++;
+	}
+	i = 0;
+	for (auto& piece : blackDropPieces) {
+		piece.scale(dropPieceSquareSize.y, dropPieceBackgroundB, bgStart.y, i);
+		i++;
 	}
 	setSpritePositions();
 	setPieceSprites();
@@ -471,10 +615,14 @@ void Board::setLocation(sf::Vector2f pos)
 void Board::flipBoard()
 {
 	isFlipped = !isFlipped;
-	for (auto& piece : pieceList) {
+	for (auto& piece : position.pieceList) {
 		piece->reversePosition(boardOffset, boardSize);
 	}
-	if (hasCheck) { checkSprite.setPosition(Chess::reversePosition(checkSprite.getPosition(), boardSize) + boardOffset + boardOffset); }
+	if (hasCheck) {
+		for (auto& s : checkSprites) {
+			s.setPosition(Chess::reversePosition(s.getPosition(), boardSize) + boardOffset + boardOffset);
+		}
+	}
 	setPieceSprites();
 	setSpritePositions();
 }
@@ -489,18 +637,18 @@ void Board::resetScale()
 	scale(startingScale / boardScale);
 }
 
-void Board::setOptionChange(std::string string)
+void Board::setOptionChange(const std::string& string)
 {
 	optionChangeText.setString(string);
 	optionChangeText.setOrigin(optionChangeText.getLocalBounds().getCenter());
-	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
+	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ variant->boardSize.x / 2.0f + 0.5f, variant->boardSize.y / 2.0f + 0.5f }));
 	optionChangeText.setFillColor(sf::Color(255, 255, 255, 255));
 	optionChangeOverlay.setFillColor(sf::Color(0, 0, 0, 170));
 	optionClock.reset();
 	optionClock.start();
 }
 
-void Board::setOptionChange(std::string string, bool v)
+void Board::setOptionChange(const std::string& string, bool v)
 {
 	std::ostringstream out;
 	out << string << ": " << std::boolalpha << v;
@@ -514,7 +662,7 @@ void Board::setOptionChange(std::string string, bool v)
 	optionClock.restart();
 }
 
-void Board::setOptionChange(std::string string, std::optional<bool> v)
+void Board::setOptionChange(const std::string& string, std::optional<bool> v)
 {
 	std::ostringstream out;
 	if (v.has_value()) {
@@ -533,7 +681,7 @@ void Board::setOptionChange(std::string string, std::optional<bool> v)
 	optionClock.restart();
 }
 
-void Board::setOptionChange(std::string string, int v)
+void Board::setOptionChange(const std::string& string, int v)
 {
 	optionChangeText.setString(string + ": " + std::to_string(v));
 	optionChangeText.setOrigin({ optionChangeText.getLocalBounds().position.x + (optionChangeText.getLocalBounds().size.x / 2.0f), optionChangeText.getLocalBounds().position.y + (optionChangeText.getLocalBounds().size.y / 2.0f) });
@@ -542,7 +690,7 @@ void Board::setOptionChange(std::string string, int v)
 	optionClock.restart();
 }
 
-void Board::setOptionChange(std::string string, float v)
+void Board::setOptionChange(const std::string& string, float v)
 {
 	std::ostringstream out;
 	out << std::fixed << std::setprecision(2) << v;
@@ -553,14 +701,22 @@ void Board::setOptionChange(std::string string, float v)
 	optionClock.restart();
 }
 
-void Board::setOptionChange(std::string string, Chess::Variant v)
+void Board::setOptionChange(const std::string& string, const Chess::Variant& v)
 {
-	optionChangeText.setString(string + ": " + Chess::toString(v));
-	optionChangeText.setOrigin(optionChangeText.getLocalBounds().getCenter());
-	optionChangeText.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 4.5f }));
+	optionChangeText.setString(string + ": " + v.name);
+	optionChangeText.setOrigin({ optionChangeText.getLocalBounds().position.x + (optionChangeText.getLocalBounds().size.x / 2.0f), optionChangeText.getLocalBounds().position.y + (optionChangeText.getLocalBounds().size.y / 2.0f) });
 	optionChangeText.setFillColor(sf::Color(255, 255, 255, 255));
 	optionChangeOverlay.setFillColor(sf::Color(0, 0, 0, 170));
 	optionClock.restart();
+}
+
+void Board::setGameEndText(const std::string& string)
+{
+	gameEndText.setString(string);
+	gameEndText.setOrigin({ gameEndText.getLocalBounds().position.x + (gameEndText.getLocalBounds().size.x / 2.0f), gameEndText.getLocalBounds().position.y + (gameEndText.getLocalBounds().size.y / 2.0f) });
+	gameEndText.setFillColor(sf::Color(255, 255, 255, 255));
+	gameEndOverlay.setFillColor(sf::Color(0, 0, 0, 170));
+	gameEndClock.restart();
 }
 
 void Board::setSpritePositions()
@@ -568,10 +724,12 @@ void Board::setSpritePositions()
 	ghostSprite.setPosition({ -1000, -1000 });
 	lastMoveStart.setPosition(getGlobalPosition(lastMoveStartLocal));
 	lastMoveDest.setPosition(getGlobalPosition(lastMoveDestLocal));
-	rankBackground.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 8.0f }));
-	rankShadowTop.setPosition(getGlobalPosition(sf::Vector2f{ 4.5f, 8.0f }));
+	rankBackground.setPosition(getGlobalPosition(sf::Vector2f{ variant->boardSize.x / 2.0f + 0.5f, static_cast<float>(variant->boardSize.y) }));
+	rankShadowTop.setPosition(getGlobalPosition(sf::Vector2f{ variant->boardSize.x / 2.0f + 0.5f, static_cast<float>(variant->boardSize.y) }));
 	promotionOverlay.setPosition(boardSprite.getPosition());
 	optionChangeOverlay.setPosition(boardSprite.getPosition());
+	promotionOverlay.setPosition(boardSprite.getPosition());
+	gameEndOverlay.setPosition(boardSprite.getPosition());
 	if (isFlipped) {
 		rankShadowTop.setRotation(sf::degrees(180));
 	}
@@ -580,14 +738,36 @@ void Board::setSpritePositions()
 	}
 }
 
-void Board::setPieceSheet(std::vector<sf::Image> sheets, int set)
+void Board::setBoardTexture(const sf::Image& boardSheet, int set)
 {
-	Chess::loadPieceSet(sheets.at(set), pieceTextures, pieceSize);
+	boardTexture = Chess::loadBoard(boardSheet, set, variant->boardSize);
 }
 
-void Board::setBoardTexture(sf::Image& boardSheet, int set)
+void Board::setPieceTextures()
 {
-	boardTexture = Chess::loadBoard(boardSheet, set, 1024);
+	pieceScale = boardScale * (128.0f / static_cast<float>(currentPieceTextures->begin()->second.getSize().x));
+	for (auto& piece : position.pieceList) {
+		piece->setTexture(getTextureFromID(piece->id, piece->color), pieceScale);
+	}
+	for (auto& piece : whiteDropPieces) {
+		piece.setTexture(getTextureFromID(piece.id, Chess::PColor::White));
+	}
+	for (auto& piece : blackDropPieces) {
+		piece.setTexture(getTextureFromID(piece.id, Chess::PColor::Black));
+	}
+	selectedDropPiece.setTexture(getTextureFromID(selectedDropPiece.id, whiteToPlay ? Chess::PColor::White : Chess::PColor::Black));
+	for (auto& piece : promotePieces) {
+		piece.setTexture(getTextureFromID(piece.id, Chess::PColor::Black));
+	}
+	for (auto& piece : gatingPieces) {
+		piece.setTexture(getTextureFromID(piece.id, Chess::PColor::Black));
+	}
+	for (auto& piece : gatingKingPieces) {
+		piece.setTexture(getTextureFromID(piece.id, Chess::PColor::Black));
+	}
+	for (auto& piece : gatingRookPieces) {
+		piece.setTexture(getTextureFromID(piece.id, Chess::PColor::Black));
+	}
 }
 
 void Board::setPreviousPosition()
@@ -599,10 +779,11 @@ void Board::setPreviousPosition()
 	bool hasGlobal = false, hasCastle = false;
 	sf::Vector2f globalPos, globalRook, globalKing;
 	std::shared_ptr<Piece> movePiece = nullptr, moveRook = nullptr;
-	std::shared_ptr<King> moveKing = nullptr;
+	std::shared_ptr<Piece> moveKing = nullptr;
+	// std::shared_ptr<King> moveKing = nullptr;
 	if (changingPosition) {
 		int count = 0;
-		for (auto& piece : pieceList) {
+		for (auto& piece : position.pieceList) {
 			if (piece->hasTarget()) {
 				count++;
 			}
@@ -611,7 +792,7 @@ void Board::setPreviousPosition()
 			hasCastle = true;
 		}
 		if (!hasCastle) {
-			for (auto& piece : pieceList) {
+			for (auto& piece : position.pieceList) {
 				if (piece->hasTarget()) {
 					hasGlobal = true;
 					globalPos = piece->getGlobalPos();
@@ -623,17 +804,17 @@ void Board::setPreviousPosition()
 			}
 		}
 		else {
-			for (auto& piece : pieceList) {
+			for (auto& piece : position.pieceList) {
 				if (piece->hasTarget()) {
-					if (piece->hasID('k')) {
+					if (variant->castlingKingPiece.has(piece->id)) {
 						hasGlobal = true;
 						globalKing = piece->getGlobalPos();
 						piece->setPosition(piece->getTarget());
 						piece->setTarget({});
 						movePiece = piece;
-						moveKing = std::dynamic_pointer_cast<King>(piece);
+						moveKing = piece;
 					}
-					else if (piece->hasID('r')) {
+					else if (variant->castlingRookPieces.has(piece->id)) {
 						hasGlobal = true;
 						globalRook = piece->getGlobalPos();
 						piece->setPosition(piece->getTarget());
@@ -648,7 +829,13 @@ void Board::setPreviousPosition()
 			if (!positionHistoryF.empty()) {
 				positionHistoryF.erase(positionHistoryF.begin());
 			}
-			allPositionsPlayed.push_back(savePosition());
+			auto pos = savePosition();
+			if (allPositionsPlayed.count(pos) > 0) {
+				allPositionsPlayed.find(pos)->second++;
+			}
+			else {
+				allPositionsPlayed.emplace(pos, 1);
+			}
 			if (playerSideWhite != whiteToPlay) {
 				if (stockfishEnabled) {
 					ai = true;
@@ -663,7 +850,7 @@ void Board::setPreviousPosition()
 		}
 		changingPosition = false;
 	}
-	Chess::Position& newPosition = positionHistory.at(positionHistory.size() - 2);
+	Chess::SavePosition& newPosition = positionHistory.at(positionHistory.size() - 2);
 	std::string newMove = positionHistory.back().move;
 	positionHistoryF.insert(positionHistoryF.begin(), positionHistory.back());
 	loadFromPosition(newPosition);
@@ -685,83 +872,82 @@ void Board::setPreviousPosition()
 			bool closeCastle = false;
 			if (capture) {
 				if (capture->color == piece->color) {
-					if (piece->hasID('k') && capture->hasID('r')) {
+					if (variant->castlingKingPiece.has(piece->id) && variant->castlingRookPieces.has(capture->id)) {
 						closeCastle = true;
 					}
 					capture.reset();
 				}
 			}
-			if (piece->hasID('k')) {
-				std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
-				int pieceX = piece->getLocalPos().x;
+			if (variant->castlingKingPiece.has(piece->id) && !instantMove) {
+				int pieceX = piece->getLocalPos().x, offset = piece->isWhite() ? 0 : 2;
 				if (!closeCastle) {
 					if (dest.x > pieceX + 1) {
-						rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
+						rook = getPieceFromCurrentPosition({ position.castlePieces[0 + offset], piece->getLocalPos().y});
 						if (rook) {
-							castleKing = king;
+							castleKing = piece;
 							castleRook = rook;
-							if (hasGlobal && hasCastle && moveRook == rook && moveKing == king) {
+							if (hasGlobal && hasCastle && moveRook == rook && moveKing == piece) {
 								castleRook->setPosition(globalRook);									
 								castleKing->setPosition(globalKing);									
 							}
 							else {
-								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
-								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
+								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ variant->castleKDestination - 1, piece->getLocalPos().y }));
+								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ variant->castleKDestination, piece->getLocalPos().y }));
 							}
-							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ king->Krook, piece->getLocalPos().y }));
+							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ position.castlePieces[0 + offset], piece->getLocalPos().y }));
 							castleKing->setTarget(getGlobalPosition(piecePos));
 						}
 					}
 					else if (dest.x < pieceX - 1) {
-						rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
+						rook = getPieceFromCurrentPosition({ position.castlePieces[1 + offset], piece->getLocalPos().y });
 						if (rook) {
-							castleKing = king;
+							castleKing = piece;
 							castleRook = rook;
-							if (hasGlobal && hasCastle && moveRook == rook && moveKing == king) {
+							if (hasGlobal && hasCastle && moveRook == rook && moveKing == piece) {
 								castleRook->setPosition(globalRook);
 								castleKing->setPosition(globalKing);
 							}
 							else {
-								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
-								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
+								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ variant->castleQDestination + 1, piece->getLocalPos().y }));
+								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ variant->castleQDestination, piece->getLocalPos().y }));
 							}
-							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ king->Qrook, piece->getLocalPos().y }));
+							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ position.castlePieces[1 + offset], piece->getLocalPos().y }));
 							castleKing->setTarget(getGlobalPosition(piecePos));
 						}
 					}
 				}
 				else {
 					if (dest.x > pieceX) {
-						rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
+						rook = getPieceFromCurrentPosition({ position.castlePieces[0 + offset], piece->getLocalPos().y });
 						if (rook) {
-							castleKing = king;
+							castleKing = piece;
 							castleRook = rook;
-							if (hasGlobal && hasCastle && moveRook == rook && moveKing == king) {
+							if (hasGlobal && hasCastle && moveRook == rook && moveKing == piece) {
 								castleRook->setPosition(globalRook);
 								castleKing->setPosition(globalKing);
 							}
 							else {
-								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
-								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
+								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ variant->castleKDestination - 1, piece->getLocalPos().y }));
+								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ variant->castleKDestination, piece->getLocalPos().y }));
 							}
-							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ king->Krook, piece->getLocalPos().y }));
+							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ position.castlePieces[0 + offset], piece->getLocalPos().y }));
 							castleKing->setTarget(getGlobalPosition(piecePos));
 						}
 					}
 					else if (dest.x < pieceX) {
-						rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
+						rook = getPieceFromCurrentPosition({ position.castlePieces[1 + offset], piece->getLocalPos().y });
 						if (rook) {
-							castleKing = king;
+							castleKing = piece;
 							castleRook = rook;
-							if (hasGlobal && hasCastle && moveRook == rook && moveKing == king) {
+							if (hasGlobal && hasCastle && moveRook == rook && moveKing == piece) {
 								castleRook->setPosition(globalRook);
 								castleKing->setPosition(globalKing);
 							}
 							else {
-								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
-								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
+								castleRook->setPosition(getGlobalPosition(sf::Vector2i{ variant->castleQDestination + 1, piece->getLocalPos().y }));
+								castleKing->setPosition(getGlobalPosition(sf::Vector2i{ variant->castleQDestination, piece->getLocalPos().y }));
 							}
-							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ king->Qrook, piece->getLocalPos().y }));
+							castleRook->setTarget(getGlobalPosition(sf::Vector2i{ position.castlePieces[1 + offset], piece->getLocalPos().y }));
 							castleKing->setTarget(getGlobalPosition(piecePos));
 						}
 					}
@@ -769,7 +955,14 @@ void Board::setPreviousPosition()
 			}
 			lastMoveStart.setPosition(getGlobalPosition(newPosition.lastMoveStartLocal));
 			lastMoveDest.setPosition(getGlobalPosition(newPosition.lastMoveDestLocal));
-			checkSprite.setPosition(getGlobalPosition(newPosition.checkPos));
+			checkSprites.clear();
+			for (auto& pos : newPosition.checkPositions) {
+				sf::Sprite checkSprite(boardTextures->at(2));
+				checkSprite.setOrigin(checkSprite.getLocalBounds().getCenter());
+				checkSprite.setScale(boardSprite.getScale());
+				checkSprite.setPosition(getGlobalPosition(pos));
+				checkSprites.push_back(std::move(checkSprite));
+			}
 			hasCheck = newPosition.hasCheck;
 			if (!rook) { // No Castle
 				if (hasGlobal && *movePiece == *piece) {
@@ -789,7 +982,12 @@ void Board::setPreviousPosition()
 		positionHistory.pop_back();
 	}
 	if (!allPositionsPlayed.empty()) {
-		allPositionsPlayed.pop_back();
+		if (allPositionsPlayed.find(lastPositionAdded) != allPositionsPlayed.end()) {
+			allPositionsPlayed.find(lastPositionAdded)->second--;
+			if (allPositionsPlayed.find(lastPositionAdded)->second <= 0) {
+				allPositionsPlayed.erase(lastPositionAdded);
+			}
+		}
 	}
 	if (playerSideWhite != whiteToPlay) {
 		if (stockfishEnabled) {
@@ -813,7 +1011,7 @@ void Board::setNextPosition()
 	selectedPiece.reset();
 	setSpriteVisible(ghostSprite, false);
 	if (changingPosition && forwardMove && positionHistoryF.size() > 1) {
-		for (auto& piece : pieceList) {
+		for (auto& piece : position.pieceList) {
 			if (piece->hasTarget()) {
 				piece->setTarget({});
 			}
@@ -822,7 +1020,13 @@ void Board::setNextPosition()
 		if (!positionHistoryF.empty()) {
 			positionHistoryF.erase(positionHistoryF.begin());
 		}
-		allPositionsPlayed.push_back(savePosition());
+		auto pos = savePosition();
+		if (allPositionsPlayed.count(pos) > 0) {
+			allPositionsPlayed.find(pos)->second++;
+		}
+		else {
+			allPositionsPlayed.emplace(pos, 1);
+		}
 		if (playerSideWhite != whiteToPlay) {
 			if (stockfishEnabled) {
 				ai = true;
@@ -837,7 +1041,7 @@ void Board::setNextPosition()
 		changingPosition = false;
 	}
 	if (!positionHistoryF.empty() && !forwardMove) {
-		Chess::Position& newPosition = positionHistoryF.front();
+		Chess::SavePosition& newPosition = positionHistoryF.front();
 		std::string newMove = newPosition.move;
 		positionHistory.push_back(newPosition);
 		if (std::isdigit(newMove.back()) && newMove.find('@') == std::string::npos) {
@@ -857,66 +1061,72 @@ void Board::setNextPosition()
 				bool closeCastle = false;
 				if (capture) {
 					if (capture->color == piece->color) {
-						if (piece->hasID('k') && capture->hasID('r')) {
+						if (variant->castlingKingPiece.has(piece->id) && variant->castlingRookPieces.has(capture->id)) {
 							closeCastle = true;
 						}
 						capture.reset();
 					}
 				}
-				if (piece->hasID('k')) {
-					std::shared_ptr<King> king = std::dynamic_pointer_cast<King>(piece);
-					int pieceX = piece->getLocalPos().x;
+				if (variant->castlingKingPiece.has(piece->id) && !instantMove) {
+					int pieceX = piece->getLocalPos().x, offset = piece->isWhite() ? 0 : 2;
 					if (!closeCastle) {
 						if (dest.x > pieceX + 1) {
-							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
+							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ position.castlePieces[0 + offset], piece->getLocalPos().y });
 							if (rook) {
 								castleKing = piece;
 								castleRook = rook;
-								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
-								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
+								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ variant->castleKDestination - 1, piece->getLocalPos().y }));
+								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ variant->castleKDestination, piece->getLocalPos().y }));
 							}
 						}
 						else if (dest.x < pieceX - 1) {
-							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
+							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ position.castlePieces[1 + offset], piece->getLocalPos().y });
 							if (rook) {
 								castleKing = piece;
 								castleRook = rook;
-								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
-								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
+								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ variant->castleQDestination + 1, piece->getLocalPos().y }));
+								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ variant->castleQDestination, piece->getLocalPos().y }));
 							}
 						}
 					}
 					else {
 						if (dest.x > pieceX) {
-							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Krook, piece->getLocalPos().y });
+							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ position.castlePieces[0 + offset], piece->getLocalPos().y });
 							if (rook) {
 								castleKing = piece;
 								castleRook = rook;
-								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ 6, piece->getLocalPos().y }));
-								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ 7, piece->getLocalPos().y }));
+								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ variant->castleKDestination - 1, piece->getLocalPos().y }));
+								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ variant->castleKDestination, piece->getLocalPos().y }));
 							}
 						}
 						else if (dest.x < pieceX) {
-							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ king->Qrook, piece->getLocalPos().y });
+							std::shared_ptr<Piece> rook = getPieceFromCurrentPosition({ position.castlePieces[1 + offset], piece->getLocalPos().y });
 							if (rook) {
 								castleKing = piece;
 								castleRook = rook;
-								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ 4, piece->getLocalPos().y }));
-								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ 3, piece->getLocalPos().y }));
+								castleRook->setTarget(getGlobalPosition(sf::Vector2i{ variant->castleQDestination + 1, piece->getLocalPos().y }));
+								castleKing->setTarget(getGlobalPosition(sf::Vector2i{ variant->castleQDestination, piece->getLocalPos().y }));
 							}
 						}
 					}
 				}
 				lastMoveStart.setPosition(getGlobalPosition(newPosition.lastMoveStartLocal));
 				lastMoveDest.setPosition(getGlobalPosition(newPosition.lastMoveDestLocal));
-				checkSprite.setPosition(getGlobalPosition(newPosition.checkPos));
+				checkSprites.clear();
+				for (auto& pos : newPosition.checkPositions) {
+					sf::Sprite checkSprite(boardTextures->at(2));
+					checkSprite.setOrigin(checkSprite.getLocalBounds().getCenter());
+					checkSprite.setScale(boardSprite.getScale());
+					checkSprite.setPosition(getGlobalPosition(pos));
+					checkSprites.push_back(std::move(checkSprite));
+				}
 				hasCheck = newPosition.hasCheck;
 				std::shared_ptr<Piece> capture = getPieceFromCurrentPosition(dest);
 				if (!closeCastle) {
 					piece->setTarget(getGlobalPosition(dest));
 					if (capture) {
 						captureSound.play();
-						ghostSprite.setTexture(capture->getTexture());
+						ghostSprite.setTexture(capture->getTexture(), true);
 						ghostSprite.setPosition(capture->getGlobalPos());
 						setSpriteVisible(ghostSprite, true, 75);
 						capture->setVisible(false);
@@ -936,7 +1146,13 @@ void Board::setNextPosition()
 				if (!positionHistoryF.empty()) {
 					positionHistoryF.erase(positionHistoryF.begin());
 				}
-				allPositionsPlayed.push_back(savePosition());
+				auto pos = savePosition();
+				if (allPositionsPlayed.count(pos) > 0) {
+					allPositionsPlayed.find(pos)->second++;
+				}
+				else {
+					allPositionsPlayed.emplace(pos, 1);
+				}
 				if (playerSideWhite != whiteToPlay) {
 					if (stockfishEnabled) {
 						ai = true;
@@ -956,7 +1172,13 @@ void Board::setNextPosition()
 			if (!positionHistoryF.empty()) {
 				positionHistoryF.erase(positionHistoryF.begin());
 			}
-			allPositionsPlayed.push_back(savePosition());
+			auto pos = savePosition();
+			if (allPositionsPlayed.count(pos) > 0) {
+				allPositionsPlayed.find(pos)->second++;
+			}
+			else {
+				allPositionsPlayed.emplace(pos, 1);
+			}
 			if (playerSideWhite != whiteToPlay) {
 				if (stockfishEnabled) {
 					ai = true;
@@ -971,7 +1193,7 @@ void Board::setNextPosition()
 	}
 }
 
-BoardSettings Board::getBoardArgs()
+BoardSettings Board::getBoardSettings() const
 {
 	float sizeM = sizeMultiplier;
 	sf::Time whiteT = whiteTime, blackT = blackTime, sWhiteT = startingWhiteTime, sBlackT = startingBlackTime;
@@ -982,7 +1204,7 @@ BoardSettings Board::getBoardArgs()
 		sBlackT = startingPlayerTime;
 	}
 	if (timeEnabled) { sizeM *= ((float)boardTexture.getSize().y + whiteTimeOutline.getTexture().getSize().y * 1.129f) / (float)boardTexture.getSize().y; }
-	return { variant, pieceSet, boardSet, AI_Time, stockfishEnabled, AI_Only, chess960Enabled, endgamePosition,
+	return BoardSettings{ variantIndex, variantTypeIndex, pieceSet, boardSet, AI_Time, stockfishEnabled, AI_Only, position.hasChess960, endgamePosition,
 		repeatFEN, timeEnabled, offset.x, offset.y, sizeM, getCurrentFEN(), newPositionFEN, playerSideWhite, newPositionWhite,
 		whiteT, blackT, timeIncrement, keyBindsEnabled, optionMode, autoFlip, atomicExplosionEffect, isAnimated,
 		overridePieceSpeed, instantMove, isPaused, mouseMode, scaleMode, showMilliseconds, moveSpeed, promotionSquareSelectedColor,
@@ -990,37 +1212,17 @@ BoardSettings Board::getBoardArgs()
 		whiteUnit, blackUnit, incrUnit, startingWhiteUnit, startingBlackUnit, millisecondsConditionID, sharedTime, cycleSides };
 }
 
-const StockfishSettings& Board::getStockfishSettings()
+const StockfishSettings& Board::getStockfishSettings() const
 {
 	return stockfish.getSettings();
 }
 
-void Board::loadFromBoardArgs(const BoardSettings& bP, std::vector<sf::Image>& pieceSheets, sf::Image& boardSheet)
+void Board::loadFromBoardArgs(const BoardSettings& bP, sf::Image& boardSheet)
 {
+	bool changeVariant = variantIndex != bP.variantIndex || variantTypeIndex != bP.variantTypeIndex;
 	if (stockfish.isCalculating && (!stockfish.getSettings().usesFixedTime &&
-		((variant != bP.variant) || (whiteTime != bP.whiteTime) || (blackTime != bP.blackTime) || (timeIncrement != bP.timeIncrement)))) {
+		(changeVariant || (whiteTime != bP.whiteTime) || (blackTime != bP.blackTime) || (timeIncrement != bP.timeIncrement)))) {
 		stockfish.stopCalculating();
-	}
-	if (variant != bP.variant) {
-		variant = bP.variant;
-		if (variant == Chess::Antichess) {
-			castlingEnabled = false;
-			checksEnabled = false;
-			whitePromotePieces.emplace_back('k', sf::Vector2f{ pieceScale * 0.785f, pieceScale * 0.785f });
-			blackPromotePieces.emplace_back('k', sf::Vector2f{ pieceScale * 0.785f, pieceScale * 0.785f });
-		}
-		else if (variant == Chess::Atomic) {
-			captureSound.setVolume(9);
-			captureSound.setBuffer(soundBuffers->at(3));
-			captureThreshold = 30.0f;
-		}
-		else if (variant == Chess::RacingKings) {
-			castlingEnabled = false;
-		}
-		else if (variant == Chess::Crazyhouse) {
-			dropsEnabled = true;
-		}
-		generateLegalMoves(false);
 	}
 	AI_Time = bP.AI_Time;
 	whiteTime = bP.whiteTime;
@@ -1036,10 +1238,6 @@ void Board::loadFromBoardArgs(const BoardSettings& bP, std::vector<sf::Image>& p
 	stockfishEnabled = bP.AI;
 	AI_Only = bP.AI_Only;
 	AI_OnlyT = bP.AI_Only;
-	if (chess960Enabled != bP.chess960) {
-		chess960Enabled = bP.chess960;
-		generateLegalMoves(false);
-	}
 	endgamePosition = bP.endgamePosition;
 	isAnimated = bP.boardAnimated;
 	repeatFEN = bP.repeatFEN;
@@ -1055,8 +1253,6 @@ void Board::loadFromBoardArgs(const BoardSettings& bP, std::vector<sf::Image>& p
 				moveSpeed = 1.0f;
 				float scaleY = ((float)boardTexture.getSize().y + whiteTimeOutline.getTexture().getSize().y * 1.129f) / (float)boardTexture.getSize().y;
 				startingScale *= scaleY;
-				std::cout << scaleY << std::endl;
-				std::cout << startingScale << std::endl;
 				scale(scaleY);
 				moveBy(0, -int(whiteTimeOutline.getTexture().getSize().y) * 1.129f / 2.0f);
 				if (stockfish.isCalculating && !stockfish.getSettings().usesFixedTime) { stockfish.stopCalculating(); }
@@ -1095,23 +1291,23 @@ void Board::loadFromBoardArgs(const BoardSettings& bP, std::vector<sf::Image>& p
 			float time = std::min(startingWhiteTime.asSeconds(), startingBlackTime.asSeconds()) + (timeIncrement.asSeconds() * 40.0f);
 			if (time < 30) {
 				instantMove = true;
-				gameType = Chess::UltraBullet;
+				gameType = Chess::GameType::UltraBullet;
 			}
 			else if (time < 180) {
 				instantMove = true;
-				gameType = Chess::Bullet;
+				gameType = Chess::GameType::Bullet;
 			}
 			else if (time < 480) {
 				moveSpeed = 1.5f;
-				gameType = Chess::Blitz;
+				gameType = Chess::GameType::Blitz;
 			}
 			else if (time < 1500) {
 				moveSpeed = 1.0f;
-				gameType = Chess::Rapid;
+				gameType = Chess::GameType::Rapid;
 			}
 			else {
 				moveSpeed = 0.8f;
-				gameType = Chess::Classical;
+				gameType = Chess::GameType::Classical;
 			}
 		}
 		else {
@@ -1130,16 +1326,36 @@ void Board::loadFromBoardArgs(const BoardSettings& bP, std::vector<sf::Image>& p
 	if (bP.white.has_value()) { playerSideWhite = bP.white.value(); }
 	timeIncrement = bP.timeIncrement;
 	newPositionWhite = bP.newPositionWhite;
-	boardTexture = Chess::loadBoard(boardSheet, boardSet, 1024);
+	boardTexture = Chess::loadBoard(boardSheet, boardSet, variant->boardSize);
 	white = bP.white;
 	newPositionFEN = bP.newPositionFEN;
-	Chess::loadPieceSet(pieceSheets.at(pieceSet), pieceTextures, pieceSize);
-	if (bP.FEN.has_value() && bP.FEN != getCurrentFEN()) {
+	variantIndex = bP.variantIndex;
+	variantList = bP.variantList;
+	std::string fen = getCurrentFEN();
+	if (position.hasChess960 != bP.chess960) {
+		position.hasChess960 = bP.chess960;
+		if (!changeVariant) {
+			generateLegalMoves(false);
+		}
+	}
+	if (changeVariant) {
+		setVariant(bP.variantIndex);
+	}
+	else {
+		if (variantPieceTextures->find(variant->name) != variantPieceTextures->end()) {
+			currentPieceTextures = &variantPieceTextures->find(variant->name)->second;
+		}
+		else { currentPieceTextures = &pieceTextures->at(pieceSet); }
+		setPieceTextures();
+	}
+
+	variantTypeIndex = bP.variantTypeIndex;
+	if (bP.FEN.has_value() && bP.FEN != fen) {
 		loadFromFEN(bP.FEN.value(), false);
 	}
 	if (!startedStockfish) {
 		stockfish.startStockfish();
-		stockfish.setVariant(variant, chess960Enabled);
+		stockfish.setVariant(variant->name, position.hasChess960);
 		startedStockfish = true;
 	}
 }

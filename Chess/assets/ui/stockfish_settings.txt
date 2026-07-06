@@ -97,7 +97,7 @@ Panel.Panel {
 
             ToggleButton.1 {
                 Down = true;
-                Size = (65, 100%);
+                Size = (65, 64.9812);
                 Text = 1;
                 TextSize = 37;
 
@@ -129,8 +129,8 @@ Panel.Panel {
 
             ToggleButton.2 {
                 Down = false;
-                Position = (65, 0%);
-                Size = (65, 100%);
+                Position = (65, 0);
+                Size = (65, 64.9812);
                 Text = 2;
                 TextSize = 37;
 
@@ -162,8 +162,8 @@ Panel.Panel {
 
             ToggleButton.3 {
                 Down = false;
-                Position = (130, 0%);
-                Size = (65, 100%);
+                Position = (130, 0);
+                Size = (65, 64.9812);
                 Text = 3;
                 TextSize = 37;
 
@@ -195,8 +195,8 @@ Panel.Panel {
 
             ToggleButton.4 {
                 Down = false;
-                Position = (195, 0%);
-                Size = (65, 100%);
+                Position = (195, 0);
+                Size = (65, 64.9812);
                 Text = 4;
                 TextSize = 37;
 
@@ -228,8 +228,8 @@ Panel.Panel {
 
             ToggleButton.5 {
                 Down = false;
-                Position = (260, 0%);
-                Size = (65, 100%);
+                Position = (260, 0);
+                Size = (65, 64.9812);
                 Text = 5;
                 TextSize = 37;
 
@@ -261,8 +261,8 @@ Panel.Panel {
 
             ToggleButton.6 {
                 Down = false;
-                Position = (325, 0%);
-                Size = (65, 100%);
+                Position = (325, 0);
+                Size = (65, 64.9812);
                 Text = 6;
                 TextSize = 37;
 
@@ -294,8 +294,8 @@ Panel.Panel {
 
             ToggleButton.7 {
                 Down = false;
-                Position = (390, 0%);
-                Size = (65, 100%);
+                Position = (390, 0);
+                Size = (65, 64.9812);
                 Text = 7;
                 TextSize = 37;
 
@@ -327,8 +327,8 @@ Panel.Panel {
 
             ToggleButton.8 {
                 Down = false;
-                Position = (455, 0%);
-                Size = (65, 100%);
+                Position = (455, 0);
+                Size = (65, 64.9812);
                 Text = 8;
                 TextSize = 37;
 
@@ -360,8 +360,8 @@ Panel.Panel {
 
             ToggleButton.9 {
                 Down = false;
-                Position = (520, 0%);
-                Size = (65, 100%);
+                Position = (520, 0);
+                Size = (65, 64.9812);
                 Text = 9;
                 TextSize = 37;
 
@@ -524,10 +524,10 @@ Panel.Panel {
         }
 
         Label."Memory Text" {
+            AutoSize = true;
             Position = (1.49%, 50.2%);
             Renderer = &1;
-            ScrollbarPolicy = Automatic;
-            Size = (31%, 7.35%);
+            Size = (231, 54);
             Text = "Hash Size:";
             TextSize = 42;
         }
