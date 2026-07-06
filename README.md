@@ -29,6 +29,8 @@ The app contains many board keybinds, here is a full list of them:
 <details>
 <summary>Click to expand</summary>
 
+- Left Arrow: Goes to the previous move in the move history.
+- Right Arrow: Goes to the next move in the move history.
 - Ctrl + T: Enables or disables time control on games.
 - N: Resets the current position and creates a new one.
 - A: Enables or disables the engine (Fairy-Stockfish) from playing.
