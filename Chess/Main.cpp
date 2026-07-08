@@ -3059,8 +3059,8 @@ int main()
 	hShadow->onMouseEnter([&]() { hTopHover = true; hTopHovered = true; });
 	hShadow->onMouseLeave([&]() { hTopHover = false; });
 
-	bool guiVisible = sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible,
-		guiVisibleFromBoard = (sGUIvisible && sFromBoard) || (bGUIvisible && bMode == 2) || (aBGUIVisible && aFromBoard) || (asGUIvisible && asFromBoard);
+	bool guiVisible = sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible || asGUIvisible;
+	bool guiVisibleFromBoard = (sGUIvisible && sFromBoard) || (bGUIvisible && bMode == 2) || (aBGUIVisible && aFromBoard) || (asGUIvisible && asFromBoard);
 
 	auto updateHeader = [&]() {
 		if (selectedBoard) {
@@ -3133,7 +3133,7 @@ int main()
 	deltaClock.restart();
 
 	while (window.isOpen()) {
-		guiVisible = (sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible);
+		guiVisible = (sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible || asGUIvisible);
 		guiVisibleFromBoard = (sGUIvisible && sFromBoard) || (bGUIvisible && bMode == 2) || (aBGUIVisible && aFromBoard) || (asGUIvisible && asFromBoard);
 		deltaTime = deltaClock.restart();
 		float dT = deltaTime.asSeconds();
@@ -3338,7 +3338,7 @@ int main()
 				else if (const auto* focusGained = event->getIf<sf::Event::FocusLost>()) {
 					isFocused = false;
 				}
-				guiVisible = (sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible);
+				guiVisible = (sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible || asGUIvisible);
 				if (selectedBoard && !guiVisible) { selectedBoard->handleEvent(event, mousePos, boardSpriteSheet, isFocused, controlClicked); }
 			}
 		}
