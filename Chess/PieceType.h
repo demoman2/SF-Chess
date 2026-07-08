@@ -31,8 +31,17 @@ namespace Chess {
 
 		size_t count() const { return pieceSet.size(); }
 
-		void set(char c) { pieceSet.clear(); pieceSet.emplace(c); }
-		void add(char c) { pieceSet.emplace(c); }
+		void set(char c) {
+			pieceSet.clear();
+			if (c != '-') {
+				pieceSet.emplace(c);
+			}
+		}
+		void add(char c) {
+			if (c != '-') {
+				pieceSet.insert(c);
+			}
+		}
 		void remove(char c) { pieceSet.erase(c); };
 		bool has(char c) const {
 			if (pieceSet.find('*') != pieceSet.end()) {
@@ -47,7 +56,11 @@ namespace Chess {
 				pieceSet.insert(str.begin(), str.end());
 			}
 		}
-		void add(const std::string& str) { pieceSet.insert(str.begin(), str.end()); }
+		void add(const std::string& str) { 
+			if (str != "-") {
+				pieceSet.insert(str.begin(), str.end());
+			}
+		}
 		void remove(const std::string& str) { for (auto& c : str) { pieceSet.erase(c); } };
 		bool has(const std::string& str) const {
 			if (pieceSet.find('*') != pieceSet.end()) {

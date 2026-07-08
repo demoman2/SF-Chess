@@ -8,7 +8,7 @@ It uses all of the following libraries and applications for its functionality: [
 <img src="Chess/assets/screenshot_1.jpg" alt="" width="425" height="425"> <img src="Chess/assets/screenshot_2.jpg" alt="" width="425" height="425"> <img src="Chess/assets/screenshot_3.jpg" alt="" width="425" height="425"> <img src="Chess/assets/screenshot_5.jpg" alt="" width="425" height="425">
 
 ## Installing & Configuring
-To install, go to the [Releases Tab](https://github.com/demoman2/SF-Chess/releases) and get the .zip file for the latest version, unzip the file and open the .exe file, the app should start up and you can begin playing. 
+To install, go to the [Releases Tab](https://github.com/demoman2/SF-Chess/releases) and get the .zip file for the latest version, unzip the file and open the Chess.exe (or Chess if you have file extensions hidden) file, the app should start up and you can begin playing. 
 
 If you want to configure the variant structure, or modify the variants themselves, you can edit the variantsettings.txt file or the variants.ini file respectively, they are both located in assets/other.
 

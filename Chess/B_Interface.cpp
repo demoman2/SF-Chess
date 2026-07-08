@@ -174,7 +174,6 @@ void Board::loadFromPosition(const Chess::SavePosition& loadPosition)
 	position.castlePieces = loadPosition.castlePieces;
 	position.castlingRights = loadPosition.castlingRights;
 	position.gameEnded = loadPosition.gameEnded;
-	std::cout << position.gameEnded << "\n";
 	lastMoveStart.setPosition(getGlobalPosition(lastMoveStartLocal));
 	lastMoveDest.setPosition(getGlobalPosition(lastMoveDestLocal));
 	checkSprites.clear();

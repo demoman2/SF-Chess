@@ -181,8 +181,8 @@ void Board::generateLegalMoves(bool init) {
 			positionHistoryF.clear();
 		}
 	}
-	/*
-	if (!gameEnded) {
+	
+	if (!position.gameEnded && doDebug) {
 		size_t moveCount = getMoveCount();
 		int n = stockfish.getLegalMoveCount(startingFEN, moves);
 		if (n != moveCount && n != 0) {
@@ -216,8 +216,11 @@ void Board::generateLegalMoves(bool init) {
 			stockfishEnabled = false;
 		}
 	}
-	*/
 	generatingMoves = false;
+	if (position.gameEnded && autoNewPosition) {
+		if (repeatFEN) { loadFromFEN(newPositionFEN, true); }
+		else { loadFromFEN({}, true); }
+	}
 }
 
 void Board::mouseModeOff()
@@ -349,15 +352,14 @@ void Board::calculateDropPositions() {
 }
 
 Chess::Endgame Board::determineEnd() {
-	// Neither 0, Stalemate 1, Checkmate 2, Insufficient Material 3, 50 Move Rule 4, Threefold Repetition 5
 	if (!variant->whiteFlagRegion.empty() || !variant->blackFlagRegion.empty()) {
 		bool whiteFlag = false, blackFlag = false;
-		if (std::any_of(position.pieceList.begin(), position.pieceList.end(), [&](std::shared_ptr<Piece>& piece)
-			{ return piece->isWhite() && variant->whiteFlagPieces.has(piece->id) && variant->whiteFlagRegion.contains(piece->getLocalPos()); })) {
+		if (std::count_if(position.pieceList.begin(), position.pieceList.end(), [&](std::shared_ptr<Piece>& piece)
+			{ return piece->isWhite() && variant->whiteFlagPieces.has(piece->id) && variant->whiteFlagRegion.contains(piece->getLocalPos()); }) >= variant->flagPieceCount) {
 			whiteFlag = true;
 		}
-		if (std::any_of(position.pieceList.begin(), position.pieceList.end(), [&](std::shared_ptr<Piece>& piece)
-			{ return piece->isBlack() && variant->blackFlagPieces.has(piece->id) && variant->blackFlagRegion.contains(piece->getLocalPos()); })) {
+		if (std::count_if(position.pieceList.begin(), position.pieceList.end(), [&](std::shared_ptr<Piece>& piece)
+			{ return piece->isBlack() && variant->blackFlagPieces.has(piece->id) && variant->blackFlagRegion.contains(piece->getLocalPos()); }) >= variant->flagPieceCount) {
 			blackFlag = true;
 		}
 		if (whiteFlag && blackFlag) {
@@ -434,9 +436,19 @@ Chess::Endgame Board::determineEnd() {
 				}
 			}
 		}
-		else {
+		else {	
 			for (auto& p : currentExtinctionPieces) {
-				size_t count = std::count(variant->startingFEN.begin(), variant->startingFEN.end(), p);
+				char extinctionPiece = (whiteToPlay ? std::toupper(p) : std::tolower(p));
+				size_t count = 0;
+				for (size_t i = 0; i < variant->startingFEN.find(' '); i++) {
+					char c = variant->startingFEN.at(i);
+					if (std::isalpha(c)) {
+						if (i > 0 && variant->startingFEN.at(i - 1) == '+' && variant->promotedPieceTypes.find(std::tolower(c)) != variant->promotedPieceTypes.end()) {
+							c = variant->promotedPieceTypes.find(std::tolower(c))->second;
+						}
+					}
+					if (c == extinctionPiece) { count++; }
+				}
 				if (variant->extinctionPseudoRoyal && count <= variant->extinctionPieceCount) { continue; }
 				if (std::count_if(position.pieceList.cbegin(), position.pieceList.cend(), [&, p](const std::shared_ptr<Piece>& piece)
 					{ return whiteToPlay == piece->isWhite() && piece->id == p; }) <= variant->extinctionPieceCount) {

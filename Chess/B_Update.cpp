@@ -1163,7 +1163,7 @@ void Board::update(sf::Vector2f& mousePos, bool isFocused, float deltaTime)
 		if (holdingDropPiece) {
 			if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
 				holdingDropPiece = false;
-				if (selectedDropPiece.sDropSquares) {
+				if (selectedDropPiece.sDropSquares && !position.gameEnded) {
 					for (auto& square : *selectedDropPiece.sDropSquares) {
 						sf::Sprite& sprite = *square.sprite;
 						if (selectedDropPiece.sprite.getGlobalBounds().contains(sprite.getPosition())) {
@@ -1361,13 +1361,6 @@ void Board::update(sf::Vector2f& mousePos, bool isFocused, float deltaTime)
 			whiteTimeOutline.setColor(setHueSat(sf::Color(74, 67, 78), boardHSV));
 			whiteTimeText.setFillColor(sf::Color(255, 255, 255));
 			blackTimeText.setFillColor(setHueSat(sf::Color(22, 8, 33), boardHSV));
-		}
-	}
-
-	if (position.gameEnded && autoNewPosition) {
-		if (animationFinished && !pieceMoving && !calculatingPos && !stockfish.isCalculating) {
-			if (repeatFEN) { loadFromFEN(newPositionFEN, true); }
-			else { loadFromFEN({}, true); }
 		}
 	}
 

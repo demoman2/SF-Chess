@@ -50,7 +50,7 @@ int Chess::convertChartoX(char c)
 
 sf::Vector2i Chess::reversePositon(sf::Vector2i position, sf::Vector2u boardSize)
 {
-	return { Chess::reverseY(position.x, boardSize),Chess::reverseY(position.y, boardSize) };
+	return { Chess::reverseX(position.x, boardSize), Chess::reverseY(position.y, boardSize) };
 }
 
 sf::Vector2f Chess::reversePosition(sf::Vector2f position, sf::Vector2f boardSize)
@@ -84,7 +84,7 @@ sf::Vector2i Chess::getLocalPosition(sf::Vector2f position, sf::Vector2f boardOf
 {
 	sf::Vector2f v = { std::ceil((position.x - boardOffset.x) / boardMultiplier), Chess::reverseY(std::ceil((position.y - boardOffset.y) / boardMultiplier), boardSquares) };
 	sf::Vector2i d = (sf::Vector2i)v;
-	if (reversed) { return { Chess::reverseY(d.x, boardSquares), Chess::reverseY(d.y, boardSquares) }; }
+	if (reversed) { return { Chess::reverseX(d.x, boardSquares), Chess::reverseY(d.y, boardSquares) }; }
 	return d;
 }
 

@@ -126,6 +126,7 @@ namespace Chess
 	int convertXtoChar(int x);
 	int convertChartoX(char c);
 
+	template<typename T> static T reverseX(T y, sf::Vector2u boardSize) { return boardSize.x - y + 1; }
 	template<typename T> static T reverseY(T y, sf::Vector2u boardSize) { return boardSize.y - y + 1; }
 	sf::Vector2i reversePositon(sf::Vector2i position, sf::Vector2u boardSquares);
 	sf::Vector2f reversePosition(sf::Vector2f position, sf::Vector2f boardOffset);

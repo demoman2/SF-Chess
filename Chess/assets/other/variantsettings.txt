@@ -9,10 +9,10 @@
 ! Chess Variants: Variants based on Chess and do not introduce fairy pieces
 chess|Chess Variants|Standard|Chess, unmodified, as it's played by FIDE standards.|https://en.wikipedia.org/wiki/Chess
 chess960|Chess Variants|Chess960|Pieces at the 1st/8th rank can be placed randomly but the bishops must be on squares of different colors and the king must be between the rooks. Special castling rules are applied.|https://en.wikipedia.org/wiki/Fischer_random_chess
-3check|Chess Variants|3 Check|Check your opponent 3 times to win the game.|https://en.wikipedia.org/wiki/Three-check_chess
-crazyhouse|Chess Variants|Crazy House|Take captured pieces and drop them back on to the board as your own.|https://en.wikipedia.org/wiki/Crazyhouse
-antichess|Chess Variants|Anti Chess|Lose all your pieces or get stalemated to win. Capturing is compulsory. Kings are no longer royal and cannot castle.|https://lichess.org/variant/antichess
-atomic|Chess Variants|Atomic Chess|Pieces explode upon capture, destroying all pieces except pawns in the 8 square around the destination square and itself.|https://en.wikipedia.org/wiki/Atomic_chess
+threecheck|Chess Variants|Three Check|Check your opponent 3 times to win the game.|https://en.wikipedia.org/wiki/Three-check_chess
+crazyhouse|Chess Variants|Crazyhouse|Take captured pieces and drop them back on to the board as your own.|https://en.wikipedia.org/wiki/Crazyhouse
+antichess|Chess Variants|Antichess|Lose all your pieces or get stalemated to win. Capturing is compulsory. Kings are no longer royal and cannot castle.|https://lichess.org/variant/antichess
+atomic|Chess Variants|Atomic|Pieces explode upon capture, destroying all pieces except pawns in the 8 square around the destination square and itself.|https://en.wikipedia.org/wiki/Atomic_chess
 kingofthehill|Chess Variants|King Of The Hill|Bring your King to the center to win the game.|https://en.wikipedia.org/wiki/King_of_the_Hill_(chess)
 racingkings|Chess Variants|Racing Kings|Hinder the opponent's king and make your king reach the 8th rank first to win. Checks are not allowed.|https://en.wikipedia.org/wiki/V._R._Parton#Racing_Kings
 placement|Chess Variants|Placement Chess|Choose where your pieces start.|https://www.chessvariants.com/link/placement-chess
@@ -41,7 +41,7 @@ threekings|Chess Variants|Three Kings Chess|Rooks are replaced by kings. Any of 
 petrified|Chess Variants|Petrified Chess|Pieces except pawns that capture a piece will turn into a wall square (called petrified). Pawns can move sideways.|https://www.chess.com/variants/petrified
 nocheckatomic|Chess Variants|No Check Atomic Chess|Atomic chess without checks. (ICC rules)|https://www.chessclub.com/help/atomic
 atomar|Chess Variants|Atomar Chess|No Check Atomic Chess but Kings does not self explode or get blown up and cannot capture each other.|https://web.archive.org/web/20230519082613/https://chronatog.com/wp-content/uploads/2021/09/atomar-chess-rules.pdf
-5check|Chess Variants|5 Check|Check your opponent 5 times to win the game.|
+fivecheck|Chess Variants|Five Check|Check your opponent 5 times to win the game.|
 gardner|Chess Variants|Gardner's Mini Chess|5×5 chess. No double step and castling.|https://en.wikipedia.org/wiki/Minichess#5%C3%975_chess
 allwayspawns|Chess Variants|All Ways Pawns|Pawns with extra sideways and backwards movement.|
 3check-crazyhouse|Chess Variants|3 Check Crazy House|Hybrid variant of Three-Check Chess and Crazyhouse.|

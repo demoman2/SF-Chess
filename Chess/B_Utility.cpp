@@ -587,7 +587,7 @@ std::string Board::getCurrentFEN() const {
 				if (variant->dropsEnabled && piece->promoted) { rank += '~'; }
 			}
 			else {
-				if (!std::isdigit(rank.back()) || rank.empty()) {
+				if (rank.empty() || !std::isdigit(rank.back())) {
 					rank += '1';
 				}
 				else if (std::isdigit(rank.back())) {

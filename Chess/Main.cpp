@@ -50,7 +50,7 @@ int main()
 
 	selectedIcon = &iconTextures.at(std::rand() % iconTextures.size()); 
 
-	// Board  
+	// Board
 	bool blockCursor = false, makingBoard = false, isFocused = true, controlClicked = false, shiftClicked = false;
 	sf::Image boardSpriteSheet("assets/board/board_matrix.jpg");
 	sf::Texture bGUIPieceBackground("assets/ui/textures/white.jpg");
@@ -163,10 +163,11 @@ int main()
 		if (!makingBoard) {
 			for (auto& board : boardList) { board->mouseModeOff(); }
 			makingBoard = true;
+			window.setMouseCursor(mouseCursors.at(3));
 			std::thread makeBoardThread(makeBoard, std::ref(selectedBoard), std::cref(boardSettings), std::cref(sfSettings), std::cref(pieceTextures), std::cref(variantPieceTextures),
 				window.getSize(), std::cref(boardSpriteSheet), std::cref(textFont), std::cref(boardTextures), std::cref(soundBuffers),
 				std::cref(endgameVariants), std::ref(boardList), std::ref(makingBoard));
-			makeBoardThread.detach();
+			makeBoardThread.join();
 		}
 		};
 
@@ -174,10 +175,11 @@ int main()
 		if (!makingBoard) {
 			for (auto& board : boardList) { board->mouseModeOff(); }
 			makingBoard = true;
+			window.setMouseCursor(mouseCursors.at(3));
 			std::thread makeBoardThread(makeBoard, std::ref(selectedBoard), std::cref(boardSettings), std::cref(stockfishSettings), std::cref(pieceTextures), std::cref(variantPieceTextures),
 				window.getSize(), std::cref(boardSpriteSheet), std::cref(textFont), std::cref(boardTextures), std::cref(soundBuffers),
 				std::cref(endgameVariants), std::ref(boardList), std::ref(makingBoard));
-			makeBoardThread.detach();
+			makeBoardThread.join();
 		}
 		};
 

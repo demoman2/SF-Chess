@@ -37,8 +37,8 @@ Chess::Variant::Variant(const std::string& variantStr, const std::vector<std::sh
 	whiteDropRegion("*"), blackDropRegion("*"), 
 
 	castleRank(1), castleKDestination(7), castleQDestination(3),
-	checkmateValue(Chess::WinValue::None), nFoldValue(Chess::WinValue::None),
-	stalemateValue(Chess::WinValue::None), extinctionValue(Chess::WinValue::None)
+	checkmateValue(Chess::WinValue::Loss), nFoldValue(Chess::WinValue::Draw),
+	stalemateValue(Chess::WinValue::Draw), extinctionValue(Chess::WinValue::None)
 {
 	loadFromStr(variantStr, inheritList);
 }
@@ -302,27 +302,29 @@ void Chess::Variant::addPiece(const std::string& pieceStr, const std::string& de
 
 void Chess::Variant::removePiece(const std::string& pieceName)
 {
-	char id = pieceTypes.find(pieceName)->second;
-	pawnPiecesBlastImmunity.remove(id);
-	mutuallyImmunePieces.remove(id);
-	atomicImmunePieces.remove(id);
-	whiteExtinctionPieces.remove(id);
-	blackExtinctionPieces.remove(id);
-	whiteFlagPieces.remove(id);
-	blackFlagPieces.remove(id);
-	castlingKingPiece.remove(id);
-	castlingRookPieces.remove(id);
-	royalPieces.remove(id);
-	promotionPawnPieces.remove(id);
-	enPassantPieces.remove(id);
-	nMoveRulePieces.remove(id);
-	whiteDropPieces.remove(id);
-	blackDropPieces.remove(id);
-	whitePromotePieces.remove(id);
-	blackPromotePieces.remove(id);
-	pawnPieces.remove(id);
-	pieceMoves.erase(id);
-	pieceTypes.erase(pieceName);
+	if (pieceTypes.find(pieceName) != pieceTypes.end()) {
+		char id = pieceTypes.find(pieceName)->second;
+		pawnPiecesBlastImmunity.remove(id);
+		mutuallyImmunePieces.remove(id);
+		atomicImmunePieces.remove(id);
+		whiteExtinctionPieces.remove(id);
+		blackExtinctionPieces.remove(id);
+		whiteFlagPieces.remove(id);
+		blackFlagPieces.remove(id);
+		castlingKingPiece.remove(id);
+		castlingRookPieces.remove(id);
+		royalPieces.remove(id);
+		promotionPawnPieces.remove(id);
+		enPassantPieces.remove(id);
+		nMoveRulePieces.remove(id);
+		whiteDropPieces.remove(id);
+		blackDropPieces.remove(id);
+		whitePromotePieces.remove(id);
+		blackPromotePieces.remove(id);
+		pawnPieces.remove(id);
+		pieceMoves.erase(id);
+		pieceTypes.erase(pieceName);
+	}
 }
 
 void Chess::Variant::removePiece(char id)
@@ -345,10 +347,11 @@ void Chess::Variant::removePiece(char id)
 	whitePromotePieces.remove(id);
 	blackPromotePieces.remove(id);
 	pawnPieces.remove(id);
-	for (auto it = pieceTypes.begin(); it != pieceTypes.end(); it++) {
+	for (auto it = pieceTypes.begin(); it != pieceTypes.end();) {
 		if (it->second == id) {
-			pieceTypes.erase(it);
+			it = pieceTypes.erase(it);
 		}
+		else { it++; }
 	}
 }
 
@@ -403,26 +406,26 @@ Chess::Variant::VariantSetters Chess::Variant::getSetters()
 	vSetters["castlingKingFile"] = [&](const std::string& str) {
 		castlingKingFile = std::all_of(str.begin(), str.end(), [](char c) { return std::isdigit(c); }) ? std::stoi(str) : convertChartoX(str.front()) + 1;
 		};
-	vSetters["mutuallyImmuneTypes"] = [&](const std::string& str) { mutuallyImmunePieces.add(str); };
-	vSetters["blastImmuneTypes"] = [&](const std::string& str) { atomicImmunePieces.add(str); };
-	vSetters["dropNoDoubled"] = [&](const std::string& str) { dropNoDoubledPieces.add(str); };
+	vSetters["mutuallyImmuneTypes"] = [&](const std::string& str) { mutuallyImmunePieces.set(str); };
+	vSetters["blastImmuneTypes"] = [&](const std::string& str) { atomicImmunePieces.set(str); };
+	vSetters["dropNoDoubled"] = [&](const std::string& str) { dropNoDoubledPieces.set(str); };
 	vSetters["extinctionPieceTypes"] = [&](const std::string& str) {
-		whiteExtinctionPieces.add(str);
-		blackExtinctionPieces.add(str);
+		whiteExtinctionPieces.set(str);
+		blackExtinctionPieces.set(str);
 		};
 	vSetters["flagPiece"] = [&](const std::string& str) {
-		whiteFlagPieces.add(str);
-		blackFlagPieces.add(str);
+		whiteFlagPieces.set(str);
+		blackFlagPieces.set(str);
 		};
-	vSetters["flagPieceWhite"] = [&](const std::string& str) { whiteFlagPieces.add(str); };
-	vSetters["flagPieceBlack"] = [&](const std::string& str) { blackFlagPieces.add(str); };
+	vSetters["flagPieceWhite"] = [&](const std::string& str) { whiteFlagPieces.set(str); };
+	vSetters["flagPieceBlack"] = [&](const std::string& str) { blackFlagPieces.set(str); };
 	vSetters["pawnTypes"] = [&](const std::string& str) {
-		pawnPieces.add(str);
+		pawnPieces.set(str);
 		};
-	vSetters["promotionPawnTypes"] = [&](const std::string& str) { promotionPawnPieces.add(str); };
-	vSetters["enPassantTypes"] = [&](const std::string& str) { enPassantPieces.add(str); };
-	vSetters["nMoveRuleTypes"] = [&](const std::string& str) { nMoveRulePieces.add(str); };
-	vSetters["royalTypes"] = [&](const std::string& str) { royalPieces.add(str); };
+	vSetters["promotionPawnTypes"] = [&](const std::string& str) { promotionPawnPieces.set(str); };
+	vSetters["enPassantTypes"] = [&](const std::string& str) { enPassantPieces.set(str); };
+	vSetters["nMoveRuleTypes"] = [&](const std::string& str) { nMoveRulePieces.set(str); };
+	vSetters["royalTypes"] = [&](const std::string& str) { royalPieces.set(str); };
 	vSetters["promotionPieceTypesWhite"] = [&](const std::string& str) {
 		whitePromotePieces.set(str);
 		};
@@ -448,10 +451,10 @@ Chess::Variant::VariantSetters Chess::Variant::getSetters()
 		}
 		};
 	vSetters["castlingRookPieces"] = [&](const std::string& str) {
-		castlingRookPieces.add(str);
+		castlingRookPieces.set(str);
 		};
 	vSetters["castlingKingPiece"] = [&](const std::string& str) {
-		castlingKingPiece.add(str);
+		castlingKingPiece.set(str);
 		};
 	vSetters["nFoldValue"] = [&](const std::string& str) { nFoldValue = Chess::getWinValue(str); };
 	vSetters["checkmateValue"] = [&](const std::string& str) { checkmateValue = Chess::getWinValue(str); };
@@ -572,7 +575,7 @@ void Chess::addVariants(VariantList& variantList, const std::string& variantPath
 		if (line.empty() || line.front() == '#') { continue; }
 
 		if (line.front() == '[') {
-			if (!currentVariant.empty()) { variantList.emplace_back(std::make_shared<Chess::Variant>(currentVariant, variantList)); }
+			if (!currentVariant.empty()) { variantList.push_back(std::make_shared<Chess::Variant>(currentVariant, variantList)); }
 			currentVariant = line;
 		}
 		else {
