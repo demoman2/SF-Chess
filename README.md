@@ -15,10 +15,12 @@ If you want to configure the variant structure, or modify the variants themselve
 ## Using The App
 Upon starting the app, you should be able to see the buttons "Board Settings" and "Engine Settings" at the top of the screen, they will both let you customize their respective functionalities to your liking.
 
-To begin playing, click the "Board Settings" button and click the "Create Board" button, or press E on your keyboard. This will make the board that you will play on. 
-The buttons "New Board Settings...", "New Engine Settings..." etc will set the settings for any new board you make.
+To begin playing, click the "Board Settings" button and click the "Create Board" button, or press E on your keyboard. This will make the board that you will play on.
+If you want to edit the current board, you can click on "Board Settings..." (Keybind Shift+S) or "Engine Settings..." (Keybind Shift+A) for the engine.
 
 <img src="Chess/assets/screenshot_4.jpg" alt="" width="500" height="500">
+
+The buttons "New Board Settings...", "New Engine Settings..." etc will set the settings for any new board you make.
 
 To close the app, press the escape key on your keyboard.
 
