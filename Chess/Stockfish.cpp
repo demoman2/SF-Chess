@@ -99,7 +99,6 @@ void Stockfish::getBestMove(const std::string& fen, const std::string& moves)
 	os << "go movetime " << settings.fixedTime.asMilliseconds() << std::endl;
 
 	while (getline(is, line)) {
-		std::cout << line << "\n";
 		if (stoppedCalculating) {
 			if (!line.compare(0, 8, "bestmove")) {
 				break;
