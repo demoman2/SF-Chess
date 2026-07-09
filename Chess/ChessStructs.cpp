@@ -234,13 +234,13 @@ sf::Texture Chess::loadBoard(const sf::Image& spriteSheet, int boardNumber, sf::
 	sf::Texture dark{ spriteSheet, false, sf::IntRect{{(bx * 128 * 2) + 128, by * 128}, {128, 128}} };
 	for (int y = 0; y < boardSquares.y; y++) {
 		for (int x = 0; x < boardSquares.x; x++) {
-			if ((x + y) % 2 == 0) {
-				sf::Sprite s{ dark };
+			if ((x + y) % 2 == (boardSquares.y) % 2) {
+				sf::Sprite s{ light };
 				s.setPosition({ float(x * 128), float(y * 128) });
 				r.draw(s);
 			}
 			else {
-				sf::Sprite s{ light };
+				sf::Sprite s{ dark };
 				s.setPosition({ float(x * 128), float(y * 128) });
 				r.draw(s);
 			}
