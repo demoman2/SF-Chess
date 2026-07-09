@@ -21,8 +21,8 @@
 // FEN
 void Board::loadFromFEN(const std::optional<std::string>& FEN_ID, bool init, bool first)
 {
-	stockfish.setVariant(variant->name, position.hasChess960);
 	if (stockfish.isCalculating) { stockfish.stopCalculating(); }
+	stockfish.setVariant(variant->name, position.hasChess960);
 	setSpriteVisible(ghostSprite, false);
 	moves = "";
 	if (!first) {
@@ -1350,13 +1350,13 @@ void Board::loadFromBoardArgs(const BoardSettings& bP, sf::Image& boardSheet)
 
 	variantTypeIndex = bP.variantTypeIndex;
 	if (bP.FEN.has_value() && bP.FEN != fen) {
-		loadFromFEN(bP.FEN.value(), false);
+		loadFromFEN(bP.FEN.value(), changeVariant);
 	}
 	if (!startedStockfish) {
 		stockfish.startStockfish();
-		stockfish.setVariant(variant->name, position.hasChess960);
 		startedStockfish = true;
 	}
+
 }
 
 void Board::setStockfishSettings(const StockfishSettings& newSettings)

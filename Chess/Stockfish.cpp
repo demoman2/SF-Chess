@@ -75,10 +75,15 @@ void Stockfish::loadSettings(const StockfishSettings& stockfishSettings) {
 }
 
 void Stockfish::setVariant(const std::string& vName, bool chess960) {
+	std::string line;
 	std::string chess960String = chess960 ? "true" : "false";
 	os << "setoption name UCI_Variant value " << vName << std::endl;
 	os << "setoption name UCI_Chess960 value " << chess960String << std::endl;
 	os << "ucinewgame" << std::endl;
+	os << "isready" << std::endl;
+	while (getline(is, line)) {
+		if (line.find("readyok") != line.npos) { break; }
+	}
 }
 
 void Stockfish::getBestMove(const std::string& fen, const std::string& moves)
@@ -94,6 +99,7 @@ void Stockfish::getBestMove(const std::string& fen, const std::string& moves)
 	os << "go movetime " << settings.fixedTime.asMilliseconds() << std::endl;
 
 	while (getline(is, line)) {
+		std::cout << line << "\n";
 		if (stoppedCalculating) {
 			if (!line.compare(0, 8, "bestmove")) {
 				break;

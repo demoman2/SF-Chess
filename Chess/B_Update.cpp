@@ -176,7 +176,6 @@ void Board::handleEvent(const std::optional<sf::Event>& event, sf::Vector2f mous
 				}
 			}
 			else {
-
 				if (keyPressed->code == sf::Keyboard::Key::O) {
 					if (endgameVariants->count(variant->name) > 0) {
 						endgamePosition = !endgamePosition;
@@ -200,12 +199,19 @@ void Board::handleEvent(const std::optional<sf::Event>& event, sf::Vector2f mous
 				}
 			}
 
+
 			if (keyPressed->code == sf::Keyboard::Key::R) {
 				if (!(!scaleMode && mouseMode && (pieceMoving || !animationFinished))) {
 					scaleMode = !scaleMode;
 					if (optionMode) {
 						setOptionChange("Scale Mode", scaleMode);
 					}
+				}
+			}
+			else if (keyPressed->code == sf::Keyboard::Key::X) {
+				if (!stockfish.isCalculating) {
+					stockfish.printPosition();
+					std::cout << "COUNT: " << stockfish.getLegalMoveCount(stockfish.getFEN());
 				}
 			}
 			else if (keyPressed->code == sf::Keyboard::Key::M) {

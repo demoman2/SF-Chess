@@ -716,6 +716,7 @@ int main()
 	bVariantComboBox->onItemSelect([&](size_t index) {
 		bP.variantIndex = index;
 		auto& variant = bP.variantList->at(bP.variantIndex);
+		sfSettings.UCI_Variant = variant->name;
 		if (variant->description != "") {
 			bVariantDescription->setText(variant->description);
 		}
@@ -822,8 +823,8 @@ int main()
 			newBoardWith(bP, selectedSFSettings);
 		}
 		else if (bMode == 2 && selectedBoard) {
-			selectedBoard->loadFromBoardArgs(bP, boardSpriteSheet);
 			selectedBoard->setStockfishSettings(sfSettings);
+			selectedBoard->loadFromBoardArgs(bP, boardSpriteSheet);
 		}
 		bGUIvisible = false;
 		});
@@ -1213,8 +1214,8 @@ int main()
 		}
 		else {
 			if (aFromBoard && selectedBoard) {
-				selectedBoard->loadFromBoardArgs(bP, boardSpriteSheet);
 				selectedBoard->setStockfishSettings(selectedSFSettings);
+				selectedBoard->loadFromBoardArgs(bP, boardSpriteSheet);
 			}
 			else if (!aFromBoard) {
 				boardSettings = bP;
@@ -1773,6 +1774,7 @@ int main()
 	aVariantComboBox->onItemSelect([&](size_t index) {
 		bP.variantIndex = index;
 		auto& variant = bP.variantList->at(bP.variantIndex);
+		sfSettings.UCI_Variant = variant->name;
 		if (variant->description != "") {
 			aVariantDescription->setText(variant->description);
 		}
@@ -3243,8 +3245,8 @@ int main()
 											sfSettings = selectedSFSettings;
 										}
 										else if (bMode == 2 && selectedBoard) {
-											selectedBoard->loadFromBoardArgs(bP, boardSpriteSheet);
 											selectedBoard->setStockfishSettings(sfSettings);
+											selectedBoard->loadFromBoardArgs(bP, boardSpriteSheet);
 										}
 										bGUIvisible = false;
 									}
