@@ -50,7 +50,7 @@ int main()
 
 	selectedIcon = &iconTextures.at(std::rand() % iconTextures.size()); 
 
-	// Board
+	// Board  
 	bool blockCursor = false, makingBoard = false, isFocused = true, controlClicked = false, shiftClicked = false;
 	sf::Image boardSpriteSheet("assets/board/board_matrix.jpg");
 	sf::Texture bGUIPieceBackground("assets/ui/textures/white.jpg");
@@ -163,11 +163,10 @@ int main()
 		if (!makingBoard) {
 			for (auto& board : boardList) { board->mouseModeOff(); }
 			makingBoard = true;
-			window.setMouseCursor(mouseCursors.at(3));
 			std::thread makeBoardThread(makeBoard, std::ref(selectedBoard), std::cref(boardSettings), std::cref(sfSettings), std::cref(pieceTextures), std::cref(variantPieceTextures),
 				window.getSize(), std::cref(boardSpriteSheet), std::cref(textFont), std::cref(boardTextures), std::cref(soundBuffers),
 				std::cref(endgameVariants), std::ref(boardList), std::ref(makingBoard));
-			makeBoardThread.join();
+			makeBoardThread.detach();
 		}
 		};
 
@@ -175,11 +174,10 @@ int main()
 		if (!makingBoard) {
 			for (auto& board : boardList) { board->mouseModeOff(); }
 			makingBoard = true;
-			window.setMouseCursor(mouseCursors.at(3));
 			std::thread makeBoardThread(makeBoard, std::ref(selectedBoard), std::cref(boardSettings), std::cref(stockfishSettings), std::cref(pieceTextures), std::cref(variantPieceTextures),
 				window.getSize(), std::cref(boardSpriteSheet), std::cref(textFont), std::cref(boardTextures), std::cref(soundBuffers),
 				std::cref(endgameVariants), std::ref(boardList), std::ref(makingBoard));
-			makeBoardThread.join();
+			makeBoardThread.detach();
 		}
 		};
 
@@ -716,7 +714,6 @@ int main()
 	bVariantComboBox->onItemSelect([&](size_t index) {
 		bP.variantIndex = index;
 		auto& variant = bP.variantList->at(bP.variantIndex);
-		sfSettings.UCI_Variant = variant->name;
 		if (variant->description != "") {
 			bVariantDescription->setText(variant->description);
 		}
@@ -823,8 +820,8 @@ int main()
 			newBoardWith(bP, selectedSFSettings);
 		}
 		else if (bMode == 2 && selectedBoard) {
-			selectedBoard->setStockfishSettings(sfSettings);
 			selectedBoard->loadFromBoardArgs(bP, boardSpriteSheet);
+			selectedBoard->setStockfishSettings(selectedSFSettings);
 		}
 		bGUIvisible = false;
 		});
@@ -1214,8 +1211,8 @@ int main()
 		}
 		else {
 			if (aFromBoard && selectedBoard) {
-				selectedBoard->setStockfishSettings(selectedSFSettings);
 				selectedBoard->loadFromBoardArgs(bP, boardSpriteSheet);
+				selectedBoard->setStockfishSettings(selectedSFSettings);
 			}
 			else if (!aFromBoard) {
 				boardSettings = bP;
@@ -1774,7 +1771,6 @@ int main()
 	aVariantComboBox->onItemSelect([&](size_t index) {
 		bP.variantIndex = index;
 		auto& variant = bP.variantList->at(bP.variantIndex);
-		sfSettings.UCI_Variant = variant->name;
 		if (variant->description != "") {
 			aVariantDescription->setText(variant->description);
 		}
@@ -3061,8 +3057,8 @@ int main()
 	hShadow->onMouseEnter([&]() { hTopHover = true; hTopHovered = true; });
 	hShadow->onMouseLeave([&]() { hTopHover = false; });
 
-	bool guiVisible = sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible || asGUIvisible;
-	bool guiVisibleFromBoard = (sGUIvisible && sFromBoard) || (bGUIvisible && bMode == 2) || (aBGUIVisible && aFromBoard) || (asGUIvisible && asFromBoard);
+	bool guiVisible = sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible,
+		guiVisibleFromBoard = (sGUIvisible && sFromBoard) || (bGUIvisible && bMode == 2) || (aBGUIVisible && aFromBoard) || (asGUIvisible && asFromBoard);
 
 	auto updateHeader = [&]() {
 		if (selectedBoard) {
@@ -3135,7 +3131,7 @@ int main()
 	deltaClock.restart();
 
 	while (window.isOpen()) {
-		guiVisible = (sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible || asGUIvisible);
+		guiVisible = (sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible);
 		guiVisibleFromBoard = (sGUIvisible && sFromBoard) || (bGUIvisible && bMode == 2) || (aBGUIVisible && aFromBoard) || (asGUIvisible && asFromBoard);
 		deltaTime = deltaClock.restart();
 		float dT = deltaTime.asSeconds();
@@ -3245,8 +3241,8 @@ int main()
 											sfSettings = selectedSFSettings;
 										}
 										else if (bMode == 2 && selectedBoard) {
-											selectedBoard->setStockfishSettings(sfSettings);
 											selectedBoard->loadFromBoardArgs(bP, boardSpriteSheet);
+											selectedBoard->setStockfishSettings(sfSettings);
 										}
 										bGUIvisible = false;
 									}
@@ -3340,7 +3336,7 @@ int main()
 				else if (const auto* focusGained = event->getIf<sf::Event::FocusLost>()) {
 					isFocused = false;
 				}
-				guiVisible = (sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible || asGUIvisible);
+				guiVisible = (sGUIvisible || bGUIvisible || aBGUIVisible || sGUIvisible || fGUIvisible);
 				if (selectedBoard && !guiVisible) { selectedBoard->handleEvent(event, mousePos, boardSpriteSheet, isFocused, controlClicked); }
 			}
 		}
